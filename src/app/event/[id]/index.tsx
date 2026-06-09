@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Image, Pressable, Share, View } from "react-native";
+import * as ExpoLinking from "expo-linking";
 import * as ImagePicker from "expo-image-picker";
 import { useMutation, useQuery } from "convex/react";
 import { Button, Card, Input, Separator, Spinner, Text } from "heroui-native";
@@ -150,7 +151,8 @@ export default function EventDetail() {
   async function share() {
     if (!currentUser) return;
     const token = await createToken({ userId: currentUser._id, eventId });
-    const url = `meettime://invite/${token}`;
+    // Runtime-correct deep link (exp:// in Expo Go, meettime:// in builds).
+    const url = ExpoLinking.createURL(`/invite/${token}`);
     try {
       await Share.share({ message: `Join me — ${event.title}\n${url}`, url });
     } catch {

@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "heroui-native-app",
+    "scheme": "meettime",
     "userInterfaceStyle": "light",
     "runtimeVersion": { "policy": "appVersion" },
     "updates": {

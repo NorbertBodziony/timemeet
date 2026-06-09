@@ -5,6 +5,7 @@ import { ListGroup, Separator, Switch, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
 import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
+import { SectionHeader } from "../../components/SectionHeader";
 import { useAuth } from "../../providers/MockAuthProvider";
 import type { IconName } from "../../lib/icons";
 
@@ -85,9 +86,7 @@ export default function Notifications() {
         />
       </ListGroup>
 
-      <Text type="body-xs" weight="semibold" color="muted" className="mt-6 mb-2 ml-1">
-        TRANSACTIONAL
-      </Text>
+      <SectionHeader>Transactional</SectionHeader>
       <ListGroup>
         {TRANSACTIONAL.map((t, i) => (
           <View key={t.key}>

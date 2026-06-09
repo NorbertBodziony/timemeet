@@ -3,22 +3,33 @@ import { v } from "convex/values";
 import { requireUser } from "./helpers";
 import { notify } from "./notifications";
 
+// A short-lived URL the client uploads an image to before creating the post.
+export const generateUploadUrl = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    await requireUser(ctx, userId);
+    return ctx.storage.generateUploadUrl();
+  },
+});
+
 export const add = mutation({
   args: {
     userId: v.id("users"),
     eventId: v.id("events"),
     body: v.string(),
     isAnnouncement: v.boolean(),
+    imageId: v.optional(v.id("_storage")),
   },
-  handler: async (ctx, { userId, eventId, body, isAnnouncement }) => {
+  handler: async (ctx, { userId, eventId, body, isAnnouncement, imageId }) => {
     const me = await requireUser(ctx, userId);
     const text = body.trim();
-    if (!text) throw new Error("Write something first.");
+    if (!text && !imageId) throw new Error("Write something or add a photo first.");
     const postId = await ctx.db.insert("posts", {
       eventId,
       authorId: userId,
       body: text,
       isAnnouncement,
+      imageId,
     });
 
     // Announcements ping everyone who responded (except the author).
@@ -31,7 +42,7 @@ export const add = mutation({
         ctx,
         rsvps.map((r) => r.userId).filter((id) => id !== userId),
         "post",
-        `${me.displayName}: ${text.slice(0, 60)}`,
+        `${me.displayName}: ${text.slice(0, 60) || "shared a photo 📷"}`,
         eventId
       );
     }
@@ -48,7 +59,11 @@ export const listForEvent = query({
       .order("desc")
       .collect();
     return Promise.all(
-      posts.map(async (p) => ({ ...p, author: await ctx.db.get(p.authorId) }))
+      posts.map(async (p) => ({
+        ...p,
+        author: await ctx.db.get(p.authorId),
+        imageUrl: p.imageId ? await ctx.storage.getUrl(p.imageId) : null,
+      }))
     );
   },
 });

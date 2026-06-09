@@ -4,6 +4,7 @@ import { Alert } from "react-native";
 import { useMutation } from "convex/react";
 import { Card, Input, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
+import { FormLabel } from "../../components/FormLabel";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
@@ -29,23 +30,15 @@ export default function Profile() {
     }
   }
 
-  const label = "mb-1.5";
-
   return (
     <Screen title="Your profile" dismiss="back">
-      <Text type="body-sm" weight="semibold" color="muted" className={label}>
-        Name
-      </Text>
+      <FormLabel>Name</FormLabel>
       <Input value={name} onChangeText={setName} placeholder="Karolina" />
 
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
-        City
-      </Text>
+      <FormLabel className="mt-5">City</FormLabel>
       <Input value={city} onChangeText={setCity} placeholder="Kraków" />
 
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
-        Referral code
-      </Text>
+      <FormLabel className="mt-5">Referral code</FormLabel>
       <Card className="mb-6">
         <Card.Body>
           <Text color="muted">{currentUser?.referralCode ?? "—"}</Text>

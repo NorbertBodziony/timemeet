@@ -39,7 +39,9 @@ export default defineSchema({
     analyticsOptIn: v.optional(v.boolean()), // opt-IN (RODO, §38)
     deletedAt: v.optional(v.number()), // soft delete; hard-delete cron is deferred
     pushToken: v.optional(v.string()), // Expo push token (real device push)
-  }).index("by_authSubject", ["authSubject"]),
+  })
+    .index("by_authSubject", ["authSubject"])
+    .index("by_referralCode", ["referralCode"]),
 
   polls: defineTable({
     creatorId: v.id("users"),
@@ -56,9 +58,11 @@ export default defineSchema({
     ),
     expiresAt: v.number(), // default +14d
     eventId: v.optional(v.id("events")),
+    shareToken: v.optional(v.string()), // magic link for guest voting
   })
     .index("by_creator", ["creatorId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_share_token", ["shareToken"]),
 
   pollSlots: defineTable({
     pollId: v.id("polls"),
@@ -83,12 +87,14 @@ export default defineSchema({
     pollId: v.id("polls"),
     userId: v.optional(v.id("users")), // nullable = guest voting
     guestName: v.optional(v.string()),
+    guestKey: v.optional(v.string()), // device key so a guest can update votes
     slotId: v.optional(v.id("pollSlots")),
     placeOptionId: v.optional(v.id("pollPlaceOptions")),
     value: voteValue,
   })
     .index("by_poll", ["pollId"])
-    .index("by_poll_user", ["pollId", "userId"]),
+    .index("by_poll_user", ["pollId", "userId"])
+    .index("by_poll_guest", ["pollId", "guestKey"]),
 
   events: defineTable({
     creatorId: v.id("users"),
@@ -140,6 +146,15 @@ export default defineSchema({
     authorId: v.id("users"),
     body: v.string(),
     isAnnouncement: v.boolean(),
+    imageId: v.optional(v.id("_storage")), // optional photo on the board
+  }).index("by_event", ["eventId"]),
+
+  // Bring-list / potluck — things people commit to bring to a meetup.
+  eventItems: defineTable({
+    eventId: v.id("events"),
+    title: v.string(),
+    createdBy: v.id("users"),
+    claimedBy: v.optional(v.id("users")), // null = up for grabs
   }).index("by_event", ["eventId"]),
 
   // In-app notifications — written on key events, read reactively by the app.
@@ -202,6 +217,15 @@ export default defineSchema({
     status: v.string(),
     currentPeriodEnd: v.optional(v.number()),
   }).index("by_user", ["userId"]),
+
+  // Friends — a simple accepted-friendship edge. Stored two-way (one row per
+  // direction) so a single by_user index returns a user's whole friend list.
+  friends: defineTable({
+    userId: v.id("users"),
+    friendId: v.id("users"),
+  })
+    .index("by_user", ["userId"])
+    .index("by_pair", ["userId", "friendId"]),
 
   // M+1 — persistent crews (schema only for now)
   crews: defineTable({

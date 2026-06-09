@@ -5,9 +5,11 @@ import { useMutation, useQuery } from "convex/react";
 import { Card, Input, ListGroup, Separator, Text } from "heroui-native";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
+import { FormLabel } from "../../../components/FormLabel";
 import { Icon } from "../../../components/Icon";
 import { PrimaryButton } from "../../../components/PrimaryButton";
 import { Screen } from "../../../components/Screen";
+import { SectionHeader } from "../../../components/SectionHeader";
 import { formatDateTime } from "../../../lib/datetime";
 import { useAuth } from "../../../providers/MockAuthProvider";
 import { usePush } from "../../../providers/MockPushProvider";
@@ -82,24 +84,16 @@ export default function EditEvent() {
 
   return (
     <Screen title="Edit meetup" dismiss="close">
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5">
-        Title
-      </Text>
+      <FormLabel>Title</FormLabel>
       <Input value={curTitle} onChangeText={setTitle} maxLength={100} />
 
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
-        Where
-      </Text>
+      <FormLabel className="mt-5">Where</FormLabel>
       <Input value={curAddress} onChangeText={setAddress} placeholder="Address" />
 
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
-        Notes
-      </Text>
+      <FormLabel className="mt-5">Notes</FormLabel>
       <Input value={curDesc} onChangeText={setDescription} placeholder="Optional" multiline />
 
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
-        When
-      </Text>
+      <FormLabel className="mt-5">When</FormLabel>
       <ListGroup>
         {slots.map((s, i) => {
           const on = curStart === s;
@@ -126,9 +120,7 @@ export default function EditEvent() {
       {changes.length > 0 && (
         <Card className="mt-5 mb-4">
           <Card.Body>
-            <Text type="body-xs" weight="semibold" color="muted" className="mb-2">
-              CHANGES
-            </Text>
+            <SectionHeader tight>Changes</SectionHeader>
             {changes.map((c) => (
               <Text key={c.label} type="body-sm" color="muted" className="mb-1">
                 {c.label}: {c.from} →{" "}

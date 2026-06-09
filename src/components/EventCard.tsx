@@ -1,9 +1,11 @@
-import { Pressable, View } from "react-native";
-import { Card, Chip, Text } from "heroui-native";
+import { View } from "react-native";
+import { Chip, Text } from "heroui-native";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { formatTime } from "../lib/datetime";
 import { Icon } from "./Icon";
+import { PressableScale } from "./PressableScale";
 import { StarRating } from "./StarRating";
+import { cardShadow } from "../lib/ui";
 import { RSVP, type RsvpStatus } from "../lib/theme";
 
 type Counts = Record<RsvpStatus, number>;
@@ -32,9 +34,16 @@ export function EventCard({
   const status = viewerStatus ? RSVP[viewerStatus] : null;
 
   return (
-    <Pressable onPress={onPress} className="mb-3" style={{ opacity: past || declined ? 0.7 : 1 }}>
-      <Card>
-        <Card.Body className="flex-row items-center gap-3 py-3">
+    <PressableScale
+      onPress={onPress}
+      className="mb-3"
+      style={{ opacity: past || declined ? 0.65 : 1 }}
+    >
+      <View
+        className="rounded-2xl bg-surface px-3.5 py-3.5"
+        style={cardShadow}
+      >
+        <View className="flex-row items-center gap-3.5">
           {/* Date tile — neutral when past */}
           <View
             className={`w-12 h-12 rounded-xl items-center justify-center ${
@@ -98,8 +107,8 @@ export function EventCard({
             ) : (
               counts && (
                 <View className="flex-row items-center gap-1 mt-1">
-                  <Icon name="people-outline" size={13} tint="success" />
-                  <Text type="body-xs" weight="semibold" className="text-success">
+                  <Icon name="people-outline" size={13} tint="muted" />
+                  <Text type="body-xs" color="muted">
                     {counts.going} going{counts.maybe ? ` · ${counts.maybe} maybe` : ""}
                   </Text>
                 </View>
@@ -113,8 +122,8 @@ export function EventCard({
               <Chip.Label>{status.label}</Chip.Label>
             </Chip>
           )}
-        </Card.Body>
-      </Card>
-    </Pressable>
+        </View>
+      </View>
+    </PressableScale>
   );
 }

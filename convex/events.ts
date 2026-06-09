@@ -207,3 +207,41 @@ export const listByTab = query({
     return decorate(filtered);
   },
 });
+
+// All of the user's upcoming meetups (created, or RSVP'd anything but "not
+// going"), sorted soonest-first — the calendar/agenda view groups these by day.
+export const upcoming = query({
+  args: { userId: v.id("users"), now: v.number() },
+  handler: async (ctx, { userId, now }) => {
+    const myRsvps = await ctx.db
+      .query("rsvps")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    const status = new Map(myRsvps.map((r) => [r.eventId, r.status]));
+
+    const created = await ctx.db
+      .query("events")
+      .withIndex("by_creator", (q) => q.eq("creatorId", userId))
+      .collect();
+    const rsvpd = await Promise.all([...status.keys()].map((id) => ctx.db.get(id)));
+
+    const seen = new Set<string>();
+    const events: Doc<"events">[] = [];
+    for (const e of [...created, ...rsvpd]) {
+      if (!e || seen.has(e._id)) continue;
+      if (e.status === "cancelled" || e.startsAt < now) continue;
+      if (status.get(e._id) === "not_going") continue;
+      seen.add(e._id);
+      events.push(e);
+    }
+    events.sort((a, b) => a.startsAt - b.startsAt);
+
+    return Promise.all(
+      events.map(async (event) => ({
+        event,
+        counts: await countByStatus(ctx, event._id),
+        viewerStatus: status.get(event._id) ?? null,
+      }))
+    );
+  },
+});

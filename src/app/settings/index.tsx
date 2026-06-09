@@ -6,6 +6,7 @@ import { Chip, ListGroup, Separator, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
 import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
+import { SectionHeader } from "../../components/SectionHeader";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAuth } from "../../providers/MockAuthProvider";
 import type { IconName } from "../../lib/icons";
@@ -18,10 +19,14 @@ const PLAN_LABEL: Record<string, string> = {
 
 const ROWS: { label: string; icon: IconName; href: string }[] = [
   { label: "Profile", icon: "person-outline", href: "/settings/profile" },
+  { label: "Friends", icon: "people-outline", href: "/friends" },
+  { label: "Crews", icon: "people-circle-outline", href: "/crews" },
   { label: "Notifications", icon: "notifications-outline", href: "/settings/notifications" },
   { label: "MeetTime+", icon: "star-outline", href: "/settings/subscription" },
   { label: "Refer a friend", icon: "gift-outline", href: "/settings/referrals" },
   { label: "Privacy & data", icon: "lock-closed-outline", href: "/settings/privacy" },
+  { label: "Help", icon: "help-circle-outline", href: "/settings/help" },
+  { label: "Legal", icon: "document-text-outline", href: "/settings/legal" },
 ];
 
 export default function SettingsHome() {
@@ -70,10 +75,8 @@ export default function SettingsHome() {
 
       {/* Dev-only: switch the mock user to exercise other flows. */}
       {users.length > 1 && (
-        <View className="mt-7">
-          <Text type="body-xs" weight="semibold" color="muted" className="mb-2">
-            Switch user (dev)
-          </Text>
+        <View>
+          <SectionHeader>Switch user (dev)</SectionHeader>
           <View className="flex-row flex-wrap gap-3">
             {users.map((u) => {
               const on = u._id === currentUser?._id;

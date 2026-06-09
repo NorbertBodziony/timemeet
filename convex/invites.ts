@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { DAY_MS, requireUser } from "./helpers";
+import { DAY_MS, randomToken, requireUser } from "./helpers";
 
 // Mock share link — returns a token; the deeplink itself is faked in the app.
 export const createToken = mutation({
@@ -9,7 +9,7 @@ export const createToken = mutation({
     await requireUser(ctx, userId);
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error("Event not found.");
-    const inviteToken = `inv_${Math.random().toString(36).slice(2, 10)}`;
+    const inviteToken = randomToken("inv");
     await ctx.db.insert("eventInvites", {
       eventId,
       inviteToken,

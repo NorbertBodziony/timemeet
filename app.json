@@ -7,10 +7,17 @@
     "icon": "./assets/images/icon.png",
     "scheme": "heroui-native-app",
     "userInterfaceStyle": "light",
+    "runtimeVersion": { "policy": "appVersion" },
+    "updates": {
+      "url": "https://u.expo.dev/c7e155c6-cf10-4c61-88bd-7abc32627648"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.meettime",
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -32,11 +39,31 @@
       "expo-font",
       "expo-web-browser",
       "expo-apple-authentication",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-sharing",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "MeetTime uses the camera to scan a friend's QR code."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c7e155c6-cf10-4c61-88bd-7abc32627648"
+      }
+    },
+    "owner": "norbertbodziony",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c7e155c6-cf10-4c61-88bd-7abc32627648"
     }
   }
 }

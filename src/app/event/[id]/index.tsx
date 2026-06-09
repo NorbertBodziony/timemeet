@@ -1,16 +1,22 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Share, View } from "react-native";
+import { Alert, Image, Pressable, Share, View } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useMutation, useQuery } from "convex/react";
-import { Button, Card, Input, Separator, Text } from "heroui-native";
+import { Button, Card, Input, Separator, Spinner, Text } from "heroui-native";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Icon } from "../../../components/Icon";
+import { Lutek } from "../../../components/Lutek";
 import { Screen } from "../../../components/Screen";
 import { RsvpPicker } from "../../../components/RsvpPicker";
+import { SecondaryButton } from "../../../components/SecondaryButton";
+import { SectionHeader } from "../../../components/SectionHeader";
 import { StarRating } from "../../../components/StarRating";
 import { UserAvatar } from "../../../components/UserAvatar";
 import { formatDateTime } from "../../../lib/datetime";
+import { addToCalendar } from "../../../lib/ics";
+import { openMaps } from "../../../lib/maps";
 import { type RsvpStatus } from "../../../lib/theme";
 import { useAuth } from "../../../providers/MockAuthProvider";
 import { usePush } from "../../../providers/MockPushProvider";
@@ -28,18 +34,25 @@ export default function EventDetail() {
   );
   const rsvps = useQuery(api.rsvps.listForEvent, { eventId });
   const posts = useQuery(api.posts.listForEvent, { eventId });
+  const items = useQuery(api.items.listForEvent, { eventId });
   const rating = useQuery(
     api.ratings.forEvent,
     currentUser ? { eventId, userId: currentUser._id } : { eventId }
   );
   const setRsvp = useMutation(api.rsvps.set);
   const addPost = useMutation(api.posts.add);
+  const uploadUrl = useMutation(api.posts.generateUploadUrl);
   const cancelEvent = useMutation(api.events.cancel);
   const createToken = useMutation(api.invites.createToken);
   const setRating = useMutation(api.ratings.set);
+  const addItem = useMutation(api.items.add);
+  const toggleClaim = useMutation(api.items.toggleClaim);
+  const removeItem = useMutation(api.items.remove);
 
   const [draft, setDraft] = useState("");
   const [note, setNote] = useState<string | null>(null);
+  const [itemDraft, setItemDraft] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   // Initialize the note input from my existing rating once loaded.
   useEffect(() => {
@@ -56,6 +69,7 @@ export default function EventDetail() {
   const cancelled = event.status === "cancelled";
   const isPast = (event.endsAt ?? event.startsAt) < Date.now();
   const going = (rsvps ?? []).filter((r) => r.status === "going");
+  const pending = (rsvps ?? []).filter((r) => r.status === "no_response");
   const myStars = rating?.mine?.stars ?? 0;
 
   async function onRsvp(status: RsvpStatus) {
@@ -78,6 +92,59 @@ export default function EventDetail() {
     if (!currentUser || !draft.trim()) return;
     await addPost({ userId: currentUser._id, eventId, body: draft.trim(), isAnnouncement: isOrganizer });
     setDraft("");
+  }
+
+  async function addPhoto() {
+    if (!currentUser || uploading) return;
+    const picked = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.6,
+    });
+    if (picked.canceled || !picked.assets[0]) return;
+    setUploading(true);
+    try {
+      const url = await uploadUrl({ userId: currentUser._id });
+      const res = await fetch(picked.assets[0].uri);
+      const blob = await res.blob();
+      const up = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": blob.type || "image/jpeg" },
+        body: blob,
+      });
+      const { storageId } = await up.json();
+      await addPost({
+        userId: currentUser._id,
+        eventId,
+        body: draft.trim(),
+        isAnnouncement: false,
+        imageId: storageId,
+      });
+      setDraft("");
+    } catch {
+      Alert.alert("Couldn't add that photo", "Give it another try in a moment.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function addBringItem() {
+    if (!currentUser || !itemDraft.trim()) return;
+    await addItem({ userId: currentUser._id, eventId, title: itemDraft.trim() });
+    setItemDraft("");
+  }
+
+  async function calendar() {
+    try {
+      await addToCalendar({
+        title: event.title,
+        startsAt: event.startsAt,
+        endsAt: event.endsAt,
+        location: place,
+        description: event.description,
+      });
+    } catch {
+      Alert.alert("Couldn't open calendar", "Try again in a moment.");
+    }
   }
 
   async function share() {
@@ -146,12 +213,17 @@ export default function EventDetail() {
             </Text>
           </View>
           {!!place && (
-            <View className="flex-row items-center gap-2">
+            <Pressable
+              onPress={() => openMaps(place)}
+              className="flex-row items-center gap-2"
+              hitSlop={6}
+            >
               <Icon name="location-outline" size={16} tint="muted" />
-              <Text type="body-sm" color="muted">
+              <Text type="body-sm" color="muted" className="flex-1">
                 {place}
               </Text>
-            </View>
+              <Icon name="navigate-circle-outline" size={18} tint="accent" />
+            </Pressable>
           )}
           {!!event.description && <Text type="body-sm" color="muted">{event.description}</Text>}
           <Separator className="my-1" />
@@ -167,12 +239,36 @@ export default function EventDetail() {
       {/* Attendees */}
       {going.length > 0 && (
         <View className="mb-5">
-          <Text type="body-xs" weight="semibold" color="muted" className="mb-2 ml-1">
-            {isPast ? "WHO CAME" : `${counts.going} GOING · ${counts.maybe} MAYBE`}
-          </Text>
+          <SectionHeader tight>
+            {isPast ? "Who came" : `${counts.going} going · ${counts.maybe} maybe`}
+          </SectionHeader>
           <View className="flex-row flex-wrap gap-3">
             {going.map((r) => (
               <View key={r._id} className="items-center gap-1 w-14">
+                <UserAvatar name={r.user?.displayName} size="md" />
+                <Text type="body-xs" color="muted" numberOfLines={1}>
+                  {r.user?.displayName?.split(" ")[0] ?? "—"}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* "Ekipa nie wie o planie" — organizer, upcoming, nobody invited yet (§V). */}
+      {isOrganizer && !isPast && !cancelled && (rsvps ?? []).length === 0 && (
+        <View className="my-3">
+          <Lutek mood="waving" line="Your crew doesn't know yet — invite them below." size={52} />
+        </View>
+      )}
+
+      {/* Organizer-only: who hasn't replied yet (docs §H). */}
+      {isOrganizer && !isPast && !cancelled && pending.length > 0 && (
+        <View className="mb-5">
+          <SectionHeader tight>{`Waiting on ${pending.length}`}</SectionHeader>
+          <View className="flex-row flex-wrap gap-3">
+            {pending.map((r) => (
+              <View key={r._id} className="items-center gap-1 w-14" style={{ opacity: 0.6 }}>
                 <UserAvatar name={r.user?.displayName} size="md" />
                 <Text type="body-xs" color="muted" numberOfLines={1}>
                   {r.user?.displayName?.split(" ")[0] ?? "—"}
@@ -219,17 +315,93 @@ export default function EventDetail() {
             Are you in?
           </Text>
           <RsvpPicker value={viewerStatus} onChange={onRsvp} />
+          <View className="flex-row gap-2.5 mt-3">
+            <SecondaryButton
+              className="flex-1"
+              icon="person-add-outline"
+              label="Invite friends"
+              onPress={() =>
+                router.push({ pathname: "/event/[id]/invite", params: { id: eventId } })
+              }
+            />
+            <SecondaryButton
+              className="flex-1"
+              icon="calendar-outline"
+              label="Add to calendar"
+              onPress={calendar}
+            />
+          </View>
         </>
       )}
 
+      {/* Bring-list / potluck — only on upcoming meetups. */}
+      {!cancelled && !isPast && (
+        <View>
+          <SectionHeader>What to bring</SectionHeader>
+          {(items ?? []).map((it) => {
+            const mine = it.claimedBy === currentUser?._id;
+            return (
+              <Card key={it._id} className="mb-2">
+                <Card.Body className="flex-row items-center gap-3 py-2.5">
+                  <Pressable onPress={() => currentUser && toggleClaim({ userId: currentUser._id, itemId: it._id })}>
+                    <Icon
+                      name={it.claimedBy ? "checkmark-circle" : "ellipse-outline"}
+                      size={22}
+                      tint={it.claimedBy ? "success" : "muted"}
+                    />
+                  </Pressable>
+                  <View className="flex-1">
+                    <Text weight="semibold">{it.title}</Text>
+                    <Text type="body-xs" color="muted">
+                      {it.claimer ? `${it.claimer.displayName.split(" ")[0]} has it` : "Up for grabs"}
+                    </Text>
+                  </View>
+                  {it.claimedBy == null && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onPress={() => currentUser && toggleClaim({ userId: currentUser._id, itemId: it._id })}
+                    >
+                      <Button.Label>I'll bring it</Button.Label>
+                    </Button>
+                  )}
+                  {it.createdBy === currentUser?._id && (
+                    <Pressable
+                      hitSlop={8}
+                      onPress={() => currentUser && removeItem({ userId: currentUser._id, itemId: it._id })}
+                    >
+                      <Icon name="close" size={16} tint="muted" />
+                    </Pressable>
+                  )}
+                  {mine && it.claimedBy != null && <View />}
+                </Card.Body>
+              </Card>
+            );
+          })}
+          <View className="flex-row gap-2 items-center">
+            <View className="flex-1">
+              <Input
+                value={itemDraft}
+                onChangeText={setItemDraft}
+                placeholder="Add something to bring…"
+              />
+            </View>
+            <Button variant="outline" size="md" isIconOnly onPress={addBringItem}>
+              <Icon name="add" size={18} tint="foreground" />
+            </Button>
+          </View>
+        </View>
+      )}
+
       {/* Board */}
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-2 mt-7 ml-1">
-        Board
-      </Text>
+      <SectionHeader>Board</SectionHeader>
       <View className="flex-row gap-2 mb-3 items-center">
         <View className="flex-1">
           <Input value={draft} onChangeText={setDraft} placeholder="Say something to the crew…" />
         </View>
+        <Button variant="outline" size="md" isIconOnly onPress={addPhoto} isDisabled={uploading}>
+          {uploading ? <Spinner size="sm" /> : <Icon name="image-outline" size={18} tint="foreground" />}
+        </Button>
         <Button variant="primary" size="md" isIconOnly onPress={post}>
           <Icon name="arrow-up" size={18} color="#FFFFFF" />
         </Button>
@@ -243,7 +415,15 @@ export default function EventDetail() {
                 {p.author?.displayName ?? "—"}
                 {p.isAnnouncement ? " · announcement" : ""}
               </Text>
-              <Text type="body-sm">{p.body}</Text>
+              {!!p.body && <Text type="body-sm">{p.body}</Text>}
+              {!!p.imageUrl && (
+                <Image
+                  source={{ uri: p.imageUrl }}
+                  className="mt-2 rounded-xl w-full"
+                  style={{ aspectRatio: 4 / 3 }}
+                  resizeMode="cover"
+                />
+              )}
             </View>
           </Card.Body>
         </Card>
@@ -260,21 +440,15 @@ export default function EventDetail() {
       )}
 
       {isOrganizer && !isPast && !cancelled && (
-        <View className="mt-7 gap-2">
-          <Button
-            variant="outline"
-            size="md"
+        <View className="mt-8 gap-2.5">
+          <SecondaryButton
+            icon="create-outline"
+            label="Edit meetup"
             onPress={() => router.push({ pathname: "/event/[id]/edit", params: { id: eventId } })}
-          >
-            <Icon name="create-outline" size={18} tint="foreground" />
-            <Button.Label>Edit meetup</Button.Label>
-          </Button>
-          <Button variant="outline" size="md" onPress={share}>
-            <Icon name="share-outline" size={18} tint="foreground" />
-            <Button.Label>Share invite link</Button.Label>
-          </Button>
-          <Button variant="danger" size="md" onPress={confirmCancel}>
-            <Button.Label>Cancel meetup</Button.Label>
+          />
+          <SecondaryButton icon="share-outline" label="Share invite link" onPress={share} />
+          <Button variant="ghost" size="md" onPress={confirmCancel}>
+            <Button.Label className="text-danger">Cancel meetup</Button.Label>
           </Button>
         </View>
       )}

@@ -1,21 +1,27 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, View } from "react-native";
+import { Alert, Share, View } from "react-native";
+import * as Linking from "expo-linking";
 import { useMutation, useQuery } from "convex/react";
-import { Card, Chip, Text } from "heroui-native";
+import { Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
+import { SecondaryButton } from "../../components/SecondaryButton";
+import { StatusPills, type PillOption } from "../../components/StatusPills";
+import { SurfaceCard } from "../../components/SurfaceCard";
+import { Icon } from "../../components/Icon";
 import { formatDate, formatRange } from "../../lib/datetime";
 import { tap } from "../../lib/haptics";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
 
 type Vote = "yes" | "maybe" | "no";
-const VOTES: { value: Vote; label: string; color: "success" | "warning" | "default" }[] = [
-  { value: "yes", label: "Yes", color: "success" },
-  { value: "maybe", label: "Maybe", color: "warning" },
-  { value: "no", label: "No", color: "default" },
+// Same status-pill control as RSVP, so voting reads identically across the app.
+const VOTE_OPTIONS: PillOption[] = [
+  { value: "yes", label: "Yes", color: "success", icon: "checkmark-circle" },
+  { value: "maybe", label: "Maybe", color: "warning", icon: "help-circle" },
+  { value: "no", label: "No", color: "default", icon: "close-circle" },
 ];
 
 function VoteRow({
@@ -36,37 +42,30 @@ function VoteRow({
   onVote: (value: Vote) => void;
 }) {
   return (
-    <Card className={`mb-3 ${highlight ? "border-success" : ""}`}>
-      <Card.Body>
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1 pr-2">
+    <SurfaceCard className="mb-3 gap-3 py-3.5">
+      <View className="flex-row items-center justify-between">
+        <View className="flex-1 pr-2 flex-row items-center gap-1.5">
+          {highlight && <Icon name="trophy" size={14} tint="accent" />}
+          <View className="flex-1">
             <Text weight="bold">{title}</Text>
             <Text type="body-xs" color="muted">
               {subtitle}
             </Text>
           </View>
-          <Text type="body-xs" weight="semibold" className="text-success">
-            {counts.yes} yes{counts.maybe ? ` · ${counts.maybe} maybe` : ""}
-          </Text>
         </View>
-        {!disabled && (
-          <View className="flex-row gap-2 mt-3">
-            {VOTES.map((v) => (
-              <Chip
-                key={v.value}
-                color={v.color}
-                variant={mine === v.value ? "primary" : "tertiary"}
-                size="md"
-                onPress={() => onVote(v.value)}
-                className="flex-1 justify-center"
-              >
-                <Chip.Label>{v.label}</Chip.Label>
-              </Chip>
-            ))}
-          </View>
-        )}
-      </Card.Body>
-    </Card>
+        <Text type="body-xs" weight="semibold" color="muted">
+          {counts.yes} yes{counts.maybe ? ` · ${counts.maybe} maybe` : ""}
+        </Text>
+      </View>
+      {!disabled && (
+        <StatusPills
+          options={VOTE_OPTIONS}
+          value={mine ?? null}
+          onChange={(v) => onVote(v as Vote)}
+          columns={3}
+        />
+      )}
+    </SurfaceCard>
   );
 }
 
@@ -102,6 +101,19 @@ export default function PollDetail() {
         return !best || yes > best.yes ? { id: s._id, yes } : best;
       }, null);
 
+  // Leading venue for a place poll — its winner seeds a new meetup's location.
+  const placeLeader = isPlace
+    ? placeOptions.reduce<{ name: string; address: string; yes: number } | null>(
+        (best, p) => {
+          const yes = countsFor(p._id).yes;
+          return !best || yes > best.yes
+            ? { name: p.name, address: p.address, yes }
+            : best;
+        },
+        null
+      )
+    : null;
+
   async function voteSlot(slotId: Id<"pollSlots">, value: Vote) {
     if (!currentUser) return;
     tap();
@@ -111,6 +123,17 @@ export default function PollDetail() {
     if (!currentUser) return;
     tap();
     await castVote({ userId: currentUser._id, pollId, placeOptionId, value });
+  }
+
+  async function sharePoll() {
+    const token = poll.shareToken;
+    if (!token) return;
+    const url = Linking.createURL(`/p/${token}`);
+    try {
+      await Share.share({ message: `Vote on "${poll.title}" — no account needed\n${url}`, url });
+    } catch {
+      Alert.alert("Couldn't open share", url);
+    }
   }
 
   async function doConvert() {
@@ -134,6 +157,11 @@ export default function PollDetail() {
       subtitle={converted ? "Converted to a meetup" : "Tap your pick for each option"}
       dismiss="back"
     >
+      {!converted && !!poll.shareToken && (
+        <View className="mb-4">
+          <SecondaryButton icon="share-outline" label="Share to collect votes" onPress={sharePoll} />
+        </View>
+      )}
       {isPlace
         ? placeOptions.map((p) => (
             <VoteRow
@@ -172,9 +200,27 @@ export default function PollDetail() {
         </View>
       )}
 
-      {isPlace && !converted && (
+      {isPlace && !converted && isOrganizer && (
+        <View className="mt-3">
+          <PrimaryButton
+            label="Use winning place → new meetup"
+            onPress={() =>
+              placeLeader &&
+              router.push({
+                pathname: "/event/new",
+                params: { title: poll.title, address: placeLeader.address },
+              })
+            }
+            disabled={!placeLeader || placeLeader.yes === 0}
+          />
+          <Text type="body-xs" color="muted" align="center" className="mt-2">
+            Seeds a meetup at the top venue — you pick the time next.
+          </Text>
+        </View>
+      )}
+      {isPlace && !converted && !isOrganizer && (
         <Text type="body-xs" color="muted" align="center" className="mt-2">
-          Place polls settle the venue. Pair with a Time Poll to lock the date.
+          Place polls settle the venue. The organizer turns the winner into a meetup.
         </Text>
       )}
 

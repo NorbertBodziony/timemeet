@@ -1,6 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { Platform, StyleSheet } from "react-native";
 import type { ColorValue } from "react-native";
+import { BlurView } from "expo-blur";
 import { useThemeColor } from "heroui-native";
 import { ICONS } from "../../lib/icons";
 
@@ -24,7 +26,24 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: accent,
         tabBarInactiveTintColor: muted,
-        tabBarStyle: { backgroundColor: surface, borderTopColor: border },
+        // Translucent frosted bar (iOS); content scrolls under it.
+        tabBarStyle: {
+          position: "absolute",
+          backgroundColor: Platform.OS === "ios" ? "transparent" : surface,
+          borderTopColor: border,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          elevation: 0,
+        },
+        tabBarBackground:
+          Platform.OS === "ios"
+            ? () => (
+                <BlurView
+                  tint="systemChromeMaterialLight"
+                  intensity={80}
+                  style={StyleSheet.absoluteFill}
+                />
+              )
+            : undefined,
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
       }}
     >

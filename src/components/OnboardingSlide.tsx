@@ -1,8 +1,9 @@
 import { View } from "react-native";
 import { Text } from "heroui-native";
-import { Icon } from "./Icon";
+import { IconTile } from "./IconTile";
 import { PrimaryButton } from "./PrimaryButton";
 import { Screen } from "./Screen";
+import { TITLE_TRACKING } from "../lib/ui";
 import type { IconName } from "../lib/icons";
 
 // One cold-onboarding screen (docs §3.8 / §5). Icon + headline, light dot indicator.
@@ -26,10 +27,15 @@ export function OnboardingSlide({
   return (
     <Screen scroll={false}>
       <View className="flex-1 justify-center">
-        <View className="h-16 w-16 rounded-2xl bg-accent-soft items-center justify-center mb-7">
-          <Icon name={icon} size={30} tint="accent" />
+        <View className="mb-7">
+          <IconTile name={icon} size="lg" />
         </View>
-        <Text type="h1" weight="bold" className="text-4xl leading-tight">
+        <Text
+          type="h1"
+          weight="bold"
+          className="text-4xl leading-tight"
+          style={{ letterSpacing: TITLE_TRACKING }}
+        >
           {headline}
         </Text>
         <Text color="muted" className="mt-4 text-base leading-6">

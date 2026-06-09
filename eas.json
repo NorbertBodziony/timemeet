@@ -11,11 +11,19 @@
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_CONVEX_URL": "https://quixotic-llama-610.convex.cloud",
+        "EXPO_PUBLIC_CONVEX_SITE_URL": "https://quixotic-llama-610.convex.site"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_CONVEX_URL": "https://quixotic-llama-610.convex.cloud",
+        "EXPO_PUBLIC_CONVEX_SITE_URL": "https://quixotic-llama-610.convex.site"
+      }
     }
   },
   "submit": {

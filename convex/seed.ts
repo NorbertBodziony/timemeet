@@ -1,6 +1,6 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { DAY_MS } from "./helpers";
+import { DAY_MS, randomToken } from "./helpers";
 
 // Dev seed — current user "Karolina" + a small crew, one sample Time Poll
 // (mid-vote), one upcoming event (mixed RSVPs), one past event (history).
@@ -28,6 +28,10 @@ export const run = mutation({
         "subscriptions",
         "users",
         "referrals",
+        "friends",
+        "eventItems",
+        "crews",
+        "crewMembers",
       ] as const) {
         for (const row of await ctx.db.query(table).collect()) {
           await ctx.db.delete(row._id);
@@ -58,6 +62,27 @@ export const run = mutation({
     const tomek = await mk("Tomek", "TOMEK");
     const crew = [karolina, marek, ania, tomek];
 
+    // Karolina's friend list — the rest of the crew, stored both ways so each
+    // person sees the other as a friend.
+    for (const friend of [marek, ania, tomek]) {
+      await ctx.db.insert("friends", { userId: karolina, friendId: friend });
+      await ctx.db.insert("friends", { userId: friend, friendId: karolina });
+    }
+
+    // A sample crew so "invite a whole crew" works on first run.
+    const crewId = await ctx.db.insert("crews", {
+      name: "Climbing crew 🧗",
+      createdBy: karolina,
+      privacy: "private",
+    });
+    for (const u of crew) {
+      await ctx.db.insert("crewMembers", {
+        crewId,
+        userId: u,
+        role: u === karolina ? "owner" : "member",
+      });
+    }
+
     await ctx.db.insert("subscriptions", {
       userId: karolina,
       plan: "free",
@@ -72,6 +97,7 @@ export const run = mutation({
       title: "Board game night 🎲",
       status: "active",
       expiresAt: now + 14 * DAY_MS,
+      shareToken: randomToken("poll"),
     });
     const slotDays = [2, 4, 6];
     const slots = await Promise.all(
@@ -108,7 +134,7 @@ export const run = mutation({
       startsAt: at(1, 17),
       endsAt: at(1, 19),
       customAddress: "Krupnicza 12, Kraków",
-      category: ["cafe"],
+      category: ["coffee"],
       visibility: "invite_only",
       waitlistEnabled: false,
       status: "published",
@@ -128,6 +154,19 @@ export const run = mutation({
         changedAt: now,
       });
     }
+
+    // Bring-list on the upcoming meetup (one claimed, one up for grabs).
+    await ctx.db.insert("eventItems", {
+      eventId: upcoming,
+      title: "Board games 🎲",
+      createdBy: marek,
+      claimedBy: marek,
+    });
+    await ctx.db.insert("eventItems", {
+      eventId: upcoming,
+      title: "Snacks for the table",
+      createdBy: karolina,
+    });
 
     // Past event for History.
     const past = await ctx.db.insert("events", {

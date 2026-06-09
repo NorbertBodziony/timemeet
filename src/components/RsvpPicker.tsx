@@ -1,10 +1,16 @@
-import { View } from "react-native";
-import { Chip } from "heroui-native";
-import { tap } from "../lib/haptics";
+import { StatusPills, type PillOption } from "./StatusPills";
 import { RSVP, RSVP_ACTIONS, type RsvpStatus } from "../lib/theme";
 
-// The 5-status RSVP control (docs §3.3 / §16) using HeroUI Chips with a status
-// icon. Selected = filled with its semantic color; "Not going" is neutral.
+// The 5-status RSVP control (docs §3.3 / §16): a 2×2 set of status pills.
+// "Not going" stays neutral (default) — never punishing.
+// RSVP_ACTIONS only ever use success / warning / accent / default (never danger).
+const OPTIONS: PillOption[] = RSVP_ACTIONS.map((status) => ({
+  value: status,
+  label: RSVP[status].label,
+  color: RSVP[status].color as PillOption["color"],
+  icon: RSVP[status].ion,
+}));
+
 export function RsvpPicker({
   value,
   onChange,
@@ -13,26 +19,11 @@ export function RsvpPicker({
   onChange: (status: RsvpStatus) => void;
 }) {
   return (
-    <View className="flex-row gap-2">
-      {RSVP_ACTIONS.map((status) => {
-        const meta = RSVP[status];
-        const active = value === status;
-        return (
-          <Chip
-            key={status}
-            color={meta.color}
-            variant={active ? "primary" : "tertiary"}
-            size="md"
-            onPress={() => {
-              tap();
-              onChange(status);
-            }}
-            className="flex-1 justify-center"
-          >
-            <Chip.Label>{meta.label}</Chip.Label>
-          </Chip>
-        );
-      })}
-    </View>
+    <StatusPills
+      options={OPTIONS}
+      value={value}
+      onChange={(v) => onChange(v as RsvpStatus)}
+      columns={2}
+    />
   );
 }

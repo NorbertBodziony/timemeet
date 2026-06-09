@@ -1,12 +1,15 @@
 import { useRouter } from "expo-router";
-import { Alert, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, Platform, View } from "react-native";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { useMutation } from "convex/react";
 import { Button, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
-import { Icon } from "../../components/Icon";
+import { IconTile } from "../../components/IconTile";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { appleSignIn } from "../../lib/auth";
+import { TITLE_TRACKING } from "../../lib/ui";
 import { useAuth } from "../../providers/MockAuthProvider";
 
 // Login (docs §3.8). Apple uses real Sign-In where available (native build),
@@ -16,6 +19,15 @@ export default function Login() {
   const { signIn, users, isLoading } = useAuth();
   const seed = useMutation(api.seed.run);
   const upsert = useMutation(api.users.upsertFromAuth);
+
+  // Show Apple's official button only where Sign in with Apple is available
+  // (real iOS builds). Elsewhere we fall back to the mock entry buttons.
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  useEffect(() => {
+    if (Platform.OS === "ios") {
+      AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});
+    }
+  }, []);
 
   // Mock entry — seed a user if the DB is empty, then sign in.
   async function enter() {
@@ -48,20 +60,35 @@ export default function Login() {
   return (
     <Screen scroll={false}>
       <View className="flex-1 justify-center">
-        <View className="h-16 w-16 rounded-2xl bg-accent items-center justify-center mb-7">
-          <Icon name="people" size={30} color="#FFFFFF" />
+        <View className="mb-7">
+          <IconTile name="people" size="lg" />
         </View>
-        <Text type="h1" weight="bold" className="text-3xl">
+        <Text
+          type="h1"
+          weight="bold"
+          className="text-4xl leading-tight"
+          style={{ letterSpacing: TITLE_TRACKING }}
+        >
           Welcome! Glad you're here.
         </Text>
-        <Text color="muted" className="mt-3 text-base leading-6">
+        <Text color="muted" className="mt-4 text-base leading-6">
           Lutek helps your crew meet up more often, without the chaos.
         </Text>
       </View>
       <View className="pb-4 gap-2">
-        <Button variant="outline" size="lg" onPress={withApple}>
-          <Button.Label>Continue with Apple</Button.Label>
-        </Button>
+        {appleAvailable ? (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={28}
+            style={{ height: 52 }}
+            onPress={withApple}
+          />
+        ) : (
+          <Button variant="outline" size="lg" onPress={withApple}>
+            <Button.Label>Continue with Apple</Button.Label>
+          </Button>
+        )}
         <Button variant="outline" size="lg" onPress={enter}>
           <Button.Label>Continue with Google</Button.Label>
         </Button>
@@ -76,7 +103,9 @@ export default function Login() {
           />
         </View>
         <Text type="body-xs" color="muted" align="center" className="mt-3">
-          Mock sign-in — no account needed in this build.
+          {appleAvailable
+            ? "Apple sign-in is live. Google & email are mock for now."
+            : "Mock sign-in — no account needed in this build."}
         </Text>
       </View>
     </Screen>

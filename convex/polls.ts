@@ -1,10 +1,11 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { voteValue } from "./schema";
-import { DAY_MS, requireUser } from "./helpers";
+import { DAY_MS, randomToken, requireUser } from "./helpers";
 import { notify } from "./notifications";
 import { scheduleEventJobs } from "./reminders";
 import type { Id } from "./_generated/dataModel";
+import type { QueryCtx } from "./_generated/server";
 
 // Create a Time Poll (3–7 slots). Place polls share the same shape via placeOptions.
 export const create = mutation({
@@ -52,6 +53,7 @@ export const create = mutation({
       title,
       status: "active",
       expiresAt: Date.now() + 14 * DAY_MS,
+      shareToken: randomToken("poll"),
     });
 
     await Promise.all(
@@ -73,39 +75,67 @@ export const create = mutation({
   },
 });
 
-export const get = query({
-  args: { pollId: v.id("polls"), userId: v.optional(v.id("users")) },
-  handler: async (ctx, { pollId, userId }) => {
-    const poll = await ctx.db.get(pollId);
-    if (!poll) return null;
-    const [slots, placeOptions, creator] = await Promise.all([
-      ctx.db
-        .query("pollSlots")
-        .withIndex("by_poll", (q) => q.eq("pollId", pollId))
-        .collect(),
-      ctx.db
-        .query("pollPlaceOptions")
-        .withIndex("by_poll", (q) => q.eq("pollId", pollId))
-        .collect(),
-      ctx.db.get(poll.creatorId),
-    ]);
-    slots.sort((a, b) => a.position - b.position);
+// Build the full poll view (slots, places, creator, the viewer's own votes).
+// The viewer is identified either by a userId or a guest device key.
+async function buildPollView(
+  ctx: QueryCtx,
+  pollId: Id<"polls">,
+  who: { userId?: Id<"users">; guestKey?: string }
+) {
+  const poll = await ctx.db.get(pollId);
+  if (!poll) return null;
+  const [slots, placeOptions, creator] = await Promise.all([
+    ctx.db
+      .query("pollSlots")
+      .withIndex("by_poll", (q) => q.eq("pollId", pollId))
+      .collect(),
+    ctx.db
+      .query("pollPlaceOptions")
+      .withIndex("by_poll", (q) => q.eq("pollId", pollId))
+      .collect(),
+    ctx.db.get(poll.creatorId),
+  ]);
+  slots.sort((a, b) => a.position - b.position);
 
-    // The viewer's own votes, keyed by slot/place id → value.
-    const myVotes: Record<string, "yes" | "maybe" | "no"> = {};
-    if (userId) {
-      const mine = await ctx.db
+  const myVotes: Record<string, "yes" | "maybe" | "no"> = {};
+  const mine = who.userId
+    ? await ctx.db
         .query("pollVotes")
         .withIndex("by_poll_user", (q) =>
-          q.eq("pollId", pollId).eq("userId", userId)
+          q.eq("pollId", pollId).eq("userId", who.userId)
         )
-        .collect();
-      for (const vt of mine) {
-        const key = (vt.slotId ?? vt.placeOptionId ?? "") as string;
-        if (key) myVotes[key] = vt.value;
-      }
-    }
-    return { poll, slots, placeOptions, creator, myVotes };
+        .collect()
+    : who.guestKey
+      ? await ctx.db
+          .query("pollVotes")
+          .withIndex("by_poll_guest", (q) =>
+            q.eq("pollId", pollId).eq("guestKey", who.guestKey)
+          )
+          .collect()
+      : [];
+  for (const vt of mine) {
+    const key = (vt.slotId ?? vt.placeOptionId ?? "") as string;
+    if (key) myVotes[key] = vt.value;
+  }
+  return { poll, slots, placeOptions, creator, myVotes };
+}
+
+export const get = query({
+  args: { pollId: v.id("polls"), userId: v.optional(v.id("users")) },
+  handler: (ctx, { pollId, userId }) => buildPollView(ctx, pollId, { userId }),
+});
+
+// Public: resolve a poll by its share token so a guest can open + vote without
+// an account. `guestKey` (a device id) returns that guest's own votes.
+export const resolveByToken = query({
+  args: { token: v.string(), guestKey: v.optional(v.string()) },
+  handler: async (ctx, { token, guestKey }) => {
+    const poll = await ctx.db
+      .query("polls")
+      .withIndex("by_share_token", (q) => q.eq("shareToken", token))
+      .unique();
+    if (!poll) return null;
+    return buildPollView(ctx, poll._id, { guestKey });
   },
 });
 
@@ -153,6 +183,54 @@ export const vote = mutation({
     return await ctx.db.insert("pollVotes", {
       pollId: args.pollId,
       userId: args.userId,
+      slotId: args.slotId,
+      placeOptionId: args.placeOptionId,
+      value: args.value,
+    });
+  },
+});
+
+// Public guest vote — no account. Identified by a device `guestKey`; one vote
+// per (poll, guestKey, option), upserted. Resolved via the poll's share token.
+export const voteAsGuest = mutation({
+  args: {
+    token: v.string(),
+    guestKey: v.string(),
+    guestName: v.optional(v.string()),
+    slotId: v.optional(v.id("pollSlots")),
+    placeOptionId: v.optional(v.id("pollPlaceOptions")),
+    value: voteValue,
+  },
+  handler: async (ctx, args) => {
+    const poll = await ctx.db
+      .query("polls")
+      .withIndex("by_share_token", (q) => q.eq("shareToken", args.token))
+      .unique();
+    if (!poll) throw new Error("This poll link is no longer valid.");
+    if (poll.status !== "active") throw new Error("This poll is closed.");
+
+    const existing = await ctx.db
+      .query("pollVotes")
+      .withIndex("by_poll_guest", (q) =>
+        q.eq("pollId", poll._id).eq("guestKey", args.guestKey)
+      )
+      .collect();
+    const match = existing.find(
+      (e) =>
+        (args.slotId && e.slotId === args.slotId) ||
+        (args.placeOptionId && e.placeOptionId === args.placeOptionId)
+    );
+    if (match) {
+      await ctx.db.patch(match._id, {
+        value: args.value,
+        guestName: args.guestName,
+      });
+      return match._id;
+    }
+    return await ctx.db.insert("pollVotes", {
+      pollId: poll._id,
+      guestKey: args.guestKey,
+      guestName: args.guestName,
       slotId: args.slotId,
       placeOptionId: args.placeOptionId,
       value: args.value,
@@ -236,6 +314,18 @@ export const convertToEvent = mutation({
         changedAt: now,
       });
     }
+
+    // Aggregated result post on the new event — one calm summary, not a push
+    // per vote (docs §L). Inserted directly so it doesn't fire its own notify.
+    const yesCount = votes.filter(
+      (vt) => vt.slotId === args.winningSlotId && vt.value === "yes"
+    ).length;
+    await ctx.db.insert("posts", {
+      eventId,
+      authorId: args.userId,
+      body: `Plan's set! ${yesCount} ${yesCount === 1 ? "person" : "people"} said yes 🎉`,
+      isAnnouncement: true,
+    });
 
     await ctx.db.patch(args.pollId, { status: "converted", eventId });
     await scheduleEventJobs(ctx, eventId, slot.startsAt, slot.endsAt);

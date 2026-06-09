@@ -8,9 +8,12 @@
  * @module
  */
 
+import type * as crews from "../crews.js";
 import type * as events from "../events.js";
+import type * as friends from "../friends.js";
 import type * as helpers from "../helpers.js";
 import type * as invites from "../invites.js";
+import type * as items from "../items.js";
 import type * as notifications from "../notifications.js";
 import type * as polls from "../polls.js";
 import type * as posts from "../posts.js";
@@ -30,9 +33,12 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  crews: typeof crews;
   events: typeof events;
+  friends: typeof friends;
   helpers: typeof helpers;
   invites: typeof invites;
+  items: typeof items;
   notifications: typeof notifications;
   polls: typeof polls;
   posts: typeof posts;

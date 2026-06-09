@@ -3,6 +3,7 @@ import { Alert, Share, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
 import { Card, Input, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
+import { FormLabel } from "../../components/FormLabel";
 import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
@@ -74,9 +75,7 @@ export default function Referrals() {
         <PrimaryButton label="Share my code" onPress={share} />
       </View>
 
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-7">
-        Were you referred?
-      </Text>
+      <FormLabel className="mt-7">Were you referred?</FormLabel>
       <Input value={code} onChangeText={setCode} autoCapitalize="characters" placeholder="MEETTIME-NAME-XXX" />
       <View className="mt-2">
         <PrimaryButton label="Add code" onPress={submitReferredBy} disabled={!code.trim()} />

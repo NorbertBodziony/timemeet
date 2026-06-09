@@ -4,6 +4,7 @@ import { Alert, View } from "react-native";
 import { useMutation } from "convex/react";
 import { Input, ListGroup, Separator, Tabs, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
+import { FormLabel } from "../../components/FormLabel";
 import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
@@ -120,9 +121,7 @@ export default function NewPoll() {
         </Tabs.List>
       </Tabs>
 
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5">
-        What's the plan?
-      </Text>
+      <FormLabel>What's the plan?</FormLabel>
       <Input
         value={title}
         onChangeText={setTitle}
@@ -130,11 +129,11 @@ export default function NewPoll() {
         maxLength={100}
       />
 
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-6">
+      <FormLabel className="mt-6">
         {type === "time"
           ? `Pick 3–7 time slots (${pickedSlots.size} chosen)`
           : `Pick 2+ places (${pickedPlaces.size} chosen)`}
-      </Text>
+      </FormLabel>
 
       <ListGroup>
         {type === "time"

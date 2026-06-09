@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "convex/react";
 import { Card, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
 import { Icon } from "../../components/Icon";
+import { IconTile } from "../../components/IconTile";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
@@ -37,11 +38,9 @@ export default function Subscription() {
     <Screen title="MeetTime+" subtitle="Power and convenience. The basics stay free." dismiss="back">
       <Card className="mb-4">
         <Card.Body className="flex-row items-center gap-3">
-          <View className="h-10 w-10 rounded-xl bg-accent-soft items-center justify-center">
-            <Icon name="star" size={20} tint="accent" />
-          </View>
+          <IconTile name="star" size="md" />
           <View className="flex-1">
-            <Text type="body-xs" weight="semibold" color="muted">
+            <Text type="body-xs" weight="semibold" color="muted" className="tracking-wider">
               CURRENT PLAN
             </Text>
             <Text type="h3" weight="bold">
@@ -63,7 +62,7 @@ export default function Subscription() {
             </View>
           ))}
           <Text type="body-sm" color="muted" className="mt-1">
-            14.99 zł / month
+            9.99 zł / month · 4.99 zł for 3 months if you were referred
           </Text>
         </Card.Body>
       </Card>

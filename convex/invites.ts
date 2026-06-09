@@ -32,12 +32,26 @@ export const resolve = query({
     const event = await ctx.db.get(invite.eventId);
     if (!event) return { status: "not_found" as const };
     const creator = await ctx.db.get(event.creatorId);
-    const going = (
+    const goingRsvps = (
       await ctx.db
         .query("rsvps")
         .withIndex("by_event", (q) => q.eq("eventId", event._id))
         .collect()
-    ).filter((r) => r.status === "going").length;
-    return { status: "ok" as const, event, creator, going };
+    ).filter((r) => r.status === "going");
+    // First names of who's in — the social proof on the landing screen.
+    const goingNames = (
+      await Promise.all(goingRsvps.slice(0, 6).map((r) => ctx.db.get(r.userId)))
+    )
+      .filter((u): u is NonNullable<typeof u> => !!u)
+      .map((u) => u.displayName.split(" ")[0]);
+    const isPast = (event.endsAt ?? event.startsAt) < now;
+    return {
+      status: "ok" as const,
+      event,
+      creator,
+      going: goingRsvps.length,
+      goingNames,
+      isPast,
+    };
   },
 });

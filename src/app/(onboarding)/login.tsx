@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Platform, View } from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
@@ -16,9 +16,14 @@ import { useAuth } from "../../providers/MockAuthProvider";
 // falling back to a seeded mock session in Expo Go so the demo always works.
 export default function Login() {
   const router = useRouter();
+  // RSVP-first invited flow: the invite screen sends users here with a `next`
+  // param; after auth we land them back to finish their RSVP.
+  const { next } = useLocalSearchParams<{ next?: string }>();
   const { signIn, users, isLoading } = useAuth();
   const seed = useMutation(api.seed.run);
   const upsert = useMutation(api.users.upsertFromAuth);
+
+  const dest = (next as never) ?? ("/going" as never);
 
   // Show Apple's official button only where Sign in with Apple is available
   // (real iOS builds). Elsewhere we fall back to the mock entry buttons.
@@ -38,7 +43,7 @@ export default function Login() {
       } else {
         signIn();
       }
-      router.replace("/going");
+      router.replace(dest);
     } catch (e) {
       Alert.alert("Couldn't sign in", String((e as Error).message));
     }
@@ -51,7 +56,7 @@ export default function Login() {
     try {
       const userId = await upsert(id);
       signIn(userId);
-      router.replace("/going");
+      router.replace(dest);
     } catch (e) {
       Alert.alert("Couldn't sign in", String((e as Error).message));
     }

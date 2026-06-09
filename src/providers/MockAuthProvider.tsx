@@ -4,14 +4,17 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 
-// Mocked auth (docs/meettime-mvp.md §12). Holds the current user and a dev
-// "switch user" control. The app passes currentUser._id into every Convex call.
+// Mocked auth (docs/meettime-mvp.md §12). Holds the current user + an explicit
+// signed-in flag so the app has a real logged-out state (login screen). OAuth
+// buttons call signIn(); the app passes currentUser._id into every Convex call.
 // When real auth lands, swap this for an identity → users lookup.
 
 type MockAuth = {
   currentUser: Doc<"users"> | null;
   users: Doc<"users">[];
   isLoading: boolean;
+  isSignedIn: boolean;
+  signIn: (id?: Id<"users">) => void;
   switchUser: (id: Id<"users">) => void;
   signOut: () => void;
 };
@@ -20,20 +23,30 @@ const Ctx = createContext<MockAuth | null>(null);
 
 export function MockAuthProvider({ children }: { children: ReactNode }) {
   const users = useQuery(api.users.list);
+  const [signedIn, setSignedIn] = useState(false);
   const [selectedId, setSelectedId] = useState<Id<"users"> | null>(null);
 
   const value = useMemo<MockAuth>(() => {
     const list = users ?? [];
-    const current =
-      list.find((u) => u._id === selectedId) ?? list[0] ?? null;
+    const current = signedIn
+      ? list.find((u) => u._id === selectedId) ?? list[0] ?? null
+      : null;
     return {
       currentUser: current,
       users: list,
       isLoading: users === undefined,
-      switchUser: setSelectedId,
-      signOut: () => setSelectedId(null),
+      isSignedIn: signedIn && !!current,
+      signIn: (id) => {
+        if (id) setSelectedId(id);
+        setSignedIn(true);
+      },
+      switchUser: (id) => setSelectedId(id),
+      signOut: () => {
+        setSignedIn(false);
+        setSelectedId(null);
+      },
     };
-  }, [users, selectedId]);
+  }, [users, signedIn, selectedId]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
@@ -44,10 +57,9 @@ export function useAuth(): MockAuth {
   return ctx;
 }
 
-// Convenience: the current user id, or throw if not signed in. Use in screens
-// that require a session before issuing a mutation.
+// Convenience: the current user id, or throw if not signed in.
 export function useUserId(): Id<"users"> {
   const { currentUser } = useAuth();
-  if (!currentUser) throw new Error("No mock user — seed the database first.");
+  if (!currentUser) throw new Error("No mock user — sign in first.");
   return currentUser._id;
 }

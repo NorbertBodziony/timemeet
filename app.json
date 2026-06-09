@@ -8,7 +8,8 @@
     "scheme": "heroui-native-app",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.meettime"
     },
     "android": {
       "adaptiveIcon": {

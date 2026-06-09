@@ -14,12 +14,14 @@ type Tab = "to_confirm" | "going" | "history" | "mine";
 export function EventTabList({
   tab,
   title,
+  subtitle,
   empty,
   action,
   right,
 }: {
   tab: Tab;
   title: string;
+  subtitle?: string;
   empty: string;
   action?: ReactNode;
   right?: ReactNode;
@@ -35,7 +37,7 @@ export function EventTabList({
   );
 
   return (
-    <Screen title={title} right={right}>
+    <Screen title={title} subtitle={subtitle} right={right}>
       {action ? <View className="mb-4">{action}</View> : null}
       {rows === undefined ? (
         <View className="py-16 items-center">

@@ -10,8 +10,8 @@ export default function HowPlaceRsvp() {
       total={3}
       headline="Place works? You in?"
       body="The app collects, you meet up."
-      cta="Let's go"
-      onNext={() => router.replace("/going")}
+      cta="Next"
+      onNext={() => router.push("/login")}
     />
   );
 }

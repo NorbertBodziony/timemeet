@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 import { useMutation } from "convex/react";
@@ -28,9 +28,11 @@ export default function NewEvent() {
   const { celebrate } = useCelebrate();
   const create = useMutation(api.events.create);
   const slots = useMemo(() => candidateSlots(Date.now()), []);
+  // Prefilled when re-running a past meetup ("Plan again").
+  const params = useLocalSearchParams<{ title?: string; address?: string }>();
 
-  const [title, setTitle] = useState("");
-  const [address, setAddress] = useState("");
+  const [title, setTitle] = useState(params.title ?? "");
+  const [address, setAddress] = useState(params.address ?? "");
   const [when, setWhen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(false);

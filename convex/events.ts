@@ -132,11 +132,23 @@ export const listByTab = query({
     now: v.number(),
   },
   handler: async (ctx, { userId, tab, now }) => {
-    const decorate = async (events: Doc<"events">[]) =>
+    // History rows carry a rating summary so the muted card can show ★.
+    const ratingFor = async (eventId: Id<"events">) => {
+      const rs = await ctx.db
+        .query("eventRatings")
+        .withIndex("by_event", (q) => q.eq("eventId", eventId))
+        .collect();
+      const count = rs.length;
+      const average =
+        count === 0 ? 0 : Math.round((rs.reduce((s, r) => s + r.stars, 0) / count) * 10) / 10;
+      return { average, count };
+    };
+    const decorate = async (events: Doc<"events">[], withRating = false) =>
       Promise.all(
         events.map(async (event) => ({
           event,
           counts: await countByStatus(ctx, event._id),
+          rating: withRating ? await ratingFor(event._id) : undefined,
         }))
       );
 
@@ -174,6 +186,7 @@ export const listByTab = query({
       filtered = loaded
         .filter((e) => e.startsAt < now)
         .sort((a, b) => b.startsAt - a.startsAt);
+      return decorate(filtered, true);
     }
     return decorate(filtered);
   },

@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Share, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
 import { Button, Card, Input, Separator, Text } from "heroui-native";
@@ -8,6 +8,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { Icon } from "../../../components/Icon";
 import { Screen } from "../../../components/Screen";
 import { RsvpPicker } from "../../../components/RsvpPicker";
+import { StarRating } from "../../../components/StarRating";
 import { UserAvatar } from "../../../components/UserAvatar";
 import { formatDateTime } from "../../../lib/datetime";
 import { type RsvpStatus } from "../../../lib/theme";
@@ -27,12 +28,23 @@ export default function EventDetail() {
   );
   const rsvps = useQuery(api.rsvps.listForEvent, { eventId });
   const posts = useQuery(api.posts.listForEvent, { eventId });
+  const rating = useQuery(
+    api.ratings.forEvent,
+    currentUser ? { eventId, userId: currentUser._id } : { eventId }
+  );
   const setRsvp = useMutation(api.rsvps.set);
   const addPost = useMutation(api.posts.add);
   const cancelEvent = useMutation(api.events.cancel);
   const createToken = useMutation(api.invites.createToken);
+  const setRating = useMutation(api.ratings.set);
 
   const [draft, setDraft] = useState("");
+  const [note, setNote] = useState<string | null>(null);
+
+  // Initialize the note input from my existing rating once loaded.
+  useEffect(() => {
+    if (rating?.mine && note === null) setNote(rating.mine.note ?? "");
+  }, [rating, note]);
 
   if (data === undefined) return <Screen title="Loading…" dismiss="back">{null}</Screen>;
   if (data === null)
@@ -42,12 +54,24 @@ export default function EventDetail() {
   const isOrganizer = currentUser?._id === event.creatorId;
   const place = event.customAddress ?? event.placeId ?? "";
   const cancelled = event.status === "cancelled";
+  const isPast = (event.endsAt ?? event.startsAt) < Date.now();
   const going = (rsvps ?? []).filter((r) => r.status === "going");
+  const myStars = rating?.mine?.stars ?? 0;
 
   async function onRsvp(status: RsvpStatus) {
     if (!currentUser) return;
     await setRsvp({ userId: currentUser._id, eventId, status });
     if (status === "going") push.push({ title: `You're in — ${event.title}` });
+  }
+
+  async function rate(stars: number) {
+    if (!currentUser) return;
+    await setRating({ userId: currentUser._id, eventId, stars, note: note ?? undefined });
+  }
+
+  async function saveNote() {
+    if (!currentUser || !myStars) return;
+    await setRating({ userId: currentUser._id, eventId, stars: myStars, note: note ?? undefined });
   }
 
   async function post() {
@@ -65,6 +89,13 @@ export default function EventDetail() {
     } catch {
       Alert.alert("Couldn't open share", url);
     }
+  }
+
+  function planAgain() {
+    router.push({
+      pathname: "/event/new",
+      params: { title: event.title, address: place },
+    });
   }
 
   function confirmCancel() {
@@ -104,8 +135,15 @@ export default function EventDetail() {
       <Card className="mb-5">
         <Card.Body className="gap-2">
           <View className="flex-row items-center gap-2">
-            <Icon name="calendar-outline" size={16} tint="accent" />
-            <Text weight="semibold">{formatDateTime(event.startsAt)}</Text>
+            <Icon
+              name={isPast ? "checkmark-circle-outline" : "calendar-outline"}
+              size={16}
+              tint={isPast ? "muted" : "accent"}
+            />
+            <Text weight="semibold" color={isPast ? "muted" : "default"}>
+              {isPast ? "Happened · " : ""}
+              {formatDateTime(event.startsAt)}
+            </Text>
           </View>
           {!!place && (
             <View className="flex-row items-center gap-2">
@@ -126,11 +164,11 @@ export default function EventDetail() {
         </Card.Body>
       </Card>
 
-      {/* Going avatars */}
+      {/* Attendees */}
       {going.length > 0 && (
         <View className="mb-5">
           <Text type="body-xs" weight="semibold" color="muted" className="mb-2 ml-1">
-            {counts.going} GOING · {counts.maybe} MAYBE
+            {isPast ? "WHO CAME" : `${counts.going} GOING · ${counts.maybe} MAYBE`}
           </Text>
           <View className="flex-row flex-wrap gap-3">
             {going.map((r) => (
@@ -145,7 +183,37 @@ export default function EventDetail() {
         </View>
       )}
 
-      {!cancelled && (
+      {/* Past → rate; upcoming → RSVP */}
+      {!cancelled && isPast && (
+        <Card className="mb-2">
+          <Card.Body className="gap-3">
+            <View className="flex-row items-center justify-between">
+              <Text weight="semibold">How was it?</Text>
+              {!!rating && rating.count > 0 && (
+                <Text type="body-xs" color="muted">
+                  {rating.average} ★ from {rating.count}
+                </Text>
+              )}
+            </View>
+            <StarRating value={myStars} onChange={rate} size={28} />
+            <View className="flex-row gap-2 items-center">
+              <View className="flex-1">
+                <Input
+                  value={note ?? ""}
+                  onChangeText={setNote}
+                  placeholder="Add a note (optional)"
+                  editable={myStars > 0}
+                />
+              </View>
+              <Button variant="outline" size="md" isDisabled={!myStars} onPress={saveNote}>
+                <Button.Label>Save</Button.Label>
+              </Button>
+            </View>
+          </Card.Body>
+        </Card>
+      )}
+
+      {!cancelled && !isPast && (
         <>
           <Text type="body-sm" weight="semibold" color="muted" className="mb-2 ml-1">
             Are you in?
@@ -181,7 +249,17 @@ export default function EventDetail() {
         </Card>
       ))}
 
-      {isOrganizer && !cancelled && (
+      {/* Past → plan again; upcoming organizer → edit/share/cancel */}
+      {isPast && !cancelled && (
+        <View className="mt-7">
+          <Button variant="primary" size="lg" onPress={planAgain}>
+            <Icon name="repeat" size={18} color="#FFFFFF" />
+            <Button.Label>Plan again</Button.Label>
+          </Button>
+        </View>
+      )}
+
+      {isOrganizer && !isPast && !cancelled && (
         <View className="mt-7 gap-2">
           <Button
             variant="outline"

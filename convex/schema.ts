@@ -141,6 +141,16 @@ export default defineSchema({
     isAnnouncement: v.boolean(),
   }).index("by_event", ["eventId"]),
 
+  // Post-event ratings (1–5 stars) — one per (event, user).
+  eventRatings: defineTable({
+    eventId: v.id("events"),
+    userId: v.id("users"),
+    stars: v.number(),
+    note: v.optional(v.string()),
+  })
+    .index("by_event", ["eventId"])
+    .index("by_event_user", ["eventId", "userId"]),
+
   partners: defineTable({
     name: v.string(),
     placeId: v.string(),

@@ -3,22 +3,27 @@ import { Card, Chip, Text } from "heroui-native";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { formatTime } from "../lib/datetime";
 import { Icon } from "./Icon";
+import { StarRating } from "./StarRating";
 import { RSVP, type RsvpStatus } from "../lib/theme";
 
 type Counts = Record<RsvpStatus, number>;
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// Event list card: leading date tile + title/meta + status chip. Reads like a
-// native calendar list, not a generic box.
+// Event list card. Upcoming: accent date tile + counts + status chip. Past
+// (`past`): muted, with the star rating (or a "Rate this" hint).
 export function EventCard({
   event,
   counts,
   viewerStatus,
+  past,
+  rating,
   onPress,
 }: {
   event: Doc<"events">;
   counts?: Counts;
   viewerStatus?: RsvpStatus | null;
+  past?: boolean;
+  rating?: { average: number; count: number };
   onPress: () => void;
 }) {
   const declined = viewerStatus === "not_going";
@@ -27,17 +32,27 @@ export function EventCard({
   const status = viewerStatus ? RSVP[viewerStatus] : null;
 
   return (
-    <Pressable onPress={onPress} className="mb-3" style={{ opacity: declined ? 0.55 : 1 }}>
+    <Pressable onPress={onPress} className="mb-3" style={{ opacity: past || declined ? 0.7 : 1 }}>
       <Card>
         <Card.Body className="flex-row items-center gap-3 py-3">
-          {/* Date tile */}
-          <View className="w-12 h-12 rounded-xl bg-accent-soft items-center justify-center">
-            <Text type="body-xs" weight="semibold" className="text-accent-soft-foreground">
-              {DAYS[d.getDay()].toUpperCase()}
-            </Text>
-            <Text type="h3" weight="bold" className="text-accent-soft-foreground leading-none">
-              {d.getDate()}
-            </Text>
+          {/* Date tile — neutral when past */}
+          <View
+            className={`w-12 h-12 rounded-xl items-center justify-center ${
+              past ? "bg-default-soft" : "bg-accent-soft"
+            }`}
+          >
+            {past ? (
+              <Icon name="checkmark-done" size={20} tint="muted" />
+            ) : (
+              <>
+                <Text type="body-xs" weight="semibold" className="text-accent-soft-foreground">
+                  {DAYS[d.getDay()].toUpperCase()}
+                </Text>
+                <Text type="h3" weight="bold" className="text-accent-soft-foreground leading-none">
+                  {d.getDate()}
+                </Text>
+              </>
+            )}
           </View>
 
           {/* Title + meta */}
@@ -64,18 +79,36 @@ export function EventCard({
                 </>
               )}
             </View>
-            {counts && (
-              <View className="flex-row items-center gap-1 mt-1">
-                <Icon name="people-outline" size={13} tint="success" />
-                <Text type="body-xs" weight="semibold" className="text-success">
-                  {counts.going} going{counts.maybe ? ` · ${counts.maybe} maybe` : ""}
-                </Text>
+
+            {past ? (
+              <View className="flex-row items-center gap-2 mt-1">
+                {rating && rating.count > 0 ? (
+                  <>
+                    <StarRating value={rating.average} size={13} />
+                    <Text type="body-xs" color="muted">
+                      {rating.average} · {rating.count}
+                    </Text>
+                  </>
+                ) : (
+                  <Text type="body-xs" color="muted">
+                    Tap to rate
+                  </Text>
+                )}
               </View>
+            ) : (
+              counts && (
+                <View className="flex-row items-center gap-1 mt-1">
+                  <Icon name="people-outline" size={13} tint="success" />
+                  <Text type="body-xs" weight="semibold" className="text-success">
+                    {counts.going} going{counts.maybe ? ` · ${counts.maybe} maybe` : ""}
+                  </Text>
+                </View>
+              )
             )}
           </View>
 
-          {/* Status chip */}
-          {status && (
+          {/* Status chip (upcoming only) */}
+          {!past && status && (
             <Chip color={status.color} variant="soft" size="sm">
               <Chip.Label>{status.label}</Chip.Label>
             </Chip>

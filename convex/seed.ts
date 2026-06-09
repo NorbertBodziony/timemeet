@@ -21,10 +21,12 @@ export const run = mutation({
         "polls",
         "rsvps",
         "posts",
+        "eventRatings",
         "eventInvites",
         "events",
         "subscriptions",
         "users",
+        "referrals",
       ] as const) {
         for (const row of await ctx.db.query(table).collect()) {
           await ctx.db.delete(row._id);
@@ -144,6 +146,19 @@ export const run = mutation({
         userId: u,
         status: "going",
         changedAt: now - 6 * DAY_MS,
+      });
+    }
+    // Ratings on the past event (so the recap + history show a real average).
+    const ratingPlan: Array<[number, number, string | undefined]> = [
+      [1, 5, "Best wall yet 🧗"],
+      [2, 4, undefined],
+    ];
+    for (const [userIdx, stars, note] of ratingPlan) {
+      await ctx.db.insert("eventRatings", {
+        eventId: past,
+        userId: crew[userIdx],
+        stars,
+        note,
       });
     }
 

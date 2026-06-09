@@ -50,13 +50,15 @@ export function EventTabList({
       ) : rows.length === 0 ? (
         <EmptyState text={empty} icon={emptyIcon} />
       ) : (
-        rows.map(({ event, counts }) => (
+        rows.map((row) => (
           <EventCard
-            key={event._id}
-            event={event}
-            counts={counts}
+            key={row.event._id}
+            event={row.event}
+            counts={row.counts}
+            past={tab === "history"}
+            rating={row.rating}
             onPress={() =>
-              router.push({ pathname: "/event/[id]", params: { id: event._id } })
+              router.push({ pathname: "/event/[id]", params: { id: row.event._id } })
             }
           />
         ))

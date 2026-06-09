@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireUser } from "./helpers";
+import { notify } from "./notifications";
 import type { Doc, Id } from "./_generated/dataModel";
 
 const eventFields = {
@@ -77,6 +78,19 @@ export const cancel = mutation({
       throw new Error("Only the organizer can cancel this event.");
     }
     await ctx.db.patch(eventId, { status: "cancelled" });
+
+    // Notify everyone who had responded (except the organizer).
+    const rsvps = await ctx.db
+      .query("rsvps")
+      .withIndex("by_event", (q) => q.eq("eventId", eventId))
+      .collect();
+    await notify(
+      ctx,
+      rsvps.map((r) => r.userId).filter((id) => id !== userId),
+      "event_cancelled",
+      `Cancelled — ${event.title}`,
+      eventId
+    );
   },
 });
 

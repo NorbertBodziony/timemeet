@@ -22,6 +22,7 @@ export const run = mutation({
         "rsvps",
         "posts",
         "eventRatings",
+        "notifications",
         "eventInvites",
         "events",
         "subscriptions",
@@ -161,6 +162,22 @@ export const run = mutation({
         note,
       });
     }
+
+    // A couple of notifications so Karolina's inbox isn't empty on first run.
+    await ctx.db.insert("notifications", {
+      userId: karolina,
+      type: "rsvp",
+      title: "Marek is going to Coffee at Karma ☕",
+      eventId: upcoming,
+      read: false,
+    });
+    await ctx.db.insert("notifications", {
+      userId: karolina,
+      type: "post",
+      title: "Ania: bring chalk for the climb",
+      eventId: past,
+      read: true,
+    });
 
     return { seeded: true, userId: karolina };
   },

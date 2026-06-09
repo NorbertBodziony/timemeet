@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ScopedTheme } from "uniwind";
 
+import { NotificationListener } from "../components/NotificationListener";
 import { CelebrationProvider } from "../providers/CelebrationProvider";
 import { ConvexClientProvider } from "../providers/ConvexClientProvider";
 import { MockAuthProvider } from "../providers/MockAuthProvider";
@@ -42,6 +43,7 @@ export default function RootLayout(): JSX.Element | null {
                 <MockPushProvider>
                   <CelebrationProvider>
                     <StatusBar style="dark" />
+                    <NotificationListener />
                     <Stack screenOptions={{ headerShown: false }}>
                       {/* Self-contained edit flow as a modal (close = cancel). */}
                       <Stack.Screen

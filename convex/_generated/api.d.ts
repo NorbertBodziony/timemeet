@@ -11,6 +11,7 @@
 import type * as events from "../events.js";
 import type * as helpers from "../helpers.js";
 import type * as invites from "../invites.js";
+import type * as notifications from "../notifications.js";
 import type * as polls from "../polls.js";
 import type * as posts from "../posts.js";
 import type * as ratings from "../ratings.js";
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   events: typeof events;
   helpers: typeof helpers;
   invites: typeof invites;
+  notifications: typeof notifications;
   polls: typeof polls;
   posts: typeof posts;
   ratings: typeof ratings;

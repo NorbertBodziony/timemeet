@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireUser } from "./helpers";
+import { notify } from "./notifications";
 
 export const add = mutation({
   args: {
@@ -10,14 +11,31 @@ export const add = mutation({
     isAnnouncement: v.boolean(),
   },
   handler: async (ctx, { userId, eventId, body, isAnnouncement }) => {
-    await requireUser(ctx, userId);
-    if (!body.trim()) throw new Error("Write something first.");
-    return await ctx.db.insert("posts", {
+    const me = await requireUser(ctx, userId);
+    const text = body.trim();
+    if (!text) throw new Error("Write something first.");
+    const postId = await ctx.db.insert("posts", {
       eventId,
       authorId: userId,
-      body: body.trim(),
+      body: text,
       isAnnouncement,
     });
+
+    // Announcements ping everyone who responded (except the author).
+    if (isAnnouncement) {
+      const rsvps = await ctx.db
+        .query("rsvps")
+        .withIndex("by_event", (q) => q.eq("eventId", eventId))
+        .collect();
+      await notify(
+        ctx,
+        rsvps.map((r) => r.userId).filter((id) => id !== userId),
+        "post",
+        `${me.displayName}: ${text.slice(0, 60)}`,
+        eventId
+      );
+    }
+    return postId;
   },
 });
 

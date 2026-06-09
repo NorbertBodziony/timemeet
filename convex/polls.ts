@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { voteValue } from "./schema";
 import { DAY_MS, requireUser } from "./helpers";
+import { notify } from "./notifications";
 import type { Id } from "./_generated/dataModel";
 
 // Create a Time Poll (3–7 slots). Place polls share the same shape via placeOptions.
@@ -236,6 +237,15 @@ export const convertToEvent = mutation({
     }
 
     await ctx.db.patch(args.pollId, { status: "converted", eventId });
+
+    // Notify everyone auto-RSVP'd (except the organizer who converted).
+    await notify(
+      ctx,
+      [...seen].filter((id) => id !== args.userId) as Id<"users">[],
+      "poll_resolved",
+      `Plan's set! ${poll.title}`,
+      eventId
+    );
     return eventId;
   },
 });

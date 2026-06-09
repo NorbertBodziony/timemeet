@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { rsvpStatus } from "./schema";
 import { requireUser } from "./helpers";
+import { notify } from "./notifications";
 
 // Set the current user's RSVP for an event (one row per event/user).
 export const set = mutation({
@@ -11,7 +12,7 @@ export const set = mutation({
     status: rsvpStatus,
   },
   handler: async (ctx, { userId, eventId, status }) => {
-    await requireUser(ctx, userId);
+    const me = await requireUser(ctx, userId);
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error("Event not found.");
 
@@ -22,6 +23,19 @@ export const set = mutation({
       )
       .unique();
     const changedAt = Date.now();
+    const wasGoing = existing?.status === "going";
+
+    // Tell the organizer when someone newly commits to "going".
+    if (status === "going" && !wasGoing && event.creatorId !== userId) {
+      await notify(
+        ctx,
+        [event.creatorId],
+        "rsvp",
+        `${me.displayName} is going to ${event.title}`,
+        eventId
+      );
+    }
+
     if (existing) {
       await ctx.db.patch(existing._id, { status, changedAt });
       return existing._id;

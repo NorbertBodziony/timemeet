@@ -141,6 +141,22 @@ export default defineSchema({
     isAnnouncement: v.boolean(),
   }).index("by_event", ["eventId"]),
 
+  // In-app notifications — written on key events, read reactively by the app.
+  notifications: defineTable({
+    userId: v.id("users"), // recipient
+    type: v.union(
+      v.literal("invite"),
+      v.literal("poll_resolved"),
+      v.literal("event_cancelled"),
+      v.literal("rsvp"),
+      v.literal("post"),
+      v.literal("reminder")
+    ),
+    title: v.string(),
+    eventId: v.optional(v.id("events")),
+    read: v.boolean(),
+  }).index("by_user", ["userId"]),
+
   // Post-event ratings (1–5 stars) — one per (event, user).
   eventRatings: defineTable({
     eventId: v.id("events"),

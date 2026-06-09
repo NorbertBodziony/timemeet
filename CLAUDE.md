@@ -18,6 +18,11 @@ know. Polish-first. Hero features: **Plan Polls** (ankieta terminu), **Place Pol
 - Package manager: **bun**.
 
 ## Design law (full detail in spec §4)
+- **Implementation note:** the app UI now uses **HeroUI Native's default light theme** — use
+  its color utilities (`bg-background`, `bg-surface`, `text-foreground`, `text-muted`,
+  `border-border`, `bg-accent`, `success/warning/danger`) and components (`Button`, `Input`,
+  `Switch`, `Chip`, `Text`, `Surface`). The mono-green palette below is the brand/marketing
+  guideline, not the in-app token set.
 - The **mono-green** palette IS the brand. Slime Lime `#A3FF12` + Evergreen `#0F1A00` are the
   signature. Stay inside the 9 brand greens for anything brand/marketing-facing.
 - **RSVP / semantic colors** (Amber, Violet, Cherry Red, Gray) are **UI-only** — never in

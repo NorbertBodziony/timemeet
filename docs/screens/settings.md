@@ -1,8 +1,9 @@
 # Screens — Settings, Profile, Subscription, Referrals, Privacy
 
-All **🔭 Planned** — build specs (not yet in `src/app/`). Backend tables already exist
-(`users`, `subscriptions`, `referrals` in `convex/schema.ts`). Mock boundary per
-`meettime-mvp.md` §7/§37/§38. Back to [app-map](../app-map.md).
+**✅ Built** — all six screens live under `src/app/settings/`, wired to real Convex
+(`users`, `subscriptions`, `referrals`). Reached via the ⚙ gear in the **My events** header.
+Mock boundary per `meettime-mvp.md` §7/§37/§38. Below, 🔭 marks individual fields/actions still
+to come (photo upload, data export, quiet hours). Back to [app-map](../app-map.md).
 
 ---
 

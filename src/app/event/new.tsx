@@ -5,7 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { GradientButton } from "../../components/GradientButton";
 import { Screen } from "../../components/Screen";
-import { formatDate, formatRange } from "../../lib/datetime";
+import { formatDate, formatDateTime, formatRange } from "../../lib/datetime";
 import { useAuth } from "../../providers/MockAuthProvider";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -30,6 +30,7 @@ export default function NewEvent() {
   const [address, setAddress] = useState("");
   const [when, setWhen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState(false);
 
   const valid = title.trim().length > 0 && when !== null;
 
@@ -53,6 +54,34 @@ export default function NewEvent() {
       Alert.alert("Couldn't create the event", String((e as Error).message));
       setBusy(false);
     }
+  }
+
+  // Pre-publish preview (read-only) before creating.
+  if (preview && when !== null) {
+    return (
+      <Screen title="Preview" subtitle="This is what your crew will see.">
+        <View className="rounded-2xl bg-surface border border-brand-evergreen/10 px-4 py-4 mb-6">
+          <Text className="text-brand-evergreen text-[20px] font-bold">{title.trim()}</Text>
+          <Text className="text-brand-evergreen/65 text-[14px] mt-2">
+            {formatDateTime(when)}
+          </Text>
+          {!!address.trim() && (
+            <Text className="text-brand-evergreen/65 text-[13px] mt-0.5">
+              {address.trim()}
+            </Text>
+          )}
+          <Text className="text-brand-evergreen/40 text-[12px] mt-2">
+            Invite only · organized by {currentUser?.displayName ?? "you"}
+          </Text>
+        </View>
+        <GradientButton label="Publish" onPress={submit} loading={busy} />
+        <Pressable onPress={() => setPreview(false)} className="py-3 items-center mt-1">
+          <Text className="text-brand-evergreen/65 text-[14px] font-semibold">
+            Back to edit
+          </Text>
+        </Pressable>
+      </Screen>
+    );
   }
 
   return (
@@ -107,10 +136,9 @@ export default function NewEvent() {
 
       <View className="mt-4">
         <GradientButton
-          label="Create meetup"
-          onPress={submit}
+          label="Preview"
+          onPress={() => setPreview(true)}
           disabled={!valid}
-          loading={busy}
         />
       </View>
     </Screen>

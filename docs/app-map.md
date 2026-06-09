@@ -24,14 +24,14 @@ Legend: **✅ Built** (exists in `src/app/`) · **🔭 Planned** (specced here, 
 | `event/new` | Direct event create (no poll) | ✅ | [events](screens/events.md) |
 | `event/[id]` | Event detail — RSVP, board, share, cancel | ✅ | [events](screens/events.md) |
 | `invite/[token]` | ⭐ Invited flow — RSVP-first landing | ✅ | [onboarding](screens/onboarding.md) |
-| `event/[id]/edit` | Edit event (organizer) + diff | 🔭 | [events](screens/events.md) |
-| `poll/[id]/share` / preview | Pre-publish read-only preview | 🔭 | [events](screens/events.md) |
-| `(tabs)/settings` or `settings/index` | Settings home | 🔭 | [settings](screens/settings.md) |
-| `settings/profile` | Profile (name, photo, city, referral code) | 🔭 | [settings](screens/settings.md) |
-| `settings/notifications` | Push prefs (4 transactional types) | 🔭 | [settings](screens/settings.md) |
-| `settings/subscription` | MeetTime+ / Founder (mock paywall) | 🔭 | [settings](screens/settings.md) |
-| `settings/referrals` | Referral code + share | 🔭 | [settings](screens/settings.md) |
-| `settings/privacy` | Privacy/RODO + delete account | 🔭 | [settings](screens/settings.md) |
+| `event/[id]/edit` | Edit event (organizer) + diff | ✅ | [events](screens/events.md) |
+| `event/new` (preview step) | Pre-publish read-only preview | ✅ | [events](screens/events.md) |
+| `settings/index` | Settings home (+ dev user switch) | ✅ | [settings](screens/settings.md) |
+| `settings/profile` | Profile (name, city, referral code) | ✅ | [settings](screens/settings.md) |
+| `settings/notifications` | Push prefs (4 transactional types) | ✅ | [settings](screens/settings.md) |
+| `settings/subscription` | MeetTime+ / Founder (mock paywall) | ✅ | [settings](screens/settings.md) |
+| `settings/referrals` | Referral code + share | ✅ | [settings](screens/settings.md) |
+| `settings/privacy` | Privacy/RODO + delete account | ✅ | [settings](screens/settings.md) |
 
 ## Navigation graph
 

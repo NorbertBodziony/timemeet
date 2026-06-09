@@ -46,12 +46,13 @@ Create, RSVP, board, edit, cancel (`meettime-mvp.md` §3.3–§3.5). Back to [ap
 
 ---
 
-## `event/[id]/edit` 🔭 — edit (organizer)
-- **Spec:** change date/time/location/details/capacity; **diff view**; push to all invitees;
-  `events.edit({ userId, eventId, patch })` (exists). Analytics `event_edited`.
+## `event/[id]/edit` ✅ — edit (organizer)
+- Change title/where/notes/when; **diff view** ("CHANGES: field: old → new"); Save → `events.edit`
+  → mock push "Updated: {title}" (stands in for push to invitees) → back. Analytics `event_edited`.
 
-## Pre-publish preview 🔭
-- **Spec:** read-only preview before publishing a direct event; "Publish" / "Back to edit".
+## Pre-publish preview ✅ (in `event/new`)
+- Tapping **Preview** shows a read-only card of the meetup; **Publish** → `events.create`,
+  **Back to edit** returns to the form.
 
 ---
 

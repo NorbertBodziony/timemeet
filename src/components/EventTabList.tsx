@@ -16,11 +16,13 @@ export function EventTabList({
   title,
   empty,
   action,
+  right,
 }: {
   tab: Tab;
   title: string;
   empty: string;
   action?: ReactNode;
+  right?: ReactNode;
 }) {
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -33,7 +35,7 @@ export function EventTabList({
   );
 
   return (
-    <Screen title={title}>
+    <Screen title={title} right={right}>
       {action ? <View className="mb-4">{action}</View> : null}
       {rows === undefined ? (
         <View className="py-16 items-center">

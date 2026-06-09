@@ -8,23 +8,28 @@ export function Screen({
   subtitle,
   children,
   scroll = true,
+  right,
 }: {
   title?: string;
   subtitle?: string;
   children: ReactNode;
   scroll?: boolean;
+  right?: ReactNode; // optional top-right header action (e.g. settings gear)
 }) {
   const insets = useSafeAreaInsets();
   const header = (
-    <View className="mb-4">
-      {title && (
-        <Text className="text-brand-evergreen text-[26px] font-bold tracking-tight">
-          {title}
-        </Text>
-      )}
-      {subtitle && (
-        <Text className="text-brand-evergreen/65 text-[15px] mt-1">{subtitle}</Text>
-      )}
+    <View className="mb-4 flex-row items-start justify-between">
+      <View className="flex-1">
+        {title && (
+          <Text className="text-brand-evergreen text-[26px] font-bold tracking-tight">
+            {title}
+          </Text>
+        )}
+        {subtitle && (
+          <Text className="text-brand-evergreen/65 text-[15px] mt-1">{subtitle}</Text>
+        )}
+      </View>
+      {right ? <View className="ml-3 pt-1">{right}</View> : null}
     </View>
   );
 

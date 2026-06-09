@@ -14,7 +14,7 @@ Back to [app-map](../app-map.md).
   - **Time:** 7 candidate evening slots (next 7 days, 7pm), tap to pick **3–7**.
   - **Place:** mock venue catalog (`src/lib/places.ts`), tap to pick **2+**; rows show
     ★rating (reviews) · address · "Multisport" badge (mocked).
-  - Gradient CTA "Create poll" (disabled until valid).
+  - Primary CTA "Create poll" (disabled until valid).
 - **Actions:**
 
   | Control | Effect | Convex | Analytics | Navigation |
@@ -36,7 +36,7 @@ Back to [app-map](../app-map.md).
 - **Queries:** `polls.get({ pollId, userId })` (poll + slots/places + my votes),
   `polls.aggregate({ pollId })` (per-option yes/maybe/no).
 - **Elements:** one `VoteRow` per slot/venue — title + subtitle + "{yes} yes · {maybe} maybe";
-  Yes/Maybe/No buttons (mine highlighted). Leading time slot (most "yes") gets a fern border.
+  Yes/Maybe/No buttons (mine highlighted). Leading time slot (most "yes") gets an accent border.
 - **Actions:**
 
   | Control | Effect | Convex | Analytics | Navigation |

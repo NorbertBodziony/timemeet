@@ -56,7 +56,7 @@ launch (index)
 ```
 
 ## Tab bar (4 tabs, light theme locked)
-`to-confirm (◔) · going (✓) · history (≡) · mine (★)` — active tint Bright Fern `#5DA802`,
+`to-confirm (◔) · going (✓) · history (≡) · mine (★)` — active tint = theme **accent** (HeroUI),
 white bar. Defined in `src/app/(tabs)/_layout.tsx`. Luma-style vertical lists (no grid).
 
 ## Global providers (`src/app/_layout.tsx`)
@@ -66,7 +66,7 @@ white bar. Defined in `src/app/(tabs)/_layout.tsx`. Luma-style vertical lists (n
   Convex call (mocked-auth seam, `meettime-mvp.md` §12).
 - **Convex** real local backend; queries reactive.
 - **MockPush** in-app banner stands in for transactional push (`meettime-mvp.md` §3.7).
-- Lato fonts (400/700/900) loaded before render.
+- HeroUI default light theme; system typography.
 
 ## Conventions used across screen docs
 - Copy is **verbatim English**, matching the app + glossary (`meettime-mvp.md` §5).

@@ -5,16 +5,16 @@ Tab bar with 4 tabs, Luma-style vertical lists (no grid). All driven by one quer
 Back to [app-map](../app-map.md).
 
 ## Shared list — `EventTabList`
-- **Loading:** Bright Fern spinner (no text < 2s).
+- **Loading:** themed spinner (no text < 2s).
 - **Empty:** warm one-liner (per tab, below).
 - **Rows:** `EventCard` per item; tap → `event/[id]`.
 - **Analytics:** `screen_viewed{name:<tab>}` on focus.
 
 ### `EventCard` anatomy (`src/components/EventCard.tsx`)
-- 3px left **stripe** colored by the viewer's RSVP status; brand fern default; today → lime
-  brand stripe (animated pulse) wins over RSVP (`meettime-mvp.md` §16.5).
+- 3px left **stripe** = the viewer's RSVP **semantic** color (accent by default); today →
+  **accent** stripe (`meettime-mvp.md` §3.3).
 - Title (H2) · `formatDateTime(startsAt)` · address (meta) · "{going} going · {maybe} maybe".
-- **"Not going"** card: `opacity 0.6` + title strikethrough. Never red, never ❌.
+- **"Not going"** card: neutral, `opacity 0.6` + title strikethrough. Never danger-red, never ❌.
 
 ---
 
@@ -27,7 +27,7 @@ Back to [app-map](../app-map.md).
 ## `(tabs)/going` ✅
 - **Purpose:** your confirmed meetups (your calendar).
 - **Query filter:** RSVP = `going`, `startsAt ≥ now`, ascending.
-- **Header action:** **New plan** (gradient CTA) → `poll/new`.
+- **Header action:** **New plan** (primary CTA) → `poll/new`.
 - **Empty:** "Quiet group chat? Drop a time."
 - **Actions:**
 

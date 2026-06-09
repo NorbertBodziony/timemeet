@@ -18,18 +18,15 @@ know. Polish-first. Hero features: **Plan Polls** (ankieta terminu), **Place Pol
 - Package manager: **bun**.
 
 ## Design law (full detail in spec §4)
-- **Implementation note:** the app UI now uses **HeroUI Native's default light theme** — use
-  its color utilities (`bg-background`, `bg-surface`, `text-foreground`, `text-muted`,
-  `border-border`, `bg-accent`, `success/warning/danger`) and components (`Button`, `Input`,
-  `Switch`, `Chip`, `Text`, `Surface`). The mono-green palette below is the brand/marketing
-  guideline, not the in-app token set.
-- The **mono-green** palette IS the brand. Slime Lime `#A3FF12` + Evergreen `#0F1A00` are the
-  signature. Stay inside the 9 brand greens for anything brand/marketing-facing.
-- **RSVP / semantic colors** (Amber, Violet, Cherry Red, Gray) are **UI-only** — never in
-  marketing, hero, onboarding, or screenshots.
-- Type: **Lato** weights **400 / 700 / 900 only** (Lato has no 500/600 — headings use 700).
-- Primary green gradient CTA needs **separate `background-color` + `background-image`** — the
-  CSS `background:` shorthand renders it black/white. See spec §4.
+- The app UI uses **HeroUI Native's default light theme** — a clean, native-iOS / Apple-like
+  look. **No custom palette, no gradients.**
+- Use HeroUI color utilities via `className`: `bg-background`, `bg-surface`, `text-foreground`,
+  `text-muted`, `border-border`, `bg-accent` / `text-accent-foreground`, `bg-field`, and the
+  semantics `success` / `warning` / `danger` / `default` (neutral).
+- Build with HeroUI components: `Button`, `Input`, `Switch`, `Chip`, `Text`, `Surface`,
+  `Spinner`. RSVP → semantic mapping lives in `src/lib/theme.ts`.
+- **RSVP `"Not going"`** uses the **neutral** (`default`) semantic — never the danger color.
+- Type: HeroUI default (system) typography — `Text` with `type`/`weight`/`color` props.
 
 ## Copy law (full strings in spec §5)
 - **English**, **sentence case**, **2nd person** ("Rally your crew", "Hi, Marta!").

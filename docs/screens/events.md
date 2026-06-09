@@ -8,7 +8,7 @@ Create, RSVP, board, edit, cancel (`meettime-mvp.md` §3.3–§3.5). Back to [ap
 - **Purpose:** create an event without a poll. Invite-only by default (safety-first).
 - **Entry:** 🔭 a "New meetup" CTA (today reachable by route; poll Convert is the main path).
 - **Elements:** Title (1–100); Where (custom address); When (pick one of 7 candidate slots,
-  6pm); gradient CTA "Create meetup".
+  6pm); primary CTA "Create meetup".
 - **Actions:**
 
   | Control | Effect | Convex | Analytics | Navigation |
@@ -38,8 +38,8 @@ Create, RSVP, board, edit, cancel (`meettime-mvp.md` §3.3–§3.5). Back to [ap
   | Cancel meetup (organizer) | multi-step confirm → cancel | `events.cancel` | `event_cancelled` | back |
 
   *`rsvp_changed` when moving going→not_going (guardrail signal).
-- **States:** loading / not found; cancelled → red banner "This meetup was cancelled." + RSVP
-  hidden; **"Not going"** shows neutral, no red.
+- **States:** loading / not found; cancelled → danger banner "This meetup was cancelled." + RSVP
+  hidden; **"Not going"** shows neutral, never danger-red.
 - **Multi-step cancel (anti-flake):** "Cancel this meetup?" → "Continue" → "Are you sure?" →
   "Yes, cancel".
 - **Exits:** back; invite link (external mock).

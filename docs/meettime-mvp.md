@@ -78,19 +78,23 @@ week-long project. A mobile app for structured group meetups.
 
 ### 3.3 RSVP — 5 statuses (signature; do NOT reduce)
 
-| Status (`enum`) | Label | Color | Hex | Token | Icon | Semantics |
-|---|---|---|---|---|---|---|
-| `going` | Going | Bright Fern | `#5DA802` | `--rsvp-going` | ✓ | Confirmed (brand green doubles as success) |
-| `maybe` | Maybe | Amber | `#F59E0B` | `--rsvp-maybe` | ? | Undecided, open |
-| `waitlist` | Waitlist | Violet | `#8B5CF6` | `--rsvp-waitlist` | ⏱ | "I'll come if someone drops out" |
-| `not_going` | Not going | Cherry Red | `#FF3D5A` | `--rsvp-declined` | ✕ | **Never punishing** — see below |
-| `no_response` | No response | Gray | `#9CA3AF` | `--rsvp-none` | … | Initial state, awaiting decision |
+Colors come from HeroUI Native's default theme semantics (no custom palette). The
+status → semantic mapping lives in `src/lib/theme.ts`.
 
-- **"Not going" is never punishing:** card uses neutral/cool gray (not red) in the friendly view,
-  no ❌, no "declined". Copy: *"can't make it this time"* ("this time" = one-off, not a judgment).
-- Card stripe (3px): **Today** = lime brand stripe (animated pulse, wins over RSVP); other
-  cards = RSVP-status color (no animation). "Not going" card additionally `opacity: 0.6` +
-  strikethrough title. "Brak odpowiedzi" = subtle gray stripe ("awaiting your decision").
+| Status (`enum`) | Label | Semantic (HeroUI) | Icon | Meaning |
+|---|---|---|---|---|
+| `going` | Going | success | ✓ | Confirmed |
+| `maybe` | Maybe | warning | ? | Undecided, open |
+| `waitlist` | Waitlist | accent | ⏱ | "I'll come if someone drops out" |
+| `not_going` | Not going | **neutral** (`default`) | ✕ | **Never punishing** — see below |
+| `no_response` | No response | neutral (`default`) | … | Initial state, awaiting decision |
+
+- **"Not going" is never punishing:** rendered with the **neutral** (`default`) semantic, never
+  the danger color, no ❌, no "declined". Copy: *"can't make it this time"* ("this time" =
+  one-off, not a judgment).
+- Card stripe (3px): **Today** = **accent** stripe; other cards = the viewer's RSVP **semantic**
+  color. "Not going" card additionally `opacity: 0.6` + strikethrough title. "No response" =
+  neutral stripe ("awaiting your decision").
 
 ### 3.4 Create / Edit / Cancel event
 - **Create:** toggle "Invite only" (Type A, **default**) vs "Open" (Type B, M+1).
@@ -142,80 +146,45 @@ Quiet hours 22:00–08:00 = M+1 (pull into MVP if opt-out >20% in week 1).
 
 ## 4. Design system
 
-### 4.1 Mono-green palette (9 — brand foundation)
+The app UI uses **HeroUI Native's default light theme** — a clean, native-iOS / Apple-like
+look: system background, hairline separators, system (SF-like) typography, an accent-driven
+tint, semantic success/warning/danger, generous spacing, rounded cards. No custom palette, no
+gradients.
 
-| Name | Hex | Role |
-|---|---|---|
-| Slime Lime | `#A3FF12` | Brand signature, primary CTA, highlight |
-| Yellow Green | `#7ED600` | CTA mid-gradient stop |
-| Bright Fern | `#5DA802` | Success, RSVP "Going", gradient stop |
-| Forest Moss | `#4A8500` | Premium tier, achievement |
-| Green | `#3D6E00` | Deep accent, hover |
-| Olive Leaf | `#2C5000` | Tag bg, timestamp on light |
-| Black Forest | `#1A2B00` | Surface dark |
-| Evergreen | `#0F1A00` | Canvas dark, text on light |
-| Ivory | `#FAFFF2` | Canvas light, text on dark |
+### 4.1 Color utilities (HeroUI default — no hex)
+Use HeroUI's theme utilities directly via `className`:
 
-### 4.2 Light-mode tokens (MVP is light-only)
+| Utility | Use |
+|---|---|
+| `bg-background` | screen background |
+| `bg-surface` | cards, inputs, sheets |
+| `text-foreground` | headings, primary text |
+| `text-muted` | body, meta, timestamps |
+| `border-border` | cards, dividers |
+| `bg-field` / `text-field-foreground` | input fields |
+| `bg-accent` / `text-accent-foreground` | primary action / selected state |
 
-| Token | Value | Use |
-|---|---|---|
-| `--canvas` | `#FAFFF2` | Screen background |
-| `--surface` | `#FFFFFF` | Cards, modals, inputs |
-| `--surface-elevated` | `#FFFFFF` + shadow | Modals, popovers |
-| `--text-primary` | `#0F1A00` | Headings, main text |
-| `--text-secondary` | `rgba(15,26,0,0.65)` | Body |
-| `--text-tertiary` | `rgba(15,26,0,0.45)` | Meta |
-| `--text-muted` | `rgba(15,26,0,0.5)` | Timestamps, labels |
-| `--border` | `rgba(15,26,0,0.10)` | Cards, dividers |
-| `--border-strong` | `rgba(15,26,0,0.18)` | Inputs |
-| `--gradient-text` | `linear-gradient(135deg,#5DA802,#1A2B00)` | Wordmark "Time" |
+### 4.2 Semantics (HeroUI — UI only)
 
-### 4.3 Gradients
+| Semantic | Use |
+|---|---|
+| `success` | confirmed states, "everyone's going", RSVP Going |
+| `warning` | RSVP expiring, warnings, RSVP Maybe |
+| `danger` | cancel, delete, leave, error |
+| `accent` | primary tint, RSVP Waitlist, today stripe |
+| `default` (neutral) | disabled, "no response", RSVP **Not going** |
 
-| Token | Value | Use |
-|---|---|---|
-| `--brand-bright` | `linear-gradient(135deg,#A3FF12 0%,#7ED600 45%,#5DA802 100%)` | Primary CTA, brand dot |
-| `--brand-bright-simple` | `linear-gradient(135deg,#A3FF12,#5DA802)` | Today pill, small elements |
-| `--brand-deep` | `linear-gradient(135deg,#4A8500,#1A2B00)` | Premium, achievement |
-| `--brand-stripe` | `linear-gradient(180deg,#A3FF12,#5DA802)` | Today card stripe (**180°!**) |
+The danger semantic is never used for "Not going" (copy law). Components: `Button`, `Input`,
+`Switch`, `Chip`, `Text`, `Surface`, `Spinner` — all themed by HeroUI.
 
-All linear gradients are **135°** except the stripe (**180°**). Keep direction consistent.
+### 4.3 Typography
+HeroUI default type scale (system / SF-like font). Use the `Text` component with `type`
+(`h1`–`h6`, `body`, `body-sm`, `body-xs`), `weight` (`normal`/`medium`/`semibold`/`bold`),
+and `color` (`default`/`muted`). No custom font is required.
 
-> 🐛 **Gradient CTA bug:** the green gradient on the primary button does **not** work with the
-> CSS `background:` shorthand. Use **separate `background-color` + `background-image`**. If the
-> CTA renders black/white/weird, this is it. (In RN use `expo-linear-gradient` as the button bg.)
+**Wordmark:** always `MeetTime` (camelCase); rendered in the theme foreground color, no gradient.
 
-### 4.4 Semantic colors (UI-only — never marketing)
-
-| Token | Value | Use |
-|---|---|---|
-| `--semantic-success` | `#5DA802` | "everyone's going" |
-| `--semantic-danger` | `#FF3D5A` | Cancel, delete, leave, error |
-| `--semantic-warning` | `#F59E0B` | RSVP expiring, warnings |
-| `--semantic-info` | `#8B5CF6` | Info, neutral notifications |
-| `--semantic-neutral` | `#9CA3AF` | Disabled, "brak odpowiedzi" |
-
-Cherry Red never in hero/onboarding/screenshots/social. Amber only for critical warnings.
-
-### 4.5 Typography — **Lato** (400 / 700 / 900 only; no 500/600)
-
-| Role | Size | Weight | Line-height | Letter-spacing |
-|---|---|---|---|---|
-| Display | 42–56 | 900 | 1.0 | -0.04em |
-| H1 | 24–28 | 700 | 1.15 | -0.025em |
-| H2 | 18–20 | 700 | 1.2 | -0.02em |
-| H3 | 15 | 700 | 1.3 | -0.02em |
-| Body | 14–15 | 400 | 1.5 | -0.005em |
-| Meta | 12 | 400 | 1.5 | 0 |
-| Label | 10–11 | 700 | 1.4 | 0.7px, UPPERCASE |
-
-Tabular numerals: `font-feature-settings: 'tnum' 1;`. Lato designed in Warsaw by Łukasz
-Dziedzic — usable in press/App Store copy.
-
-**Wordmark:** always `MeetTime` (camelCase). "Meet" solid `#0F1A00`, "Time" gradient text.
-
-### 4.6 Lutek (mascot)
+### 4.4 Lutek (mascot)
 Otter (social animal → reinforces anti-loneliness). Voice: 1st person, casual English, "no
 stress", "we've got this". **Visible only** in onboarding (cold + invited) and the **3–5 joy
 moments**.
@@ -337,7 +306,7 @@ Supabase; no PostHog/Stripe/DG required to run).
 2. **Mock auth** (`MockAuthProvider`, current-user context, OAuth no-op buttons).
 3. ⭐ **First slice — core flows:** Plan Polls (create → vote → aggregate → Convert) → **RSVP
    (5 statuses)** → **event create**. Real Convex queries/mutations.
-4. **UI / Lutek + onboarding** — design tokens wired into Uniwind/Tailwind theme, Lato fonts,
+4. **UI / Lutek + onboarding** — HeroUI default light theme,
    Lutek illustrations, Cold (3) + Invited (critical) onboarding, empty states, joy animations.
 5. **Discovery** — 4 tabs + Luma-style vertical calendar.
 6. **Posts** — event board (announcements + aggregated poll result).
@@ -366,7 +335,7 @@ Supabase; no PostHog/Stripe/DG required to run).
 
 ```
 src/app/
-  _layout.tsx              # root: ScopedTheme light + providers (Convex, MockAuth) + Lato fonts
+  _layout.tsx              # root: ScopedTheme light + providers (Convex, MockAuth, push)
   index.tsx                # entry → redirect to (onboarding) or (tabs) based on mock session
   (onboarding)/
     _layout.tsx            # Stack, headerShown:false, dot indicator
@@ -444,22 +413,21 @@ Mocked auth means **`ctx.auth.getUserIdentity()` is null** — do not rely on it
 - This is a deliberate seam: when real auth lands, add `ctx.auth` + an `identity → users`
   lookup helper (`getCurrentUser(ctx)`) and drop the `userId` arg — **feature code unchanged**.
 
-## 13. Design tokens → code (Uniwind/Tailwind) + fonts
+## 13. Theme in code (HeroUI default)
 
-The palette in §4 is CSS-var notation; in RN it must be **Tailwind/Uniwind theme colors** used
-via `className`.
+No custom palette. `src/global.css` imports `heroui-native/styles`, which provides the default
+light theme + its color utilities.
 
-- Map tokens to color names in the Tailwind/Uniwind theme (+ `src/global.css`), e.g.
-  `brand-lime #A3FF12`, `brand-yellowgreen #7ED600`, `brand-fern #5DA802`, `brand-evergreen
-  #0F1A00`, `canvas #FAFFF2`, `surface #FFFFFF`; RSVP: `rsvp-going #5DA802`, `rsvp-maybe
-  #F59E0B`, `rsvp-waitlist #8B5CF6`, `rsvp-declined #FF3D5A`, `rsvp-none #9CA3AF`; plus
-  `semantic-danger/warning/info/neutral`. Usage: `className="bg-brand-lime text-brand-evergreen"`.
-- **Gradient CTA** is NOT a Tailwind bg — render with `expo-linear-gradient` (colors
-  `#A3FF12 → #7ED600 → #5DA802`, 135°). Restating the §4.3 bug: the CSS `background:` shorthand
-  renders it black/white; gradient needs its own layer.
-- **Fonts — Lato is not installed.** Add `@expo-google-fonts/lato` (weights 400/700/900), load
-  via `useFonts` in `src/app/_layout.tsx`, and expose a `font-lato` family in the theme. Lato has
-  no 500/600 — headings use 700.
+- Use HeroUI utilities directly via `className`: `bg-background`, `bg-surface`,
+  `text-foreground`, `text-muted`, `border-border`, `bg-accent` / `text-accent-foreground`,
+  `bg-field`, and semantics `success` / `warning` / `danger` / `default`. Example:
+  `className="bg-surface border border-border text-foreground"`.
+- **RSVP → semantic** mapping (`going→success`, `maybe→warning`, `waitlist→accent`,
+  `not_going→default`, `no_response→default`) lives in `src/lib/theme.ts`.
+- **Primary CTA** is HeroUI's `Button` (`variant="primary"`) — no gradients, no
+  `expo-linear-gradient`.
+- **Fonts** — HeroUI's default (system) typography. No custom font required; use the `Text`
+  component's `type`/`weight`/`color` props.
 
 ## 14. First-slice acceptance checklist
 

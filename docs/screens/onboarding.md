@@ -9,7 +9,7 @@ here (+ joy moments). Back to [app-map](../app-map.md).
 ## Cold onboarding — 3 screens
 
 Shared component `src/components/OnboardingSlide.tsx`: big headline, body line, light **dot
-indicator** (never "1 of 3"), one gradient CTA. Rule: max 4 screens, 3 before login.
+indicator** (never "1 of 3"), one primary CTA. Rule: max 4 screens, 3 before login.
 
 ### `(onboarding)/welcome` — 1/3 ✅
 - **Purpose:** brand hello + main slogan.

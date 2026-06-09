@@ -1,4 +1,4 @@
-import { internalMutation, mutation } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
@@ -85,8 +85,9 @@ export const thresholdCheck = internalMutation({
   handler: (ctx, { eventId }) => runThresholdCheck(ctx, eventId),
 });
 
-// Public trigger for demos/testing (fire a reminder now without waiting).
-export const trigger = mutation({
+// Internal trigger for tests/demos (fire a reminder now). Not client-callable —
+// invoke with `npx convex run reminders:trigger '{...}'`.
+export const trigger = internalMutation({
   args: { eventId: v.id("events"), kind: reminderKind },
   handler: (ctx, { eventId, kind }) => runSend(ctx, eventId, kind),
 });

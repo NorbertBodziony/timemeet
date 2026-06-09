@@ -33,6 +33,12 @@ export const run = mutation({
     }
 
     const now = Date.now();
+    // Clean times (top of the hour) so demo content reads nicely.
+    const at = (days: number, hour: number) => {
+      const d = new Date(now);
+      d.setHours(hour, 0, 0, 0);
+      return d.getTime() + days * DAY_MS;
+    };
     const mk = (name: string, code: string) =>
       ctx.db.insert("users", {
         displayName: name,
@@ -69,8 +75,8 @@ export const run = mutation({
       slotDays.map((d, i) =>
         ctx.db.insert("pollSlots", {
           pollId: poll,
-          startsAt: now + d * DAY_MS + 19 * 60 * 60 * 1000,
-          endsAt: now + d * DAY_MS + 22 * 60 * 60 * 1000,
+          startsAt: at(d, 19),
+          endsAt: at(d, 22),
           position: i,
         })
       )
@@ -96,8 +102,8 @@ export const run = mutation({
     const upcoming = await ctx.db.insert("events", {
       creatorId: karolina,
       title: "Coffee at Karma ☕",
-      startsAt: now + 1 * DAY_MS + 17 * 60 * 60 * 1000,
-      endsAt: now + 1 * DAY_MS + 19 * 60 * 60 * 1000,
+      startsAt: at(1, 17),
+      endsAt: at(1, 19),
       customAddress: "Krupnicza 12, Kraków",
       category: ["cafe"],
       visibility: "invite_only",
@@ -124,8 +130,8 @@ export const run = mutation({
     const past = await ctx.db.insert("events", {
       creatorId: karolina,
       title: "Climbing at Avatar 🧗",
-      startsAt: now - 5 * DAY_MS,
-      endsAt: now - 5 * DAY_MS + 2 * 60 * 60 * 1000,
+      startsAt: at(-5, 18),
+      endsAt: at(-5, 20),
       customAddress: "Mogilska 109, Kraków",
       category: ["sport"],
       visibility: "invite_only",

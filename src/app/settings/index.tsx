@@ -1,12 +1,20 @@
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import Constants from "expo-constants";
+import { useQuery } from "convex/react";
 import { Chip, ListGroup, Separator, Text } from "heroui-native";
+import { api } from "../../../convex/_generated/api";
 import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAuth } from "../../providers/MockAuthProvider";
 import type { IconName } from "../../lib/icons";
+
+const PLAN_LABEL: Record<string, string> = {
+  free: "Free",
+  meettime_plus: "MeetTime+",
+  founder: "Founder",
+};
 
 const ROWS: { label: string; icon: IconName; href: string }[] = [
   { label: "Profile", icon: "person-outline", href: "/settings/profile" },
@@ -19,6 +27,11 @@ const ROWS: { label: string; icon: IconName; href: string }[] = [
 export default function SettingsHome() {
   const router = useRouter();
   const { currentUser, users, switchUser, signOut } = useAuth();
+  const sub = useQuery(
+    api.subscriptions.get,
+    currentUser ? { userId: currentUser._id } : "skip"
+  );
+  const plan = sub?.plan ?? "free";
 
   return (
     <Screen title="Settings" dismiss="back">
@@ -33,8 +46,8 @@ export default function SettingsHome() {
             {currentUser?.referralCode ?? ""}
           </Text>
         </View>
-        <Chip color="default" variant="soft" size="sm">
-          <Chip.Label>Free</Chip.Label>
+        <Chip color={plan === "free" ? "default" : "accent"} variant="soft" size="sm">
+          <Chip.Label>{PLAN_LABEL[plan] ?? "Free"}</Chip.Label>
         </Chip>
       </View>
 

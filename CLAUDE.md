@@ -7,6 +7,8 @@ know. Polish-first. Hero features: **Plan Polls** (ankieta terminu), **Place Pol
 > **Before building any feature, read [`docs/meettime-mvp.md`](docs/meettime-mvp.md).**
 > It holds the full feature specs, design tokens, verbatim copy, and the Convex schema.
 > Architecture, routes, Convex API surface & token→code map: spec **§10–§14**.
+> Every screen, action & user path: [`docs/app-map.md`](docs/app-map.md) →
+> [`docs/screens/`](docs/screens) + [`docs/flows.md`](docs/flows.md).
 
 ## Stack
 - **Expo SDK 56** + Expo Router (typed routes) + **HeroUI Native** + Uniwind / Tailwind v4.

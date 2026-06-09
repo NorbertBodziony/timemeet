@@ -5,6 +5,8 @@
 > Mock only: auth, payments, push, deeplink attribution. Everything else is real.
 > Language: **English** for all UI copy and code.
 > Read alongside [`/CLAUDE.md`](../CLAUDE.md) (the always-on rules).
+> Per-screen detail & user paths: [`app-map.md`](app-map.md), [`screens/`](screens),
+> [`flows.md`](flows.md), [`analytics-events.md`](analytics-events.md).
 
 ---
 

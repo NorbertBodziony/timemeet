@@ -395,6 +395,15 @@ src/lib/                   # helpers — date/time format, share-link mock, vali
 src/theme/                 # token map consumed by Tailwind/Uniwind config
 ```
 
+**Setup (step 0)** — `bunx convex dev` scaffolds `convex/` + writes `EXPO_PUBLIC_CONVEX_URL`
+to `.env.local` and keeps the local dev backend running; wrap the app in `<ConvexProvider>`
+(inside `MockAuthProvider`) in `src/app/_layout.tsx`. Run `bunx convex run seed:run` once for
+demo data (§7).
+
+**Date/time convention** — store all timestamps as **epoch milliseconds (UTC)** in Convex
+(`startsAt`, `endsAt`, `expiresAt`, …). Format for display only, in `src/lib` (e.g.
+`Wed, May 14, 6:00pm`). Never store formatted strings; never assume device timezone server-side.
+
 ## 11. Convex API surface
 
 The function inventory the schema implies. Every **mutation** (and identity-scoped query)

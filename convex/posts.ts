@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { requireUser } from "./helpers";
 import { notify } from "./notifications";
 
@@ -23,7 +23,7 @@ export const add = mutation({
   handler: async (ctx, { userId, eventId, body, isAnnouncement, imageId }) => {
     const me = await requireUser(ctx, userId);
     const text = body.trim();
-    if (!text && !imageId) throw new Error("Write something or add a photo first.");
+    if (!text && !imageId) throw new ConvexError("Write something or add a photo first.");
     const postId = await ctx.db.insert("posts", {
       eventId,
       authorId: userId,

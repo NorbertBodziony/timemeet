@@ -1,3 +1,4 @@
+import { ConvexError } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 
@@ -9,7 +10,7 @@ export async function requireUser(
   userId: Id<"users">
 ): Promise<Doc<"users">> {
   const user = await ctx.db.get(userId);
-  if (!user) throw new Error("Unknown user — sign in again.");
+  if (!user) throw new ConvexError("Unknown user — sign in again.");
   return user;
 }
 
@@ -25,7 +26,7 @@ export async function requireEventParticipant(
   blockedMsg = "Join this meetup first."
 ): Promise<Doc<"events">> {
   const event = await ctx.db.get(eventId);
-  if (!event) throw new Error("Event not found.");
+  if (!event) throw new ConvexError("Event not found.");
   if (event.creatorId === userId) return event;
   const rsvp = await ctx.db
     .query("rsvps")
@@ -33,7 +34,7 @@ export async function requireEventParticipant(
       q.eq("eventId", eventId).eq("userId", userId)
     )
     .unique();
-  if (!rsvp) throw new Error(blockedMsg);
+  if (!rsvp) throw new ConvexError(blockedMsg);
   return event;
 }
 

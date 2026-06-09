@@ -8,6 +8,7 @@ import { EmptyState } from "../../components/EmptyState";
 import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
 import { UserAvatar } from "../../components/UserAvatar";
+import { attempt } from "../../lib/attempt";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { usePush } from "../../providers/MockPushProvider";
 
@@ -28,13 +29,15 @@ export default function AddFriend() {
     if (!currentUser || !code || saving) return;
     setSaving(true);
     try {
-      const res = await addByCode({ userId: currentUser._id, code });
-      setDone(true);
-      push.push({
-        title: res.alreadyFriends
-          ? `You're already friends with ${res.friend.displayName.split(" ")[0]}`
-          : `${res.friend.displayName.split(" ")[0]} is now a friend ✨`,
+      const ok = await attempt(async () => {
+        const res = await addByCode({ userId: currentUser._id, code });
+        push.push({
+          title: res.alreadyFriends
+            ? `You're already friends with ${res.friend.displayName.split(" ")[0]}`
+            : `${res.friend.displayName.split(" ")[0]} is now a friend ✨`,
+        });
       });
+      if (ok) setDone(true);
     } finally {
       setSaving(false);
     }

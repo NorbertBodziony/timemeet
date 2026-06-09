@@ -11,6 +11,7 @@ import { Screen } from "../../components/Screen";
 import { formatDate, formatRange } from "../../lib/datetime";
 import { MOCK_PLACES } from "../../lib/places";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { errorMessage } from "../../lib/attempt";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 type PollType = "time" | "place";
@@ -93,7 +94,7 @@ export default function NewPoll() {
       );
       router.replace({ pathname: "/poll/[id]", params: { id: pollId } });
     } catch (e) {
-      Alert.alert("Couldn't create the poll", String((e as Error).message));
+      Alert.alert("Couldn't create the poll", errorMessage(e));
       setBusy(false);
     }
   }

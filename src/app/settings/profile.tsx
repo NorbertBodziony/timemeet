@@ -8,6 +8,7 @@ import { FormLabel } from "../../components/FormLabel";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { errorMessage } from "../../lib/attempt";
 
 export default function Profile() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function Profile() {
       await update({ userId: currentUser._id, patch: { displayName: name.trim(), city: city.trim() } });
       router.back();
     } catch (e) {
-      Alert.alert("Couldn't save", String((e as Error).message));
+      Alert.alert("Couldn't save", errorMessage(e));
       setBusy(false);
     }
   }

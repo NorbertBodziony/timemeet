@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { voteValue } from "./schema";
 import { DAY_MS, randomToken, requireUser } from "./helpers";
 import { notify } from "./notifications";
@@ -38,12 +38,12 @@ export const create = mutation({
     await requireUser(ctx, args.userId);
     const title = args.title.trim();
     if (title.length < 1 || title.length > 100) {
-      throw new Error("Title must be 1–100 characters.");
+      throw new ConvexError("Title must be 1–100 characters.");
     }
     const slots = args.slots ?? [];
     if (args.type !== "place") {
       if (slots.length < 3 || slots.length > 7) {
-        throw new Error("Add between 3 and 7 time slots.");
+        throw new ConvexError("Add between 3 and 7 time slots.");
       }
     }
 
@@ -162,8 +162,8 @@ export const vote = mutation({
   handler: async (ctx, args) => {
     await requireUser(ctx, args.userId);
     const poll = await ctx.db.get(args.pollId);
-    if (!poll) throw new Error("Poll not found.");
-    if (poll.status !== "active") throw new Error("This poll is closed.");
+    if (!poll) throw new ConvexError("Poll not found.");
+    if (poll.status !== "active") throw new ConvexError("This poll is closed.");
 
     const existing = await ctx.db
       .query("pollVotes")
@@ -206,8 +206,8 @@ export const voteAsGuest = mutation({
       .query("polls")
       .withIndex("by_share_token", (q) => q.eq("shareToken", args.token))
       .unique();
-    if (!poll) throw new Error("This poll link is no longer valid.");
-    if (poll.status !== "active") throw new Error("This poll is closed.");
+    if (!poll) throw new ConvexError("This poll link is no longer valid.");
+    if (poll.status !== "active") throw new ConvexError("This poll is closed.");
 
     const existing = await ctx.db
       .query("pollVotes")
@@ -271,13 +271,13 @@ export const convertToEvent = mutation({
   handler: async (ctx, args) => {
     await requireUser(ctx, args.userId);
     const poll = await ctx.db.get(args.pollId);
-    if (!poll) throw new Error("Poll not found.");
+    if (!poll) throw new ConvexError("Poll not found.");
     if (poll.creatorId !== args.userId) {
-      throw new Error("Only the organizer can convert this poll.");
+      throw new ConvexError("Only the organizer can convert this poll.");
     }
     const slot = await ctx.db.get(args.winningSlotId);
     if (!slot || slot.pollId !== args.pollId) {
-      throw new Error("Pick a valid winning slot.");
+      throw new ConvexError("Pick a valid winning slot.");
     }
 
     const eventId = await ctx.db.insert("events", {

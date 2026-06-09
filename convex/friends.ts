@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import {
   DAY_MS,
   randomToken,
@@ -31,8 +31,8 @@ export const addByCode = mutation({
       .query("users")
       .withIndex("by_referralCode", (q) => q.eq("referralCode", code.trim()))
       .unique();
-    if (!target || target.deletedAt) throw new Error("That code didn't match anyone.");
-    if (target._id === userId) throw new Error("That's your own code 🙂");
+    if (!target || target.deletedAt) throw new ConvexError("That code didn't match anyone.");
+    if (target._id === userId) throw new ConvexError("That's your own code 🙂");
 
     const already = await ctx.db
       .query("friends")
@@ -120,7 +120,7 @@ export const inviteFriend = mutation({
       "Join this meetup before inviting friends."
     );
     const friend = await ctx.db.get(friendId);
-    if (!friend) throw new Error("That friend isn't around anymore.");
+    if (!friend) throw new ConvexError("That friend isn't around anymore.");
 
     // Skip if they're already on the guest list.
     const existing = (

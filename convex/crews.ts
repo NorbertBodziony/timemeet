@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import {
   DAY_MS,
   randomToken,
@@ -46,7 +46,7 @@ export const create = mutation({
   handler: async (ctx, { userId, name, memberIds }) => {
     await requireUser(ctx, userId);
     const title = name.trim();
-    if (!title) throw new Error("Give your crew a name first.");
+    if (!title) throw new ConvexError("Give your crew a name first.");
     const crewId = await ctx.db.insert("crews", {
       name: title,
       createdBy: userId,
@@ -88,7 +88,7 @@ export const inviteToEvent = mutation({
       .collect();
     // …and a member of the crew you're inviting.
     if (!members.some((m) => m.userId === userId)) {
-      throw new Error("You're not in that crew.");
+      throw new ConvexError("You're not in that crew.");
     }
     const rsvps = await ctx.db
       .query("rsvps")

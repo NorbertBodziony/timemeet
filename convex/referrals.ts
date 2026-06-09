@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { requireUser } from "./helpers";
 
 // My referral code + how many I've brought in (Settings → Referrals, §27).
@@ -25,13 +25,13 @@ export const setReferredBy = mutation({
   handler: async (ctx, { userId, code }) => {
     await requireUser(ctx, userId);
     const trimmed = code.trim().toUpperCase();
-    if (!trimmed) throw new Error("Enter a code first.");
+    if (!trimmed) throw new ConvexError("Enter a code first.");
     const referrer = await ctx.db
       .query("users")
       .filter((q) => q.eq(q.field("referralCode"), trimmed))
       .first();
-    if (!referrer) throw new Error("We don't recognize that code.");
-    if (referrer._id === userId) throw new Error("That's your own code.");
+    if (!referrer) throw new ConvexError("We don't recognize that code.");
+    if (referrer._id === userId) throw new ConvexError("That's your own code.");
     await ctx.db.insert("referrals", {
       referrerId: referrer._id,
       refereeId: userId,

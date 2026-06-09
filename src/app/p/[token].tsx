@@ -12,6 +12,7 @@ import { Screen } from "../../components/Screen";
 import { StatusPills, type PillOption } from "../../components/StatusPills";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { formatDate, formatRange } from "../../lib/datetime";
+import { attempt } from "../../lib/attempt";
 
 type Vote = "yes" | "maybe" | "no";
 const VOTE_OPTIONS: PillOption[] = [
@@ -61,7 +62,7 @@ export default function GuestPoll() {
 
   async function vote(target: { slotId?: Id<"pollSlots">; placeOptionId?: Id<"pollPlaceOptions"> }, value: Vote) {
     if (!token || !guestKey) return;
-    await voteGuest({ token, guestKey, guestName: name.trim() || undefined, value, ...target });
+    await attempt(() => voteGuest({ token, guestKey, guestName: name.trim() || undefined, value, ...target }));
   }
 
   if (data === undefined) return <Screen title="Loading…" dismiss="close">{null}</Screen>;

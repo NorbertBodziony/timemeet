@@ -16,6 +16,7 @@ import { SectionHeader } from "../../../components/SectionHeader";
 import { StarRating } from "../../../components/StarRating";
 import { UserAvatar } from "../../../components/UserAvatar";
 import { formatDateTime } from "../../../lib/datetime";
+import { attempt } from "../../../lib/attempt";
 import { addToCalendar } from "../../../lib/ics";
 import { openMaps } from "../../../lib/maps";
 import { type RsvpStatus } from "../../../lib/theme";
@@ -75,24 +76,25 @@ export default function EventDetail() {
 
   async function onRsvp(status: RsvpStatus) {
     if (!currentUser) return;
-    await setRsvp({ userId: currentUser._id, eventId, status });
+    const ok = await attempt(() => setRsvp({ userId: currentUser._id, eventId, status }));
+    if (!ok) return;
     if (status === "going") push.push({ title: `You're in — ${event.title}` });
   }
 
   async function rate(stars: number) {
     if (!currentUser) return;
-    await setRating({ userId: currentUser._id, eventId, stars, note: note ?? undefined });
+    await attempt(() => setRating({ userId: currentUser._id, eventId, stars, note: note ?? undefined }));
   }
 
   async function saveNote() {
     if (!currentUser || !myStars) return;
-    await setRating({ userId: currentUser._id, eventId, stars: myStars, note: note ?? undefined });
+    await attempt(() => setRating({ userId: currentUser._id, eventId, stars: myStars, note: note ?? undefined }));
   }
 
   async function post() {
     if (!currentUser || !draft.trim()) return;
-    await addPost({ userId: currentUser._id, eventId, body: draft.trim(), isAnnouncement: isOrganizer });
-    setDraft("");
+    const ok = await attempt(() => addPost({ userId: currentUser._id, eventId, body: draft.trim(), isAnnouncement: isOrganizer }));
+    if (ok) setDraft("");
   }
 
   async function addPhoto() {
@@ -130,8 +132,8 @@ export default function EventDetail() {
 
   async function addBringItem() {
     if (!currentUser || !itemDraft.trim()) return;
-    await addItem({ userId: currentUser._id, eventId, title: itemDraft.trim() });
-    setItemDraft("");
+    const ok = await attempt(() => addItem({ userId: currentUser._id, eventId, title: itemDraft.trim() }));
+    if (ok) setItemDraft("");
   }
 
   async function calendar() {
@@ -345,7 +347,7 @@ export default function EventDetail() {
             return (
               <Card key={it._id} className="mb-2">
                 <Card.Body className="flex-row items-center gap-3 py-2.5">
-                  <Pressable onPress={() => currentUser && toggleClaim({ userId: currentUser._id, itemId: it._id })}>
+                  <Pressable onPress={() => currentUser && attempt(() => toggleClaim({ userId: currentUser._id, itemId: it._id }))}>
                     <Icon
                       name={it.claimedBy ? "checkmark-circle" : "ellipse-outline"}
                       size={22}
@@ -362,7 +364,7 @@ export default function EventDetail() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onPress={() => currentUser && toggleClaim({ userId: currentUser._id, itemId: it._id })}
+                      onPress={() => currentUser && attempt(() => toggleClaim({ userId: currentUser._id, itemId: it._id }))}
                     >
                       <Button.Label>I'll bring it</Button.Label>
                     </Button>
@@ -370,7 +372,7 @@ export default function EventDetail() {
                   {it.createdBy === currentUser?._id && (
                     <Pressable
                       hitSlop={8}
-                      onPress={() => currentUser && removeItem({ userId: currentUser._id, itemId: it._id })}
+                      onPress={() => currentUser && attempt(() => removeItem({ userId: currentUser._id, itemId: it._id }))}
                     >
                       <Icon name="close" size={16} tint="muted" />
                     </Pressable>

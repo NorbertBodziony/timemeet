@@ -14,6 +14,7 @@ import { SecondaryButton } from "../../components/SecondaryButton";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { formatDateTime } from "../../lib/datetime";
+import { attempt } from "../../lib/attempt";
 import { type RsvpStatus } from "../../lib/theme";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
@@ -102,7 +103,8 @@ export default function InviteLanding() {
       } as never);
       return;
     }
-    await setRsvp({ userId: currentUser._id, eventId: event._id, status });
+    const ok = await attempt(() => setRsvp({ userId: currentUser._id, eventId: event._id, status }));
+    if (!ok) return;
     setDone(status);
     if (status === "going") {
       celebrate(`Nice, we'll let ${inviter} know!`);

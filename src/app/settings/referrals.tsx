@@ -8,6 +8,7 @@ import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { errorMessage } from "../../lib/attempt";
 
 const STEPS: { icon: "share-outline" | "person-add-outline" | "gift-outline"; text: string }[] = [
   { icon: "share-outline", text: "Share your code with a friend." },
@@ -37,7 +38,7 @@ export default function Referrals() {
       setCode("");
       Alert.alert("Thanks!", "We've noted who invited you.");
     } catch (e) {
-      Alert.alert("Hmm", String((e as Error).message));
+      Alert.alert("Hmm", errorMessage(e));
     }
   }
 

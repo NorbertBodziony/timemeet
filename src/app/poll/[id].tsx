@@ -12,6 +12,7 @@ import { StatusPills, type PillOption } from "../../components/StatusPills";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { Icon } from "../../components/Icon";
 import { formatDate, formatRange } from "../../lib/datetime";
+import { attempt, errorMessage } from "../../lib/attempt";
 import { tap } from "../../lib/haptics";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
@@ -117,12 +118,12 @@ export default function PollDetail() {
   async function voteSlot(slotId: Id<"pollSlots">, value: Vote) {
     if (!currentUser) return;
     tap();
-    await castVote({ userId: currentUser._id, pollId, slotId, value });
+    await attempt(() => castVote({ userId: currentUser._id, pollId, slotId, value }));
   }
   async function votePlace(placeOptionId: Id<"pollPlaceOptions">, value: Vote) {
     if (!currentUser) return;
     tap();
-    await castVote({ userId: currentUser._id, pollId, placeOptionId, value });
+    await attempt(() => castVote({ userId: currentUser._id, pollId, placeOptionId, value }));
   }
 
   async function sharePoll() {
@@ -147,7 +148,7 @@ export default function PollDetail() {
       celebrate("Plan's set! You've got a meetup.");
       router.replace({ pathname: "/event/[id]", params: { id: eventId } });
     } catch (e) {
-      Alert.alert("Couldn't convert", String((e as Error).message));
+      Alert.alert("Couldn't convert", errorMessage(e));
     }
   }
 

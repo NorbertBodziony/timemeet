@@ -13,6 +13,7 @@ import { SectionHeader } from "../../../components/SectionHeader";
 import { formatDateTime } from "../../../lib/datetime";
 import { useAuth } from "../../../providers/MockAuthProvider";
 import { usePush } from "../../../providers/MockPushProvider";
+import { errorMessage } from "../../../lib/attempt";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -77,7 +78,7 @@ export default function EditEvent() {
       push.push({ title: `Updated: ${curTitle}` });
       router.back();
     } catch (e) {
-      Alert.alert("Couldn't save", String((e as Error).message));
+      Alert.alert("Couldn't save", errorMessage(e));
       setBusy(false);
     }
   }

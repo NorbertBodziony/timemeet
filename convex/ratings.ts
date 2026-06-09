@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { requireUser } from "./helpers";
 
 // Rate a past meetup (1–5 stars, optional note). One rating per (event, user).
@@ -12,7 +12,7 @@ export const set = mutation({
   },
   handler: async (ctx, { userId, eventId, stars, note }) => {
     await requireUser(ctx, userId);
-    if (stars < 1 || stars > 5) throw new Error("Pick 1 to 5 stars.");
+    if (stars < 1 || stars > 5) throw new ConvexError("Pick 1 to 5 stars.");
     const existing = await ctx.db
       .query("eventRatings")
       .withIndex("by_event_user", (q) =>

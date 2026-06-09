@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { requireUser } from "./helpers";
 
 const DEFAULT_PREFS = {
@@ -39,7 +39,7 @@ export const update = mutation({
   handler: async (ctx, { userId, patch }) => {
     await requireUser(ctx, userId);
     if (patch.displayName !== undefined && !patch.displayName.trim()) {
-      throw new Error("Name can't be empty.");
+      throw new ConvexError("Name can't be empty.");
     }
     await ctx.db.patch(userId, patch);
   },

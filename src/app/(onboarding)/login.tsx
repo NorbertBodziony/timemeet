@@ -11,6 +11,7 @@ import { Screen } from "../../components/Screen";
 import { appleSignIn } from "../../lib/auth";
 import { TITLE_TRACKING } from "../../lib/ui";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { errorMessage } from "../../lib/attempt";
 
 // Login (docs §3.8). Apple uses real Sign-In where available (native build),
 // falling back to a seeded mock session in Expo Go so the demo always works.
@@ -45,7 +46,7 @@ export default function Login() {
       }
       router.replace(dest);
     } catch (e) {
-      Alert.alert("Couldn't sign in", String((e as Error).message));
+      Alert.alert("Couldn't sign in", errorMessage(e));
     }
   }
 
@@ -58,7 +59,7 @@ export default function Login() {
       signIn(userId);
       router.replace(dest);
     } catch (e) {
-      Alert.alert("Couldn't sign in", String((e as Error).message));
+      Alert.alert("Couldn't sign in", errorMessage(e));
     }
   }
 

@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { requireUser } from "./helpers";
 import { notify } from "./notifications";
 import { scheduleEventJobs } from "./reminders";
@@ -25,7 +25,7 @@ export const create = mutation({
     const { userId, ...fields } = args;
     await requireUser(ctx, userId);
     if (fields.title.trim().length < 1 || fields.title.length > 100) {
-      throw new Error("Title must be 1–100 characters.");
+      throw new ConvexError("Title must be 1–100 characters.");
     }
     const eventId = await ctx.db.insert("events", {
       creatorId: userId,
@@ -62,9 +62,9 @@ export const edit = mutation({
   handler: async (ctx, { userId, eventId, patch }) => {
     await requireUser(ctx, userId);
     const event = await ctx.db.get(eventId);
-    if (!event) throw new Error("Event not found.");
+    if (!event) throw new ConvexError("Event not found.");
     if (event.creatorId !== userId) {
-      throw new Error("Only the organizer can edit this event.");
+      throw new ConvexError("Only the organizer can edit this event.");
     }
     await ctx.db.patch(eventId, patch);
   },
@@ -75,9 +75,9 @@ export const cancel = mutation({
   handler: async (ctx, { userId, eventId }) => {
     await requireUser(ctx, userId);
     const event = await ctx.db.get(eventId);
-    if (!event) throw new Error("Event not found.");
+    if (!event) throw new ConvexError("Event not found.");
     if (event.creatorId !== userId) {
-      throw new Error("Only the organizer can cancel this event.");
+      throw new ConvexError("Only the organizer can cancel this event.");
     }
     await ctx.db.patch(eventId, { status: "cancelled" });
 

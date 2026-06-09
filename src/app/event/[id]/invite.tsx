@@ -11,6 +11,7 @@ import { SectionHeader } from "../../../components/SectionHeader";
 import { SurfaceCard } from "../../../components/SurfaceCard";
 import { UserAvatar } from "../../../components/UserAvatar";
 import { useAuth } from "../../../providers/MockAuthProvider";
+import { attempt } from "../../../lib/attempt";
 import { usePush } from "../../../providers/MockPushProvider";
 
 const STATE_LABEL: Record<string, string> = {
@@ -38,16 +39,21 @@ export default function InviteFriends() {
 
   async function onInvite(friendId: Id<"users">, name: string) {
     if (!currentUser) return;
-    await invite({ userId: currentUser._id, eventId, friendId });
-    push.push({ title: `Invited ${name.split(" ")[0]} ✨` });
+    const ok = await attempt(() => invite({ userId: currentUser._id, eventId, friendId }));
+    if (ok) push.push({ title: `Invited ${name.split(" ")[0]} ✨` });
   }
 
   async function onInviteCrew(crewId: Id<"crews">, name: string) {
     if (!currentUser) return;
-    const { invited } = await inviteCrew({ userId: currentUser._id, eventId, crewId });
-    push.push({
-      title: invited > 0 ? `Invited ${name} ✨` : `${name} are all already in`,
+    let invited = 0;
+    const ok = await attempt(async () => {
+      ({ invited } = await inviteCrew({ userId: currentUser._id, eventId, crewId }));
     });
+    if (ok) {
+      push.push({
+        title: invited > 0 ? `Invited ${name} ✨` : `${name} are all already in`,
+      });
+    }
   }
 
   return (

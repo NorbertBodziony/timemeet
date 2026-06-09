@@ -1,5 +1,5 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { rsvpStatus } from "./schema";
 import { requireUser } from "./helpers";
 import { notify } from "./notifications";
@@ -14,7 +14,7 @@ export const set = mutation({
   handler: async (ctx, { userId, eventId, status }) => {
     const me = await requireUser(ctx, userId);
     const event = await ctx.db.get(eventId);
-    if (!event) throw new Error("Event not found.");
+    if (!event) throw new ConvexError("Event not found.");
 
     const all = await ctx.db
       .query("rsvps")

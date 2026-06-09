@@ -13,6 +13,7 @@ import { CATEGORIES, type CategoryKey } from "../../lib/categories";
 import { formatDate, formatDateTime, formatRange } from "../../lib/datetime";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
+import { errorMessage } from "../../lib/attempt";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -70,7 +71,7 @@ export default function NewEvent() {
       celebrate("Meetup created!");
       router.replace({ pathname: "/event/[id]", params: { id: eventId } });
     } catch (e) {
-      Alert.alert("Couldn't create the event", String((e as Error).message));
+      Alert.alert("Couldn't create the event", errorMessage(e));
       setBusy(false);
     }
   }

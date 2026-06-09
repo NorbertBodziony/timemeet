@@ -1,10 +1,11 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Alert, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
-import { Input, Text } from "heroui-native";
+import { Card, Input, ListGroup, Separator, Text } from "heroui-native";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
+import { Icon } from "../../../components/Icon";
 import { PrimaryButton } from "../../../components/PrimaryButton";
 import { Screen } from "../../../components/Screen";
 import { formatDateTime } from "../../../lib/datetime";
@@ -78,11 +79,9 @@ export default function EditEvent() {
     }
   }
 
-  const fieldLabel = "mb-1.5";
-
   return (
     <Screen title="Edit meetup">
-      <Text type="body-sm" weight="semibold" color="muted" className={fieldLabel}>
+      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5">
         Title
       </Text>
       <Input value={curTitle} onChangeText={setTitle} maxLength={100} />
@@ -100,37 +99,50 @@ export default function EditEvent() {
       <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
         When
       </Text>
-      {slots.map((s) => {
-        const on = curStart === s;
-        return (
-          <Pressable
-            key={s}
-            onPress={() => setStartsAt(s)}
-            className={`mb-2 rounded-2xl border px-4 py-3 ${
-              on ? "bg-accent border-accent" : "bg-surface border-border"
-            }`}
-          >
-            <Text weight="semibold" className={on ? "text-accent-foreground" : ""}>
-              {formatDateTime(s)}
-            </Text>
-          </Pressable>
-        );
-      })}
+      <ListGroup>
+        {slots.map((s, i) => {
+          const on = curStart === s;
+          return (
+            <View key={s}>
+              {i > 0 && <Separator className="ml-4" />}
+              <ListGroup.Item onPress={() => setStartsAt(s)}>
+                <ListGroup.ItemContent>
+                  <ListGroup.ItemTitle>{formatDateTime(s)}</ListGroup.ItemTitle>
+                </ListGroup.ItemContent>
+                <ListGroup.ItemSuffix>
+                  {on ? (
+                    <Icon name="checkmark-circle" size={22} tint="accent" />
+                  ) : (
+                    <View className="w-[22px]" />
+                  )}
+                </ListGroup.ItemSuffix>
+              </ListGroup.Item>
+            </View>
+          );
+        })}
+      </ListGroup>
 
       {changes.length > 0 && (
-        <View className="rounded-2xl bg-surface border border-border px-4 py-3 mt-4 mb-4">
-          <Text type="body-xs" weight="semibold" color="muted" className="mb-2">
-            CHANGES
-          </Text>
-          {changes.map((c) => (
-            <Text key={c.label} type="body-sm" color="muted" className="mb-1">
-              {c.label}: {c.from} → <Text type="body-sm" weight="semibold">{c.to}</Text>
+        <Card className="mt-5 mb-4">
+          <Card.Body>
+            <Text type="body-xs" weight="semibold" color="muted" className="mb-2">
+              CHANGES
             </Text>
-          ))}
-        </View>
+            {changes.map((c) => (
+              <Text key={c.label} type="body-sm" color="muted" className="mb-1">
+                {c.label}: {c.from} →{" "}
+                <Text type="body-sm" weight="semibold">
+                  {c.to}
+                </Text>
+              </Text>
+            ))}
+          </Card.Body>
+        </Card>
       )}
 
-      <PrimaryButton label="Save changes" onPress={save} disabled={changes.length === 0} loading={busy} />
+      <View className="mt-2">
+        <PrimaryButton label="Save changes" onPress={save} disabled={changes.length === 0} loading={busy} />
+      </View>
     </Screen>
   );
 }

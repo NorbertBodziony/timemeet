@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
-import { Chip, Text } from "heroui-native";
+import { Card, Chip, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { PrimaryButton } from "../../components/PrimaryButton";
@@ -35,39 +35,37 @@ function VoteRow({
   onVote: (value: Vote) => void;
 }) {
   return (
-    <View
-      className={`mb-3 rounded-2xl bg-surface border px-4 py-3 ${
-        highlight ? "border-success" : "border-border"
-      }`}
-    >
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1 pr-2">
-          <Text weight="bold">{title}</Text>
-          <Text type="body-xs" color="muted">
-            {subtitle}
+    <Card className={`mb-3 ${highlight ? "border-success" : ""}`}>
+      <Card.Body>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 pr-2">
+            <Text weight="bold">{title}</Text>
+            <Text type="body-xs" color="muted">
+              {subtitle}
+            </Text>
+          </View>
+          <Text type="body-xs" weight="semibold" className="text-success">
+            {counts.yes} yes{counts.maybe ? ` · ${counts.maybe} maybe` : ""}
           </Text>
         </View>
-        <Text type="body-xs" weight="semibold" className="text-success">
-          {counts.yes} yes{counts.maybe ? ` · ${counts.maybe} maybe` : ""}
-        </Text>
-      </View>
-      {!disabled && (
-        <View className="flex-row gap-2 mt-3">
-          {VOTES.map((v) => (
-            <Chip
-              key={v.value}
-              color={v.color}
-              variant={mine === v.value ? "primary" : "tertiary"}
-              size="md"
-              onPress={() => onVote(v.value)}
-              className="flex-1 justify-center"
-            >
-              <Chip.Label>{v.label}</Chip.Label>
-            </Chip>
-          ))}
-        </View>
-      )}
-    </View>
+        {!disabled && (
+          <View className="flex-row gap-2 mt-3">
+            {VOTES.map((v) => (
+              <Chip
+                key={v.value}
+                color={v.color}
+                variant={mine === v.value ? "primary" : "tertiary"}
+                size="md"
+                onPress={() => onVote(v.value)}
+                className="flex-1 justify-center"
+              >
+                <Chip.Label>{v.label}</Chip.Label>
+              </Chip>
+            ))}
+          </View>
+        )}
+      </Card.Body>
+    </Card>
   );
 }
 

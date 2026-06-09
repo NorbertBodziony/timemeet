@@ -2,11 +2,13 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
-import { Text } from "heroui-native";
+import { Card, Separator, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
+import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { RsvpPicker } from "../../components/RsvpPicker";
 import { Screen } from "../../components/Screen";
+import { UserAvatar } from "../../components/UserAvatar";
 import { formatDateTime } from "../../lib/datetime";
 import { type RsvpStatus } from "../../lib/theme";
 import { useAuth } from "../../providers/MockAuthProvider";
@@ -55,26 +57,44 @@ export default function InviteLanding() {
 
   return (
     <Screen title={event.title}>
-      <View className="rounded-2xl bg-surface border border-border px-4 py-4 mb-6">
-        <Text type="body-xs" weight="semibold" color="muted">
-          {creator?.displayName ?? "Someone"} invited you
-        </Text>
-        <Text weight="semibold" className="mt-2">
-          {formatDateTime(event.startsAt)}
-        </Text>
-        {!!(event.customAddress ?? event.placeId) && (
-          <Text type="body-sm" color="muted" className="mt-0.5">
-            {event.customAddress ?? event.placeId}
-          </Text>
-        )}
-        <Text type="body-xs" weight="semibold" className="text-success mt-2">
-          {going} going
-        </Text>
-      </View>
+      <Card className="mb-6">
+        <Card.Body className="gap-2">
+          <View className="flex-row items-center gap-2">
+            <UserAvatar name={creator?.displayName} size="sm" />
+            <Text type="body-xs" weight="semibold" color="muted">
+              {creator?.displayName ?? "Someone"} invited you
+            </Text>
+          </View>
+          <Separator className="my-1" />
+          <View className="flex-row items-center gap-2">
+            <Icon name="calendar-outline" size={16} tint="accent" />
+            <Text weight="semibold">{formatDateTime(event.startsAt)}</Text>
+          </View>
+          {!!(event.customAddress ?? event.placeId) && (
+            <View className="flex-row items-center gap-2">
+              <Icon name="location-outline" size={16} tint="muted" />
+              <Text type="body-sm" color="muted">
+                {event.customAddress ?? event.placeId}
+              </Text>
+            </View>
+          )}
+          <View className="flex-row items-center gap-2">
+            <Icon name="people-outline" size={16} tint="success" />
+            <Text type="body-xs" weight="semibold" className="text-success">
+              {going} going
+            </Text>
+          </View>
+        </Card.Body>
+      </Card>
 
       {done ? (
         <View className="items-center py-4">
-          <Text type="h3" weight="bold">
+          <Icon
+            name={done === "not_going" ? "heart-outline" : "checkmark-circle"}
+            size={40}
+            tint={done === "not_going" ? "muted" : "success"}
+          />
+          <Text type="h3" weight="bold" className="mt-2">
             {done === "not_going" ? "No worries — maybe next time." : "You're in! 🎉"}
           </Text>
           <View className="mt-5 w-full">
@@ -86,7 +106,7 @@ export default function InviteLanding() {
         </View>
       ) : (
         <>
-          <Text type="body-sm" weight="semibold" color="muted" className="mb-2">
+          <Text type="body-sm" weight="semibold" color="muted" className="mb-2 ml-1">
             Are you in?
           </Text>
           <RsvpPicker value={null} onChange={rsvp} />

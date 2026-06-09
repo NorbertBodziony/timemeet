@@ -1,12 +1,15 @@
 import { View } from "react-native";
 import { Text } from "heroui-native";
+import { Icon } from "./Icon";
 import { PrimaryButton } from "./PrimaryButton";
 import { Screen } from "./Screen";
+import type { IconName } from "../lib/icons";
 
-// One cold-onboarding screen (docs §3.8 / §5). Light dot indicator, no "1 of 3".
+// One cold-onboarding screen (docs §3.8 / §5). Icon + headline, light dot indicator.
 export function OnboardingSlide({
   index,
   total,
+  icon,
   headline,
   body,
   cta,
@@ -14,6 +17,7 @@ export function OnboardingSlide({
 }: {
   index: number;
   total: number;
+  icon: IconName;
   headline: string;
   body: string;
   cta: string;
@@ -22,6 +26,9 @@ export function OnboardingSlide({
   return (
     <Screen scroll={false}>
       <View className="flex-1 justify-center">
+        <View className="h-16 w-16 rounded-2xl bg-accent-soft items-center justify-center mb-7">
+          <Icon name={icon} size={30} tint="accent" />
+        </View>
         <Text type="h1" weight="bold" className="text-4xl leading-tight">
           {headline}
         </Text>

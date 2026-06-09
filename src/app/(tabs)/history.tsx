@@ -6,6 +6,7 @@ export default function HistoryScreen() {
       tab="history"
       title="History"
       empty="Your meetup history appears after the first one."
+      emptyIcon="time-outline"
     />
   );
 }

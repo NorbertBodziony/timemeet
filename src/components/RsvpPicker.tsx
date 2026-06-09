@@ -2,8 +2,8 @@ import { View } from "react-native";
 import { Chip } from "heroui-native";
 import { RSVP, RSVP_ACTIONS, type RsvpStatus } from "../lib/theme";
 
-// The 5-status RSVP control (docs §3.3 / §16) using HeroUI Chips. Selected = filled
-// with its semantic color; "Not going" is neutral ('default'), never punishing.
+// The 5-status RSVP control (docs §3.3 / §16) using HeroUI Chips with a status
+// icon. Selected = filled with its semantic color; "Not going" is neutral.
 export function RsvpPicker({
   value,
   onChange,

@@ -1,9 +1,10 @@
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Alert, View } from "react-native";
 import { useMutation } from "convex/react";
-import { Button, Input, Text } from "heroui-native";
+import { Input, ListGroup, Separator, Tabs, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
+import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { formatDate, formatRange } from "../../lib/datetime";
@@ -22,8 +23,7 @@ function candidateSlots(now: number) {
   });
 }
 
-// A selectable option row (used for slots and venues).
-function OptionRow({
+function SelectRow({
   on,
   title,
   subtitle,
@@ -35,22 +35,15 @@ function OptionRow({
   onPress: () => void;
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      className={`mb-2 flex-row items-center justify-between rounded-2xl border px-4 py-3.5 ${
-        on ? "bg-accent border-accent" : "bg-surface border-border"
-      }`}
-    >
-      <View className="flex-1 pr-2">
-        <Text weight="semibold" className={on ? "text-accent-foreground" : ""}>
-          {title}
-        </Text>
-        <Text type="body-xs" className={on ? "text-accent-foreground/80" : "text-muted"}>
-          {subtitle}
-        </Text>
-      </View>
-      <Text className={on ? "text-accent-foreground" : "text-muted"}>{on ? "✓" : "+"}</Text>
-    </Pressable>
+    <ListGroup.Item onPress={onPress}>
+      <ListGroup.ItemContent>
+        <ListGroup.ItemTitle>{title}</ListGroup.ItemTitle>
+        <ListGroup.ItemDescription>{subtitle}</ListGroup.ItemDescription>
+      </ListGroup.ItemContent>
+      <ListGroup.ItemSuffix>
+        {on ? <Icon name="checkmark-circle" size={22} tint="accent" /> : <View className="w-[22px]" />}
+      </ListGroup.ItemSuffix>
+    </ListGroup.Item>
   );
 }
 
@@ -74,8 +67,7 @@ export default function NewPoll() {
 
   const count = type === "time" ? pickedSlots.size : pickedPlaces.size;
   const min = type === "time" ? 3 : 2;
-  const valid =
-    title.trim().length > 0 && count >= min && (type === "place" || count <= 7);
+  const valid = title.trim().length > 0 && count >= min && (type === "place" || count <= 7);
 
   async function submit() {
     if (!currentUser || !valid) return;
@@ -114,20 +106,18 @@ export default function NewPoll() {
           : "Pick a few spots. Crew taps. Done."
       }
     >
-      {/* Poll type toggle */}
-      <View className="flex-row gap-2 mb-5 mt-1">
-        {(["time", "place"] as PollType[]).map((t) => (
-          <Button
-            key={t}
-            variant={type === t ? "primary" : "outline"}
-            size="md"
-            onPress={() => setType(t)}
-            className="flex-1"
-          >
-            <Button.Label>{t === "time" ? "Time Poll" : "Place Poll"}</Button.Label>
-          </Button>
-        ))}
-      </View>
+      {/* Segmented poll-type control */}
+      <Tabs value={type} onValueChange={(v) => setType(v as PollType)} className="mb-5 mt-1">
+        <Tabs.List>
+          <Tabs.Indicator />
+          <Tabs.Trigger value="time">
+            <Tabs.Label>Time Poll</Tabs.Label>
+          </Tabs.Trigger>
+          <Tabs.Trigger value="place">
+            <Tabs.Label>Place Poll</Tabs.Label>
+          </Tabs.Trigger>
+        </Tabs.List>
+      </Tabs>
 
       <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5">
         What's the plan?
@@ -145,27 +135,33 @@ export default function NewPoll() {
           : `Pick 2+ places (${pickedPlaces.size} chosen)`}
       </Text>
 
-      {type === "time"
-        ? slots.map((slot, i) => (
-            <OptionRow
-              key={slot.startsAt}
-              on={pickedSlots.has(i)}
-              title={formatDate(slot.startsAt)}
-              subtitle={formatRange(slot.startsAt, slot.endsAt)}
-              onPress={() => setPickedSlots((s) => toggle(s, i))}
-            />
-          ))
-        : MOCK_PLACES.map((p) => (
-            <OptionRow
-              key={p.placeId}
-              on={pickedPlaces.has(p.placeId)}
-              title={`${p.name}${p.multisport ? "  ·  Multisport" : ""}`}
-              subtitle={`★ ${p.rating} (${p.reviewCount}) · ${p.address}`}
-              onPress={() => setPickedPlaces((s) => toggle(s, p.placeId))}
-            />
-          ))}
+      <ListGroup>
+        {type === "time"
+          ? slots.map((slot, i) => (
+              <View key={slot.startsAt}>
+                {i > 0 && <Separator className="ml-4" />}
+                <SelectRow
+                  on={pickedSlots.has(i)}
+                  title={formatDate(slot.startsAt)}
+                  subtitle={formatRange(slot.startsAt, slot.endsAt)}
+                  onPress={() => setPickedSlots((s) => toggle(s, i))}
+                />
+              </View>
+            ))
+          : MOCK_PLACES.map((p, i) => (
+              <View key={p.placeId}>
+                {i > 0 && <Separator className="ml-4" />}
+                <SelectRow
+                  on={pickedPlaces.has(p.placeId)}
+                  title={`${p.name}${p.multisport ? "  ·  Multisport" : ""}`}
+                  subtitle={`★ ${p.rating} (${p.reviewCount}) · ${p.address}`}
+                  onPress={() => setPickedPlaces((s) => toggle(s, p.placeId))}
+                />
+              </View>
+            ))}
+      </ListGroup>
 
-      <View className="mt-4">
+      <View className="mt-5">
         <PrimaryButton label="Create poll" onPress={submit} disabled={!valid} loading={busy} />
       </View>
     </Screen>

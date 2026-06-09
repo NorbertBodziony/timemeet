@@ -1,17 +1,14 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { Text, type ColorValue } from "react-native";
+import type { ColorValue } from "react-native";
 import { useThemeColor } from "heroui-native";
+import { ICONS } from "../../lib/icons";
 
-const ICON: Record<string, string> = {
-  "to-confirm": "◔",
-  going: "✓",
-  history: "≡",
-  mine: "★",
-};
+type IonName = keyof typeof Ionicons.glyphMap;
 
-function tabIcon(name: string) {
-  return ({ color }: { color: ColorValue }) => (
-    <Text style={{ color, fontSize: 18 }}>{ICON[name]}</Text>
+function tabIcon(outline: IonName, filled: IonName) {
+  return ({ color, focused }: { color: ColorValue; focused: boolean }) => (
+    <Ionicons name={focused ? filled : outline} size={23} color={color as string} />
   );
 }
 
@@ -28,24 +25,27 @@ export default function TabsLayout() {
         tabBarActiveTintColor: accent,
         tabBarInactiveTintColor: muted,
         tabBarStyle: { backgroundColor: surface, borderTopColor: border },
-        tabBarLabelStyle: { fontSize: 11 },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
       }}
     >
       <Tabs.Screen
         name="to-confirm"
-        options={{ title: "To confirm", tabBarIcon: tabIcon("to-confirm") }}
+        options={{
+          title: "To confirm",
+          tabBarIcon: tabIcon(ICONS.toConfirm, ICONS.toConfirmActive),
+        }}
       />
       <Tabs.Screen
         name="going"
-        options={{ title: "Going", tabBarIcon: tabIcon("going") }}
+        options={{ title: "Going", tabBarIcon: tabIcon(ICONS.going, ICONS.goingActive) }}
       />
       <Tabs.Screen
         name="history"
-        options={{ title: "History", tabBarIcon: tabIcon("history") }}
+        options={{ title: "History", tabBarIcon: tabIcon(ICONS.history, ICONS.historyActive) }}
       />
       <Tabs.Screen
         name="mine"
-        options={{ title: "My events", tabBarIcon: tabIcon("mine") }}
+        options={{ title: "My events", tabBarIcon: tabIcon(ICONS.mine, ICONS.mineActive) }}
       />
     </Tabs>
   );

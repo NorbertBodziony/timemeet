@@ -14,6 +14,7 @@ export default function GoingScreen() {
       title={firstName ? `Hi, ${firstName}!` : "Your meetups"}
       subtitle="What are we planning?"
       empty="Quiet group chat? Drop a time."
+      emptyIcon="checkmark-circle-outline"
       action={
         <PrimaryButton label="New plan" onPress={() => router.push("/poll/new")} />
       }

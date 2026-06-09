@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable } from "react-native";
-import { Text } from "heroui-native";
 import { EventTabList } from "../../components/EventTabList";
+import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 
 export default function MineScreen() {
@@ -11,9 +11,10 @@ export default function MineScreen() {
       tab="mine"
       title="My events"
       empty="Your plans show up here. Start with one."
+      emptyIcon="calendar-outline"
       right={
         <Pressable onPress={() => router.push("/settings")} hitSlop={10}>
-          <Text type="h3">⚙</Text>
+          <Icon name="settings-outline" size={22} tint="foreground" />
         </Pressable>
       }
       action={

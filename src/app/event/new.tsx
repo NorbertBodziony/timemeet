@@ -2,8 +2,9 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 import { useMutation } from "convex/react";
-import { Input, Text } from "heroui-native";
+import { Card, Input, ListGroup, Separator, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
+import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { formatDate, formatDateTime, formatRange } from "../../lib/datetime";
@@ -20,7 +21,6 @@ function candidateSlots(now: number) {
   });
 }
 
-// Direct event create (no poll). Invite-only by default (docs §3.4).
 export default function NewEvent() {
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -60,22 +60,28 @@ export default function NewEvent() {
   if (preview && when !== null) {
     return (
       <Screen title="Preview" subtitle="This is what your crew will see.">
-        <View className="rounded-2xl bg-surface border border-border px-4 py-4 mb-6">
-          <Text type="h2" weight="bold">
-            {title.trim()}
-          </Text>
-          <Text color="muted" className="mt-2">
-            {formatDateTime(when)}
-          </Text>
-          {!!address.trim() && (
-            <Text type="body-sm" color="muted" className="mt-0.5">
-              {address.trim()}
+        <Card className="mb-6">
+          <Card.Body className="gap-2">
+            <Text type="h2" weight="bold">
+              {title.trim()}
             </Text>
-          )}
-          <Text type="body-xs" color="muted" className="mt-2">
-            Invite only · organized by {currentUser?.displayName ?? "you"}
-          </Text>
-        </View>
+            <View className="flex-row items-center gap-2">
+              <Icon name="calendar-outline" size={16} tint="accent" />
+              <Text color="muted">{formatDateTime(when)}</Text>
+            </View>
+            {!!address.trim() && (
+              <View className="flex-row items-center gap-2">
+                <Icon name="location-outline" size={16} tint="muted" />
+                <Text type="body-sm" color="muted">
+                  {address.trim()}
+                </Text>
+              </View>
+            )}
+            <Text type="body-xs" color="muted" className="mt-1">
+              Invite only · organized by {currentUser?.displayName ?? "you"}
+            </Text>
+          </Card.Body>
+        </Card>
         <PrimaryButton label="Publish" onPress={submit} loading={busy} />
         <Pressable onPress={() => setPreview(false)} className="py-3 items-center mt-1">
           <Text weight="semibold" color="muted">
@@ -101,24 +107,33 @@ export default function NewEvent() {
       <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
         When
       </Text>
-      {slots.map((slot) => {
-        const on = when === slot.startsAt;
-        return (
-          <Pressable
-            key={slot.startsAt}
-            onPress={() => setWhen(slot.startsAt)}
-            className={`mb-2 rounded-2xl border px-4 py-3 ${
-              on ? "bg-accent border-accent" : "bg-surface border-border"
-            }`}
-          >
-            <Text weight="semibold" className={on ? "text-accent-foreground" : ""}>
-              {formatDate(slot.startsAt)} · {formatRange(slot.startsAt, slot.endsAt)}
-            </Text>
-          </Pressable>
-        );
-      })}
+      <ListGroup>
+        {slots.map((slot, i) => {
+          const on = when === slot.startsAt;
+          return (
+            <View key={slot.startsAt}>
+              {i > 0 && <Separator className="ml-4" />}
+              <ListGroup.Item onPress={() => setWhen(slot.startsAt)}>
+                <ListGroup.ItemContent>
+                  <ListGroup.ItemTitle>{formatDate(slot.startsAt)}</ListGroup.ItemTitle>
+                  <ListGroup.ItemDescription>
+                    {formatRange(slot.startsAt, slot.endsAt)}
+                  </ListGroup.ItemDescription>
+                </ListGroup.ItemContent>
+                <ListGroup.ItemSuffix>
+                  {on ? (
+                    <Icon name="checkmark-circle" size={22} tint="accent" />
+                  ) : (
+                    <View className="w-[22px]" />
+                  )}
+                </ListGroup.ItemSuffix>
+              </ListGroup.Item>
+            </View>
+          );
+        })}
+      </ListGroup>
 
-      <View className="mt-4">
+      <View className="mt-5">
         <PrimaryButton label="Preview" onPress={() => setPreview(true)} disabled={!valid} />
       </View>
     </Screen>

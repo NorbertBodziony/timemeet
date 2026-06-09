@@ -9,6 +9,7 @@ import { useAuth } from "../providers/MockAuthProvider";
 import { EmptyState } from "./EmptyState";
 import { EventCard } from "./EventCard";
 import { Screen } from "./Screen";
+import type { IconName } from "../lib/icons";
 
 type Tab = "to_confirm" | "going" | "history" | "mine";
 
@@ -17,6 +18,7 @@ export function EventTabList({
   title,
   subtitle,
   empty,
+  emptyIcon,
   action,
   right,
 }: {
@@ -24,6 +26,7 @@ export function EventTabList({
   title: string;
   subtitle?: string;
   empty: string;
+  emptyIcon?: IconName;
   action?: ReactNode;
   right?: ReactNode;
 }) {
@@ -45,7 +48,7 @@ export function EventTabList({
           <Spinner />
         </View>
       ) : rows.length === 0 ? (
-        <EmptyState text={empty} />
+        <EmptyState text={empty} icon={emptyIcon} />
       ) : (
         rows.map(({ event, counts }) => (
           <EventCard

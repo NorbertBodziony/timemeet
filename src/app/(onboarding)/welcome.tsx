@@ -8,6 +8,7 @@ export default function Welcome() {
     <OnboardingSlide
       index={0}
       total={3}
+      icon="people-outline"
       headline={"Less planning.\nMore meetups."}
       body="People are in. No date yet. We've got this."
       cta="Next"

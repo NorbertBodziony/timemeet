@@ -1,12 +1,14 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Alert, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
-import { Button, Input, Text } from "heroui-native";
+import { Button, Card, Input, Separator, Text } from "heroui-native";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
+import { Icon } from "../../../components/Icon";
 import { Screen } from "../../../components/Screen";
 import { RsvpPicker } from "../../../components/RsvpPicker";
+import { UserAvatar } from "../../../components/UserAvatar";
 import { formatDateTime } from "../../../lib/datetime";
 import { type RsvpStatus } from "../../../lib/theme";
 import { useAuth } from "../../../providers/MockAuthProvider";
@@ -23,6 +25,7 @@ export default function EventDetail() {
     api.events.get,
     currentUser ? { eventId, userId: currentUser._id } : { eventId }
   );
+  const rsvps = useQuery(api.rsvps.listForEvent, { eventId });
   const posts = useQuery(api.posts.listForEvent, { eventId });
   const setRsvp = useMutation(api.rsvps.set);
   const addPost = useMutation(api.posts.add);
@@ -38,6 +41,7 @@ export default function EventDetail() {
   const isOrganizer = currentUser?._id === event.creatorId;
   const place = event.customAddress ?? event.placeId ?? "";
   const cancelled = event.status === "cancelled";
+  const going = (rsvps ?? []).filter((r) => r.status === "going");
 
   async function onRsvp(status: RsvpStatus) {
     if (!currentUser) return;
@@ -83,34 +87,61 @@ export default function EventDetail() {
   return (
     <Screen title={event.title}>
       {cancelled && (
-        <Text type="body-sm" weight="semibold" className="text-danger mb-3">
-          This meetup was cancelled.
-        </Text>
+        <View className="flex-row items-center gap-2 mb-3">
+          <Icon name="close-circle" size={16} tint="danger" />
+          <Text type="body-sm" weight="semibold" className="text-danger">
+            This meetup was cancelled.
+          </Text>
+        </View>
       )}
 
-      <View className="rounded-2xl bg-surface border border-border px-4 py-3 mb-5">
-        <Text weight="semibold">{formatDateTime(event.startsAt)}</Text>
-        {!!place && (
-          <Text type="body-sm" color="muted" className="mt-0.5">
-            {place}
+      <Card className="mb-5">
+        <Card.Body className="gap-2">
+          <View className="flex-row items-center gap-2">
+            <Icon name="calendar-outline" size={16} tint="accent" />
+            <Text weight="semibold">{formatDateTime(event.startsAt)}</Text>
+          </View>
+          {!!place && (
+            <View className="flex-row items-center gap-2">
+              <Icon name="location-outline" size={16} tint="muted" />
+              <Text type="body-sm" color="muted">
+                {place}
+              </Text>
+            </View>
+          )}
+          {!!event.description && <Text type="body-sm" color="muted">{event.description}</Text>}
+          <Separator className="my-1" />
+          <View className="flex-row items-center gap-2">
+            <UserAvatar name={creator?.displayName} size="sm" />
+            <Text type="body-xs" color="muted">
+              Organized by {creator?.displayName ?? "—"}
+            </Text>
+          </View>
+        </Card.Body>
+      </Card>
+
+      {/* Going avatars */}
+      {going.length > 0 && (
+        <View className="mb-5">
+          <Text type="body-xs" weight="semibold" color="muted" className="mb-2 ml-1">
+            {counts.going} GOING · {counts.maybe} MAYBE
           </Text>
-        )}
-        {!!event.description && (
-          <Text type="body-sm" color="muted" className="mt-2">
-            {event.description}
-          </Text>
-        )}
-        <Text type="body-xs" weight="semibold" className="text-success mt-2">
-          {counts.going} going · {counts.maybe} maybe · {counts.waitlist} waitlist
-        </Text>
-        <Text type="body-xs" color="muted" className="mt-0.5">
-          Organized by {creator?.displayName ?? "—"}
-        </Text>
-      </View>
+          <View className="flex-row flex-wrap gap-3">
+            {going.map((r) => (
+              <View key={r._id} className="items-center gap-1 w-14">
+                <UserAvatar name={r.user?.displayName} size="md" />
+                <Text type="body-xs" color="muted" numberOfLines={1}>
+                  {r.user?.displayName?.split(" ")[0] ?? "—"}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
 
       {!cancelled && (
         <>
-          <Text type="body-sm" weight="semibold" color="muted" className="mb-2">
+          <Text type="body-sm" weight="semibold" color="muted" className="mb-2 ml-1">
             Are you in?
           </Text>
           <RsvpPicker value={viewerStatus} onChange={onRsvp} />
@@ -118,25 +149,30 @@ export default function EventDetail() {
       )}
 
       {/* Board */}
-      <Text type="body-sm" weight="semibold" color="muted" className="mb-2 mt-7">
+      <Text type="body-sm" weight="semibold" color="muted" className="mb-2 mt-7 ml-1">
         Board
       </Text>
       <View className="flex-row gap-2 mb-3 items-center">
         <View className="flex-1">
           <Input value={draft} onChangeText={setDraft} placeholder="Say something to the crew…" />
         </View>
-        <Button variant="primary" size="md" onPress={post}>
-          <Button.Label>Send</Button.Label>
+        <Button variant="primary" size="md" isIconOnly onPress={post}>
+          <Icon name="arrow-up" size={18} color="#FFFFFF" />
         </Button>
       </View>
       {(posts ?? []).map((p) => (
-        <View key={p._id} className="mb-2 rounded-xl bg-surface border border-border px-3 py-2.5">
-          <Text type="body-xs" weight="semibold" color="muted" className="mb-0.5">
-            {p.author?.displayName ?? "—"}
-            {p.isAnnouncement ? " · announcement" : ""}
-          </Text>
-          <Text type="body-sm">{p.body}</Text>
-        </View>
+        <Card key={p._id} className="mb-2">
+          <Card.Body className="flex-row gap-2.5 py-2.5">
+            <UserAvatar name={p.author?.displayName} size="sm" />
+            <View className="flex-1">
+              <Text type="body-xs" weight="semibold" color="muted">
+                {p.author?.displayName ?? "—"}
+                {p.isAnnouncement ? " · announcement" : ""}
+              </Text>
+              <Text type="body-sm">{p.body}</Text>
+            </View>
+          </Card.Body>
+        </Card>
       ))}
 
       {isOrganizer && !cancelled && (
@@ -146,9 +182,11 @@ export default function EventDetail() {
             size="md"
             onPress={() => router.push({ pathname: "/event/[id]/edit", params: { id: eventId } })}
           >
+            <Icon name="create-outline" size={18} tint="foreground" />
             <Button.Label>Edit meetup</Button.Label>
           </Button>
           <Button variant="outline" size="md" onPress={share}>
+            <Icon name="share-outline" size={18} tint="foreground" />
             <Button.Label>Share invite link</Button.Label>
           </Button>
           <Button variant="danger" size="md" onPress={confirmCancel}>

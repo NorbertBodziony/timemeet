@@ -1,10 +1,20 @@
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import Constants from "expo-constants";
-import { Chip, Text } from "heroui-native";
+import { Chip, ListGroup, Separator, Text } from "heroui-native";
+import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
-import { SettingsRow } from "../../components/SettingsRow";
+import { UserAvatar } from "../../components/UserAvatar";
 import { useAuth } from "../../providers/MockAuthProvider";
+import type { IconName } from "../../lib/icons";
+
+const ROWS: { label: string; icon: IconName; href: string }[] = [
+  { label: "Profile", icon: "person-outline", href: "/settings/profile" },
+  { label: "Notifications", icon: "notifications-outline", href: "/settings/notifications" },
+  { label: "MeetTime+", icon: "star-outline", href: "/settings/subscription" },
+  { label: "Refer a friend", icon: "gift-outline", href: "/settings/referrals" },
+  { label: "Privacy & data", icon: "lock-closed-outline", href: "/settings/privacy" },
+];
 
 export default function SettingsHome() {
   const router = useRouter();
@@ -12,39 +22,62 @@ export default function SettingsHome() {
 
   return (
     <Screen title="Settings">
-      <View className="rounded-2xl bg-surface border border-border px-4 py-4 mb-5">
-        <Text type="h3" weight="bold">
-          {currentUser?.displayName ?? "—"}
-        </Text>
-        <Text type="body-xs" color="muted" className="mt-0.5">
-          {currentUser?.referralCode ?? ""}
-        </Text>
+      {/* Identity header */}
+      <View className="flex-row items-center gap-3 mb-6">
+        <UserAvatar name={currentUser?.displayName} size="lg" />
+        <View className="flex-1">
+          <Text type="h3" weight="bold">
+            {currentUser?.displayName ?? "—"}
+          </Text>
+          <Text type="body-xs" color="muted">
+            {currentUser?.referralCode ?? ""}
+          </Text>
+        </View>
+        <Chip color="default" variant="soft" size="sm">
+          <Chip.Label>Free</Chip.Label>
+        </Chip>
       </View>
 
-      <SettingsRow label="Profile" onPress={() => router.push("/settings/profile")} />
-      <SettingsRow label="Notifications" onPress={() => router.push("/settings/notifications")} />
-      <SettingsRow label="MeetTime+" onPress={() => router.push("/settings/subscription")} />
-      <SettingsRow label="Refer a friend" onPress={() => router.push("/settings/referrals")} />
-      <SettingsRow label="Privacy & data" onPress={() => router.push("/settings/privacy")} />
+      <ListGroup>
+        {ROWS.map((r, i) => (
+          <View key={r.href}>
+            {i > 0 && <Separator className="ml-14" />}
+            <ListGroup.Item onPress={() => router.push(r.href as never)}>
+              <ListGroup.ItemPrefix>
+                <Icon name={r.icon} size={20} tint="accent" />
+              </ListGroup.ItemPrefix>
+              <ListGroup.ItemContent>
+                <ListGroup.ItemTitle>{r.label}</ListGroup.ItemTitle>
+              </ListGroup.ItemContent>
+              <ListGroup.ItemSuffix />
+            </ListGroup.Item>
+          </View>
+        ))}
+      </ListGroup>
 
       {/* Dev-only: switch the mock user to exercise other flows. */}
       {users.length > 1 && (
-        <View className="mt-6">
+        <View className="mt-7">
           <Text type="body-xs" weight="semibold" color="muted" className="mb-2">
             Switch user (dev)
           </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {users.map((u) => (
-              <Chip
-                key={u._id}
-                color="accent"
-                variant={u._id === currentUser?._id ? "primary" : "tertiary"}
-                size="sm"
-                onPress={() => switchUser(u._id)}
-              >
-                <Chip.Label>{u.displayName}</Chip.Label>
-              </Chip>
-            ))}
+          <View className="flex-row flex-wrap gap-3">
+            {users.map((u) => {
+              const on = u._id === currentUser?._id;
+              return (
+                <Pressable
+                  key={u._id}
+                  onPress={() => switchUser(u._id)}
+                  className="items-center gap-1"
+                  style={{ opacity: on ? 1 : 0.5 }}
+                >
+                  <UserAvatar name={u.displayName} size="md" />
+                  <Text type="body-xs" color={on ? "default" : "muted"}>
+                    {u.displayName}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
       )}
@@ -54,8 +87,9 @@ export default function SettingsHome() {
           signOut();
           router.replace("/welcome");
         }}
-        className="mt-8 py-3 items-center"
+        className="mt-8 flex-row items-center justify-center gap-2 py-3"
       >
+        <Icon name="log-out-outline" size={18} tint="danger" />
         <Text weight="semibold" className="text-danger">
           Sign out
         </Text>

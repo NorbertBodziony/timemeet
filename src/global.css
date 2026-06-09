@@ -7,6 +7,17 @@
    level up from this src/global.css file. */
 @source '../node_modules/heroui-native/lib';
 
-/* The app uses HeroUI Native's default light theme. Color utilities come from
-   heroui-native/styles: bg-background, bg-surface, text-foreground, text-muted,
-   border-border, bg-accent, bg-success/warning/danger, bg-field, etc. */
+/* MeetTime tweak: warm up HeroUI's accent (buttons, tab tint, selected states).
+   `@source inline` keeps the whole accent group's utilities — and therefore the
+   CSS vars HeroUI's components reference (e.g. accent-hover) — so they aren't
+   tree-shaken away (which otherwise crashes the native style runtime). */
+@source inline("{bg,text,border}-accent{,-hover,-soft,-soft-hover,-foreground,-soft-foreground}");
+
+@theme {
+  --color-accent: #e8623c;
+  --color-accent-foreground: #ffffff;
+  --color-accent-hover: #d6532f;
+  --color-accent-soft: #fbe7df;
+  --color-accent-soft-foreground: #9a3c20;
+  --color-accent-soft-hover: #f7d8cb;
+}

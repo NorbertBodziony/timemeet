@@ -1,8 +1,8 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, View } from "react-native";
+import { Alert } from "react-native";
 import { useMutation } from "convex/react";
-import { Input, Text } from "heroui-native";
+import { Card, Input, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
@@ -46,9 +46,11 @@ export default function Profile() {
       <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
         Referral code
       </Text>
-      <View className="rounded-2xl bg-surface border border-border px-4 py-3.5 mb-6">
-        <Text color="muted">{currentUser?.referralCode ?? "—"}</Text>
-      </View>
+      <Card className="mb-6">
+        <Card.Body>
+          <Text color="muted">{currentUser?.referralCode ?? "—"}</Text>
+        </Card.Body>
+      </Card>
 
       <PrimaryButton label="Save" onPress={save} disabled={!name.trim()} loading={busy} />
     </Screen>

@@ -8,6 +8,7 @@ export default function HowTimePoll() {
     <OnboardingSlide
       index={1}
       total={3}
+      icon="calendar-outline"
       headline="When works?"
       body="Drop some times. Crew taps. Done."
       cta="Next"

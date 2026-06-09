@@ -6,6 +6,7 @@ export default function ToConfirmScreen() {
       tab="to_confirm"
       title="To confirm"
       empty="Nothing waiting on you. Nice and calm."
+      emptyIcon="mail-open-outline"
     />
   );
 }

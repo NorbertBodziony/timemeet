@@ -2,10 +2,10 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { useMutation, useQuery } from "convex/react";
-import { Button, Text } from "heroui-native";
+import { Button, ListGroup, Switch, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
+import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
-import { ToggleRow } from "../../components/SettingsRow";
 import { useAuth } from "../../providers/MockAuthProvider";
 
 export default function Privacy() {
@@ -53,8 +53,20 @@ export default function Privacy() {
 
   return (
     <Screen title="Privacy & data">
-      <ToggleRow label="Share anonymous usage analytics" value={optIn} onValueChange={toggleOptIn} />
-      <Text type="body-xs" color="muted" className="mt-1 mb-6">
+      <ListGroup>
+        <ListGroup.Item>
+          <ListGroup.ItemPrefix>
+            <Icon name="analytics-outline" size={20} tint="accent" />
+          </ListGroup.ItemPrefix>
+          <ListGroup.ItemContent>
+            <ListGroup.ItemTitle>Share anonymous usage analytics</ListGroup.ItemTitle>
+          </ListGroup.ItemContent>
+          <ListGroup.ItemSuffix>
+            <Switch isSelected={optIn} onSelectedChange={toggleOptIn} />
+          </ListGroup.ItemSuffix>
+        </ListGroup.Item>
+      </ListGroup>
+      <Text type="body-xs" color="muted" className="mt-2 mb-6 ml-1">
         Off by default. Only metadata — never your names, addresses, or messages.
       </Text>
 

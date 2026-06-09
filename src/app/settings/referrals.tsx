@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { Alert, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
-import { Input, Text } from "heroui-native";
+import { Card, Input, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
+import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
 
-const STEPS = [
-  "Share your code with a friend.",
-  "They join and RSVP to their first meetup.",
-  "You both get a free extra event.",
+const STEPS: { icon: "share-outline" | "person-add-outline" | "gift-outline"; text: string }[] = [
+  { icon: "share-outline", text: "Share your code with a friend." },
+  { icon: "person-add-outline", text: "They join and RSVP to their first meetup." },
+  { icon: "gift-outline", text: "You both get a free extra event." },
 ];
 
 export default function Referrals() {
@@ -39,27 +40,35 @@ export default function Referrals() {
 
   return (
     <Screen title="Refer a friend" subtitle="Bring your crew. Everyone wins.">
-      <View className="rounded-2xl bg-surface border border-border px-4 py-4 mb-5 items-center">
-        <Text type="body-xs" weight="semibold" color="muted">
-          YOUR CODE
-        </Text>
-        <Text type="h2" weight="bold" className="mt-1">
-          {stats?.code ?? "—"}
-        </Text>
-        {!!stats && (
-          <Text type="body-xs" color="muted" className="mt-1">
-            {stats.activated} joined · {stats.total} invited
+      <Card className="mb-5">
+        <Card.Body className="items-center py-5">
+          <Icon name="gift" size={28} tint="accent" />
+          <Text type="body-xs" weight="semibold" color="muted" className="mt-2">
+            YOUR CODE
           </Text>
-        )}
-      </View>
+          <Text type="h2" weight="bold" className="mt-1">
+            {stats?.code ?? "—"}
+          </Text>
+          {!!stats && (
+            <Text type="body-xs" color="muted" className="mt-1">
+              {stats.activated} joined · {stats.total} invited
+            </Text>
+          )}
+        </Card.Body>
+      </Card>
 
       {STEPS.map((s, i) => (
-        <Text key={i} type="body-sm" color="muted" className="mb-1.5">
-          {i + 1}. {s}
-        </Text>
+        <View key={i} className="flex-row items-center gap-3 mb-3">
+          <View className="h-8 w-8 rounded-full bg-accent-soft items-center justify-center">
+            <Icon name={s.icon} size={16} tint="accent" />
+          </View>
+          <Text type="body-sm" className="flex-1">
+            {s.text}
+          </Text>
+        </View>
       ))}
 
-      <View className="mt-5">
+      <View className="mt-3">
         <PrimaryButton label="Share my code" onPress={share} />
       </View>
 

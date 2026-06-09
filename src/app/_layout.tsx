@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import {
   Lato_400Regular,
   Lato_700Bold,
@@ -22,6 +23,9 @@ export default function RootLayout(): JSX.Element | null {
     Lato_400Regular,
     Lato_700Bold,
     Lato_900Black,
+    // Register the Ionicons glyph font so icons work regardless of the Expo Go
+    // bundled version (avoids a "fontFamily Ionicons not loaded" fatal).
+    ...Ionicons.font,
   });
   if (!fontsLoaded) return null;
 

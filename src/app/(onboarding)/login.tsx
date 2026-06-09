@@ -3,6 +3,7 @@ import { Alert, View } from "react-native";
 import { useMutation } from "convex/react";
 import { Button, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
+import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
@@ -31,6 +32,9 @@ export default function Login() {
   return (
     <Screen scroll={false}>
       <View className="flex-1 justify-center">
+        <View className="h-16 w-16 rounded-2xl bg-accent items-center justify-center mb-7">
+          <Icon name="people" size={30} color="#FFFFFF" />
+        </View>
         <Text type="h1" weight="bold" className="text-3xl">
           Welcome! Glad you're here.
         </Text>

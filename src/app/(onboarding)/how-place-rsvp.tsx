@@ -8,6 +8,7 @@ export default function HowPlaceRsvp() {
     <OnboardingSlide
       index={2}
       total={3}
+      icon="location-outline"
       headline="Place works? You in?"
       body="The app collects, you meet up."
       cta="Next"

@@ -1,9 +1,10 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
+import { Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
-import { GradientButton } from "../../components/GradientButton";
+import { PrimaryButton } from "../../components/PrimaryButton";
 import { RsvpPicker } from "../../components/RsvpPicker";
 import { Screen } from "../../components/Screen";
 import { formatDateTime } from "../../lib/datetime";
@@ -29,18 +30,14 @@ export default function InviteLanding() {
   if (data.status === "expired") {
     return (
       <Screen title="This link has expired">
-        <Text className="text-brand-evergreen/65 text-[15px]">
-          Ask the organizer for a fresh invite.
-        </Text>
+        <Text color="muted">Ask the organizer for a fresh invite.</Text>
       </Screen>
     );
   }
   if (data.status === "not_found") {
     return (
       <Screen title="Invite not found">
-        <Text className="text-brand-evergreen/65 text-[15px]">
-          Double-check the link and try again.
-        </Text>
+        <Text color="muted">Double-check the link and try again.</Text>
       </Screen>
     );
   }
@@ -58,45 +55,38 @@ export default function InviteLanding() {
 
   return (
     <Screen title={event.title}>
-      <View className="rounded-2xl bg-surface border border-brand-evergreen/10 px-4 py-4 mb-6">
-        <Text className="text-brand-evergreen/45 text-[12px] font-semibold">
+      <View className="rounded-2xl bg-surface border border-border px-4 py-4 mb-6">
+        <Text type="body-xs" weight="semibold" color="muted">
           {creator?.displayName ?? "Someone"} invited you
         </Text>
-        <Text className="text-brand-evergreen text-[15px] font-semibold mt-2">
+        <Text weight="semibold" className="mt-2">
           {formatDateTime(event.startsAt)}
         </Text>
         {!!(event.customAddress ?? event.placeId) && (
-          <Text className="text-brand-evergreen/65 text-[13px] mt-0.5">
+          <Text type="body-sm" color="muted" className="mt-0.5">
             {event.customAddress ?? event.placeId}
           </Text>
         )}
-        <Text className="text-rsvp-going text-[12px] font-semibold mt-2">
+        <Text type="body-xs" weight="semibold" className="text-success mt-2">
           {going} going
         </Text>
       </View>
 
       {done ? (
         <View className="items-center py-4">
-          <Text className="text-brand-evergreen text-[17px] font-bold">
-            {done === "not_going"
-              ? "No worries — maybe next time."
-              : "You're in! 🎉"}
+          <Text type="h3" weight="bold">
+            {done === "not_going" ? "No worries — maybe next time." : "You're in! 🎉"}
           </Text>
           <View className="mt-5 w-full">
-            <GradientButton
+            <PrimaryButton
               label="Open the meetup"
-              onPress={() =>
-                router.replace({
-                  pathname: "/event/[id]",
-                  params: { id: event._id },
-                })
-              }
+              onPress={() => router.replace({ pathname: "/event/[id]", params: { id: event._id } })}
             />
           </View>
         </View>
       ) : (
         <>
-          <Text className="text-brand-evergreen/65 text-[13px] mb-2 font-semibold">
+          <Text type="body-sm" weight="semibold" color="muted" className="mb-2">
             Are you in?
           </Text>
           <RsvpPicker value={null} onChange={rsvp} />

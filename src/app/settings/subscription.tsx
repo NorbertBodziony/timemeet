@@ -1,7 +1,8 @@
-import { Alert, Text, View } from "react-native";
+import { Alert, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
+import { Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
-import { GradientButton } from "../../components/GradientButton";
+import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
 
@@ -33,29 +34,35 @@ export default function Subscription() {
 
   return (
     <Screen title="MeetTime+" subtitle="Power and convenience. The basics stay free.">
-      <View className="rounded-2xl bg-surface border border-brand-evergreen/10 px-4 py-3 mb-5">
-        <Text className="text-brand-evergreen/45 text-[12px] font-semibold">CURRENT PLAN</Text>
-        <Text className="text-brand-evergreen text-[17px] font-bold mt-1">
+      <View className="rounded-2xl bg-surface border border-border px-4 py-3 mb-5">
+        <Text type="body-xs" weight="semibold" color="muted">
+          CURRENT PLAN
+        </Text>
+        <Text type="h3" weight="bold" className="mt-1">
           {plan === "free" ? "Free" : plan === "founder" ? "Founder Edition" : "MeetTime+"}
         </Text>
       </View>
 
-      <View className="rounded-2xl bg-surface border border-brand-evergreen/10 px-4 py-4 mb-5">
-        <Text className="text-brand-evergreen text-[17px] font-bold mb-2">MeetTime+</Text>
+      <View className="rounded-2xl bg-surface border border-border px-4 py-4 mb-5">
+        <Text type="h3" weight="bold" className="mb-2">
+          MeetTime+
+        </Text>
         {PLUS_BENEFITS.map((b) => (
-          <Text key={b} className="text-brand-evergreen/65 text-[14px] mb-1">
+          <Text key={b} type="body-sm" color="muted" className="mb-1">
             ✓ {b}
           </Text>
         ))}
-        <Text className="text-brand-evergreen/45 text-[13px] mt-2">14.99 zł / month</Text>
+        <Text type="body-sm" color="muted" className="mt-2">
+          14.99 zł / month
+        </Text>
       </View>
 
       {isPlus ? (
-        <GradientButton label="Switch to Free" onPress={() => choose("free")} />
+        <PrimaryButton label="Switch to Free" variant="outline" onPress={() => choose("free")} />
       ) : (
-        <GradientButton label="Upgrade to MeetTime+" onPress={() => choose("meettime_plus")} />
+        <PrimaryButton label="Upgrade to MeetTime+" onPress={() => choose("meettime_plus")} />
       )}
-      <Text className="text-brand-evergreen/40 text-[12px] text-center mt-3">
+      <Text type="body-xs" color="muted" align="center" className="mt-3">
         Voting is always free. Free trial covers your first 3 plans.
       </Text>
     </Screen>

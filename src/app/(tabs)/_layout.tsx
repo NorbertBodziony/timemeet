@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import { Text, type ColorValue } from "react-native";
+import { useThemeColor } from "heroui-native";
 
 const ICON: Record<string, string> = {
   "to-confirm": "◔",
@@ -15,16 +16,18 @@ function tabIcon(name: string) {
 }
 
 export default function TabsLayout() {
+  const accent = useThemeColor("accent");
+  const muted = useThemeColor("muted");
+  const surface = useThemeColor("surface");
+  const border = useThemeColor("border");
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#5DA802",
-        tabBarInactiveTintColor: "rgba(15,26,0,0.4)",
-        tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopColor: "rgba(15,26,0,0.08)",
-        },
+        tabBarActiveTintColor: accent,
+        tabBarInactiveTintColor: muted,
+        tabBarStyle: { backgroundColor: surface, borderTopColor: border },
         tabBarLabelStyle: { fontSize: 11 },
       }}
     >

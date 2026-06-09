@@ -1,7 +1,8 @@
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import type { ReactNode } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
+import { Spinner } from "heroui-native";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../providers/MockAuthProvider";
@@ -41,7 +42,7 @@ export function EventTabList({
       {action ? <View className="mb-4">{action}</View> : null}
       {rows === undefined ? (
         <View className="py-16 items-center">
-          <ActivityIndicator color="#5DA802" />
+          <Spinner />
         </View>
       ) : rows.length === 0 ? (
         <EmptyState text={empty} />

@@ -1,9 +1,10 @@
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 import { useMutation } from "convex/react";
+import { Button, Input, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
-import { GradientButton } from "../../components/GradientButton";
+import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { formatDate, formatRange } from "../../lib/datetime";
 import { MOCK_PLACES } from "../../lib/places";
@@ -12,7 +13,6 @@ import { useAuth } from "../../providers/MockAuthProvider";
 const DAY_MS = 24 * 60 * 60 * 1000;
 type PollType = "time" | "place";
 
-// Candidate evening slots — next 7 days, 7–10pm. Pick 3–7 (docs §3.1).
 function candidateSlots(now: number) {
   return Array.from({ length: 7 }, (_, i) => {
     const day = new Date(now + (i + 1) * DAY_MS);
@@ -20,6 +20,38 @@ function candidateSlots(now: number) {
     const startsAt = day.getTime();
     return { startsAt, endsAt: startsAt + 3 * 60 * 60 * 1000 };
   });
+}
+
+// A selectable option row (used for slots and venues).
+function OptionRow({
+  on,
+  title,
+  subtitle,
+  onPress,
+}: {
+  on: boolean;
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className={`mb-2 flex-row items-center justify-between rounded-2xl border px-4 py-3.5 ${
+        on ? "bg-accent border-accent" : "bg-surface border-border"
+      }`}
+    >
+      <View className="flex-1 pr-2">
+        <Text weight="semibold" className={on ? "text-accent-foreground" : ""}>
+          {title}
+        </Text>
+        <Text type="body-xs" className={on ? "text-accent-foreground/80" : "text-muted"}>
+          {subtitle}
+        </Text>
+      </View>
+      <Text className={on ? "text-accent-foreground" : "text-muted"}>{on ? "✓" : "+"}</Text>
+    </Pressable>
+  );
 }
 
 export default function NewPoll() {
@@ -61,9 +93,9 @@ export default function NewPoll() {
               userId: currentUser._id,
               type: "place",
               title: title.trim(),
-              placeOptions: MOCK_PLACES.filter((p) =>
-                pickedPlaces.has(p.placeId)
-              ).map(({ multisport, ...p }) => p),
+              placeOptions: MOCK_PLACES.filter((p) => pickedPlaces.has(p.placeId)).map(
+                ({ multisport, ...p }) => p
+              ),
             }
       );
       router.replace({ pathname: "/poll/[id]", params: { id: pollId } });
@@ -84,127 +116,57 @@ export default function NewPoll() {
     >
       {/* Poll type toggle */}
       <View className="flex-row gap-2 mb-5 mt-1">
-        {(["time", "place"] as PollType[]).map((t) => {
-          const on = type === t;
-          return (
-            <Pressable
-              key={t}
-              onPress={() => setType(t)}
-              className="flex-1 items-center rounded-xl border py-2.5"
-              style={{
-                backgroundColor: on ? "#0F1A00" : "#FFFFFF",
-                borderColor: on ? "#0F1A00" : "rgba(15,26,0,0.12)",
-              }}
-            >
-              <Text
-                className="text-[14px] font-semibold"
-                style={{ color: on ? "#FAFFF2" : "rgba(15,26,0,0.7)" }}
-              >
-                {t === "time" ? "Time Poll" : "Place Poll"}
-              </Text>
-            </Pressable>
-          );
-        })}
+        {(["time", "place"] as PollType[]).map((t) => (
+          <Button
+            key={t}
+            variant={type === t ? "primary" : "outline"}
+            size="md"
+            onPress={() => setType(t)}
+            className="flex-1"
+          >
+            <Button.Label>{t === "time" ? "Time Poll" : "Place Poll"}</Button.Label>
+          </Button>
+        ))}
       </View>
 
-      <Text className="text-brand-evergreen/65 text-[13px] mb-1.5 font-semibold">
+      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5">
         What's the plan?
       </Text>
-      <TextInput
+      <Input
         value={title}
         onChangeText={setTitle}
         placeholder={type === "time" ? "Board game night 🎲" : "Saturday hangout"}
-        placeholderTextColor="rgba(15,26,0,0.35)"
         maxLength={100}
-        className="rounded-2xl bg-surface border border-brand-evergreen/15 px-4 py-3.5 text-[16px] text-brand-evergreen"
       />
 
-      {type === "time" ? (
-        <>
-          <Text className="text-brand-evergreen/65 text-[13px] mb-1.5 mt-6 font-semibold">
-            Pick 3–7 time slots ({pickedSlots.size} chosen)
-          </Text>
-          {slots.map((slot, i) => {
-            const on = pickedSlots.has(i);
-            return (
-              <Pressable
-                key={slot.startsAt}
-                onPress={() => setPickedSlots((s) => toggle(s, i))}
-                className="mb-2 flex-row items-center justify-between rounded-2xl border px-4 py-3.5"
-                style={{
-                  backgroundColor: on ? "#5DA802" : "#FFFFFF",
-                  borderColor: on ? "#5DA802" : "rgba(15,26,0,0.12)",
-                }}
-              >
-                <View>
-                  <Text
-                    className="text-[15px] font-semibold"
-                    style={{ color: on ? "#FFFFFF" : "#0F1A00" }}
-                  >
-                    {formatDate(slot.startsAt)}
-                  </Text>
-                  <Text
-                    className="text-[12px]"
-                    style={{ color: on ? "rgba(255,255,255,0.85)" : "rgba(15,26,0,0.5)" }}
-                  >
-                    {formatRange(slot.startsAt, slot.endsAt)}
-                  </Text>
-                </View>
-                <Text style={{ color: on ? "#FFFFFF" : "rgba(15,26,0,0.3)", fontSize: 18 }}>
-                  {on ? "✓" : "+"}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </>
-      ) : (
-        <>
-          <Text className="text-brand-evergreen/65 text-[13px] mb-1.5 mt-6 font-semibold">
-            Pick 2+ places ({pickedPlaces.size} chosen)
-          </Text>
-          {MOCK_PLACES.map((p) => {
-            const on = pickedPlaces.has(p.placeId);
-            return (
-              <Pressable
-                key={p.placeId}
-                onPress={() => setPickedPlaces((s) => toggle(s, p.placeId))}
-                className="mb-2 flex-row items-center justify-between rounded-2xl border px-4 py-3.5"
-                style={{
-                  backgroundColor: on ? "#5DA802" : "#FFFFFF",
-                  borderColor: on ? "#5DA802" : "rgba(15,26,0,0.12)",
-                }}
-              >
-                <View className="flex-1 pr-2">
-                  <Text
-                    className="text-[15px] font-semibold"
-                    style={{ color: on ? "#FFFFFF" : "#0F1A00" }}
-                  >
-                    {p.name}
-                    {p.multisport ? "  ·  Multisport" : ""}
-                  </Text>
-                  <Text
-                    className="text-[12px]"
-                    style={{ color: on ? "rgba(255,255,255,0.85)" : "rgba(15,26,0,0.5)" }}
-                  >
-                    ★ {p.rating} ({p.reviewCount}) · {p.address}
-                  </Text>
-                </View>
-                <Text style={{ color: on ? "#FFFFFF" : "rgba(15,26,0,0.3)", fontSize: 18 }}>
-                  {on ? "✓" : "+"}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </>
-      )}
+      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-6">
+        {type === "time"
+          ? `Pick 3–7 time slots (${pickedSlots.size} chosen)`
+          : `Pick 2+ places (${pickedPlaces.size} chosen)`}
+      </Text>
+
+      {type === "time"
+        ? slots.map((slot, i) => (
+            <OptionRow
+              key={slot.startsAt}
+              on={pickedSlots.has(i)}
+              title={formatDate(slot.startsAt)}
+              subtitle={formatRange(slot.startsAt, slot.endsAt)}
+              onPress={() => setPickedSlots((s) => toggle(s, i))}
+            />
+          ))
+        : MOCK_PLACES.map((p) => (
+            <OptionRow
+              key={p.placeId}
+              on={pickedPlaces.has(p.placeId)}
+              title={`${p.name}${p.multisport ? "  ·  Multisport" : ""}`}
+              subtitle={`★ ${p.rating} (${p.reviewCount}) · ${p.address}`}
+              onPress={() => setPickedPlaces((s) => toggle(s, p.placeId))}
+            />
+          ))}
 
       <View className="mt-4">
-        <GradientButton
-          label="Create poll"
-          onPress={submit}
-          disabled={!valid}
-          loading={busy}
-        />
+        <PrimaryButton label="Create poll" onPress={submit} disabled={!valid} loading={busy} />
       </View>
     </Screen>
   );

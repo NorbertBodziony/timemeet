@@ -1,7 +1,8 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Pressable, Text } from "react-native";
+import { Alert } from "react-native";
 import { useMutation, useQuery } from "convex/react";
+import { Button, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
 import { Screen } from "../../components/Screen";
 import { ToggleRow } from "../../components/SettingsRow";
@@ -10,10 +11,7 @@ import { useAuth } from "../../providers/MockAuthProvider";
 export default function Privacy() {
   const router = useRouter();
   const { currentUser, signOut } = useAuth();
-  const me = useQuery(
-    api.users.get,
-    currentUser ? { userId: currentUser._id } : "skip"
-  );
+  const me = useQuery(api.users.get, currentUser ? { userId: currentUser._id } : "skip");
   const setOptIn = useMutation(api.users.setAnalyticsOptIn);
   const deleteAccount = useMutation(api.users.deleteAccount);
   const [optIn, setOptInLocal] = useState(false);
@@ -55,23 +53,14 @@ export default function Privacy() {
 
   return (
     <Screen title="Privacy & data">
-      <ToggleRow
-        label="Share anonymous usage analytics"
-        value={optIn}
-        onValueChange={toggleOptIn}
-      />
-      <Text className="text-brand-evergreen/40 text-[12px] mt-1 mb-6">
+      <ToggleRow label="Share anonymous usage analytics" value={optIn} onValueChange={toggleOptIn} />
+      <Text type="body-xs" color="muted" className="mt-1 mb-6">
         Off by default. Only metadata — never your names, addresses, or messages.
       </Text>
 
-      <Pressable
-        onPress={confirmDelete}
-        className="rounded-2xl border border-semantic-danger/30 py-3.5 items-center"
-      >
-        <Text className="text-semantic-danger text-[15px] font-semibold">
-          Delete account
-        </Text>
-      </Pressable>
+      <Button variant="danger" size="md" onPress={confirmDelete}>
+        <Button.Label>Delete account</Button.Label>
+      </Button>
     </Screen>
   );
 }

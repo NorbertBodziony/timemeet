@@ -1,23 +1,23 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Alert, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
+import { Chip, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { GradientButton } from "../../components/GradientButton";
+import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { formatDate, formatRange } from "../../lib/datetime";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { usePush } from "../../providers/MockPushProvider";
 
 type Vote = "yes" | "maybe" | "no";
-const VOTES: { value: Vote; label: string; color: string }[] = [
-  { value: "yes", label: "Yes", color: "#5DA802" },
-  { value: "maybe", label: "Maybe", color: "#F59E0B" },
-  { value: "no", label: "No", color: "#9CA3AF" },
+const VOTES: { value: Vote; label: string; color: "success" | "warning" | "default" }[] = [
+  { value: "yes", label: "Yes", color: "success" },
+  { value: "maybe", label: "Maybe", color: "warning" },
+  { value: "no", label: "No", color: "default" },
 ];
 
 function VoteRow({
-  optionId,
   title,
   subtitle,
   counts,
@@ -26,7 +26,6 @@ function VoteRow({
   disabled,
   onVote,
 }: {
-  optionId: string;
   title: string;
   subtitle: string;
   counts: { yes: number; maybe: number; no: number };
@@ -37,41 +36,35 @@ function VoteRow({
 }) {
   return (
     <View
-      className="mb-3 rounded-2xl bg-surface border border-brand-evergreen/10 px-4 py-3"
-      style={highlight ? { borderColor: "#5DA802" } : undefined}
+      className={`mb-3 rounded-2xl bg-surface border px-4 py-3 ${
+        highlight ? "border-success" : "border-border"
+      }`}
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-1 pr-2">
-          <Text className="text-brand-evergreen text-[15px] font-bold">{title}</Text>
-          <Text className="text-brand-evergreen/55 text-[12px]">{subtitle}</Text>
+          <Text weight="bold">{title}</Text>
+          <Text type="body-xs" color="muted">
+            {subtitle}
+          </Text>
         </View>
-        <Text className="text-rsvp-going text-[12px] font-semibold">
+        <Text type="body-xs" weight="semibold" className="text-success">
           {counts.yes} yes{counts.maybe ? ` · ${counts.maybe} maybe` : ""}
         </Text>
       </View>
       {!disabled && (
         <View className="flex-row gap-2 mt-3">
-          {VOTES.map((v) => {
-            const on = mine === v.value;
-            return (
-              <Pressable
-                key={v.value}
-                onPress={() => onVote(v.value)}
-                className="flex-1 items-center rounded-xl border py-2"
-                style={{
-                  backgroundColor: on ? v.color : "#FFFFFF",
-                  borderColor: on ? v.color : "rgba(15,26,0,0.12)",
-                }}
-              >
-                <Text
-                  className="text-[13px] font-semibold"
-                  style={{ color: on ? "#FFFFFF" : "rgba(15,26,0,0.7)" }}
-                >
-                  {v.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {VOTES.map((v) => (
+            <Chip
+              key={v.value}
+              color={v.color}
+              variant={mine === v.value ? "primary" : "tertiary"}
+              size="md"
+              onPress={() => onVote(v.value)}
+              className="flex-1 justify-center"
+            >
+              <Chip.Label>{v.label}</Chip.Label>
+            </Chip>
+          ))}
         </View>
       )}
     </View>
@@ -102,7 +95,6 @@ export default function PollDetail() {
   const isPlace = poll.type === "place";
   const countsFor = (key: string) => agg?.[key] ?? { yes: 0, maybe: 0, no: 0 };
 
-  // Leading time slot (most "yes") — the organizer's suggested winner.
   const leader = isPlace
     ? null
     : slots.reduce<{ id: Id<"pollSlots">; yes: number } | null>((best, s) => {
@@ -143,7 +135,6 @@ export default function PollDetail() {
         ? placeOptions.map((p) => (
             <VoteRow
               key={p._id}
-              optionId={p._id}
               title={p.name}
               subtitle={`★ ${p.rating ?? "—"} · ${p.address}`}
               counts={countsFor(p._id)}
@@ -155,7 +146,6 @@ export default function PollDetail() {
         : slots.map((slot) => (
             <VoteRow
               key={slot._id}
-              optionId={slot._id}
               title={formatDate(slot.startsAt)}
               subtitle={formatRange(slot.startsAt, slot.endsAt)}
               counts={countsFor(slot._id)}
@@ -168,26 +158,26 @@ export default function PollDetail() {
 
       {isOrganizer && !converted && !isPlace && (
         <View className="mt-3">
-          <GradientButton
+          <PrimaryButton
             label="Convert winning slot → meetup"
             onPress={doConvert}
             disabled={!leader || leader.yes === 0}
           />
-          <Text className="text-brand-evergreen/45 text-[12px] text-center mt-2">
+          <Text type="body-xs" color="muted" align="center" className="mt-2">
             Picks the slot with the most “yes”. Voters auto-RSVP.
           </Text>
         </View>
       )}
 
       {isPlace && !converted && (
-        <Text className="text-brand-evergreen/45 text-[12px] text-center mt-2">
+        <Text type="body-xs" color="muted" align="center" className="mt-2">
           Place polls settle the venue. Pair with a Time Poll to lock the date.
         </Text>
       )}
 
       {converted && poll.eventId && (
         <View className="mt-3">
-          <GradientButton
+          <PrimaryButton
             label="Open the meetup"
             onPress={() =>
               router.replace({

@@ -1,5 +1,6 @@
-import { Text, View } from "react-native";
-import { GradientButton } from "./GradientButton";
+import { View } from "react-native";
+import { Text } from "heroui-native";
+import { PrimaryButton } from "./PrimaryButton";
 import { Screen } from "./Screen";
 
 // One cold-onboarding screen (docs §3.8 / §5). Light dot indicator, no "1 of 3".
@@ -21,10 +22,10 @@ export function OnboardingSlide({
   return (
     <Screen scroll={false}>
       <View className="flex-1 justify-center">
-        <Text className="text-brand-evergreen text-[38px] font-black leading-tight tracking-tight">
+        <Text type="h1" weight="bold" className="text-4xl leading-tight">
           {headline}
         </Text>
-        <Text className="text-brand-evergreen/65 text-[16px] mt-4 leading-6">
+        <Text color="muted" className="mt-4 text-base leading-6">
           {body}
         </Text>
       </View>
@@ -33,15 +34,11 @@ export function OnboardingSlide({
           {Array.from({ length: total }).map((_, i) => (
             <View
               key={i}
-              className="h-2 rounded-full"
-              style={{
-                width: i === index ? 18 : 8,
-                backgroundColor: i === index ? "#5DA802" : "rgba(15,26,0,0.15)",
-              }}
+              className={`h-2 rounded-full ${i === index ? "w-[18px] bg-accent" : "w-2 bg-default"}`}
             />
           ))}
         </View>
-        <GradientButton label={cta} onPress={onNext} />
+        <PrimaryButton label={cta} onPress={onNext} />
       </View>
     </Screen>
   );

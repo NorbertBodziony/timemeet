@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Text } from "react-native";
 import { useMutation, useQuery } from "convex/react";
+import { Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
 import { Screen } from "../../components/Screen";
 import { ToggleRow } from "../../components/SettingsRow";
@@ -40,14 +40,14 @@ export default function Notifications() {
   return (
     <Screen title="Notifications" subtitle="Only the essentials. We never spam.">
       <ToggleRow label="All notifications" value={prefs.master} onValueChange={(v) => set("master", v)} />
-      <Text className="text-brand-evergreen/45 text-[12px] font-semibold mt-4 mb-2">
+      <Text type="body-xs" weight="semibold" color="muted" className="mt-4 mb-2">
         TRANSACTIONAL
       </Text>
       <ToggleRow label="New invite" value={prefs.newInvite} onValueChange={(v) => set("newInvite", v)} disabled={off} />
       <ToggleRow label="Poll resolved" value={prefs.pollResolved} onValueChange={(v) => set("pollResolved", v)} disabled={off} />
       <ToggleRow label="Event cancelled" value={prefs.eventCancelled} onValueChange={(v) => set("eventCancelled", v)} disabled={off} />
       <ToggleRow label="2 hours before" value={prefs.reminder2h} onValueChange={(v) => set("reminder2h", v)} disabled={off} />
-      <Text className="text-brand-evergreen/40 text-[12px] mt-4">
+      <Text type="body-xs" color="muted" className="mt-4">
         Quiet hours 22:00–08:00 — coming soon. We won't wake you.
       </Text>
     </Screen>

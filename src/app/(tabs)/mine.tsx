@@ -1,7 +1,8 @@
 import { useRouter } from "expo-router";
-import { Pressable, Text } from "react-native";
+import { Pressable } from "react-native";
+import { Text } from "heroui-native";
 import { EventTabList } from "../../components/EventTabList";
-import { GradientButton } from "../../components/GradientButton";
+import { PrimaryButton } from "../../components/PrimaryButton";
 
 export default function MineScreen() {
   const router = useRouter();
@@ -12,11 +13,11 @@ export default function MineScreen() {
       empty="Your plans show up here. Start with one."
       right={
         <Pressable onPress={() => router.push("/settings")} hitSlop={10}>
-          <Text style={{ fontSize: 22, color: "#0F1A00" }}>⚙</Text>
+          <Text type="h3">⚙</Text>
         </Pressable>
       }
       action={
-        <GradientButton label="New plan" onPress={() => router.push("/poll/new")} />
+        <PrimaryButton label="New plan" onPress={() => router.push("/poll/new")} />
       }
     />
   );

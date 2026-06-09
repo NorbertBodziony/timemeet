@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { EventTabList } from "../../components/EventTabList";
-import { GradientButton } from "../../components/GradientButton";
+import { PrimaryButton } from "../../components/PrimaryButton";
 import { useAuth } from "../../providers/MockAuthProvider";
 
 export default function GoingScreen() {
@@ -15,7 +15,7 @@ export default function GoingScreen() {
       subtitle="What are we planning?"
       empty="Quiet group chat? Drop a time."
       action={
-        <GradientButton label="New plan" onPress={() => router.push("/poll/new")} />
+        <PrimaryButton label="New plan" onPress={() => router.push("/poll/new")} />
       }
     />
   );

@@ -1,10 +1,11 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
+import { Input, Text } from "heroui-native";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
-import { GradientButton } from "../../../components/GradientButton";
+import { PrimaryButton } from "../../../components/PrimaryButton";
 import { Screen } from "../../../components/Screen";
 import { formatDateTime } from "../../../lib/datetime";
 import { useAuth } from "../../../providers/MockAuthProvider";
@@ -41,16 +42,13 @@ export default function EditEvent() {
   if (data === null) return <Screen title="Event not found">{null}</Screen>;
   const { event } = data;
 
-  // Current values (edited override falls back to stored).
   const curTitle = title ?? event.title;
   const curAddress = address ?? event.customAddress ?? "";
   const curDesc = description ?? event.description ?? "";
   const curStart = startsAt ?? event.startsAt;
 
-  // Diff vs stored.
   const changes: { label: string; from: string; to: string }[] = [];
-  if (curTitle !== event.title)
-    changes.push({ label: "Title", from: event.title, to: curTitle });
+  if (curTitle !== event.title) changes.push({ label: "Title", from: event.title, to: curTitle });
   if (curAddress !== (event.customAddress ?? ""))
     changes.push({ label: "Where", from: event.customAddress ?? "—", to: curAddress || "—" });
   if (curDesc !== (event.description ?? ""))
@@ -72,7 +70,6 @@ export default function EditEvent() {
           startsAt: curStart,
         },
       });
-      // Stand-in for "push to all invitees" (mocked).
       push.push({ title: `Updated: ${curTitle}` });
       router.back();
     } catch (e) {
@@ -81,77 +78,59 @@ export default function EditEvent() {
     }
   }
 
-  const label = "text-brand-evergreen/65 text-[13px] mb-1.5 font-semibold";
-  const input =
-    "rounded-2xl bg-surface border border-brand-evergreen/15 px-4 py-3.5 text-[16px] text-brand-evergreen mb-5";
+  const fieldLabel = "mb-1.5";
 
   return (
     <Screen title="Edit meetup">
-      <Text className={label}>Title</Text>
-      <TextInput value={curTitle} onChangeText={setTitle} maxLength={100} className={input} />
+      <Text type="body-sm" weight="semibold" color="muted" className={fieldLabel}>
+        Title
+      </Text>
+      <Input value={curTitle} onChangeText={setTitle} maxLength={100} />
 
-      <Text className={label}>Where</Text>
-      <TextInput
-        value={curAddress}
-        onChangeText={setAddress}
-        placeholder="Address"
-        placeholderTextColor="rgba(15,26,0,0.35)"
-        className={input}
-      />
+      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
+        Where
+      </Text>
+      <Input value={curAddress} onChangeText={setAddress} placeholder="Address" />
 
-      <Text className={label}>Notes</Text>
-      <TextInput
-        value={curDesc}
-        onChangeText={setDescription}
-        placeholder="Optional"
-        placeholderTextColor="rgba(15,26,0,0.35)"
-        multiline
-        className={input}
-      />
+      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
+        Notes
+      </Text>
+      <Input value={curDesc} onChangeText={setDescription} placeholder="Optional" multiline />
 
-      <Text className={label}>When</Text>
+      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
+        When
+      </Text>
       {slots.map((s) => {
         const on = curStart === s;
         return (
           <Pressable
             key={s}
             onPress={() => setStartsAt(s)}
-            className="mb-2 rounded-2xl border px-4 py-3"
-            style={{
-              backgroundColor: on ? "#5DA802" : "#FFFFFF",
-              borderColor: on ? "#5DA802" : "rgba(15,26,0,0.12)",
-            }}
+            className={`mb-2 rounded-2xl border px-4 py-3 ${
+              on ? "bg-accent border-accent" : "bg-surface border-border"
+            }`}
           >
-            <Text
-              className="text-[15px] font-semibold"
-              style={{ color: on ? "#FFFFFF" : "#0F1A00" }}
-            >
+            <Text weight="semibold" className={on ? "text-accent-foreground" : ""}>
               {formatDateTime(s)}
             </Text>
           </Pressable>
         );
       })}
 
-      {/* Diff view */}
       {changes.length > 0 && (
-        <View className="rounded-2xl bg-surface border border-brand-evergreen/10 px-4 py-3 mt-4 mb-4">
-          <Text className="text-brand-evergreen/45 text-[12px] font-semibold mb-2">
+        <View className="rounded-2xl bg-surface border border-border px-4 py-3 mt-4 mb-4">
+          <Text type="body-xs" weight="semibold" color="muted" className="mb-2">
             CHANGES
           </Text>
           {changes.map((c) => (
-            <Text key={c.label} className="text-brand-evergreen/65 text-[13px] mb-1">
-              {c.label}: {c.from} → <Text className="font-semibold">{c.to}</Text>
+            <Text key={c.label} type="body-sm" color="muted" className="mb-1">
+              {c.label}: {c.from} → <Text type="body-sm" weight="semibold">{c.to}</Text>
             </Text>
           ))}
         </View>
       )}
 
-      <GradientButton
-        label="Save changes"
-        onPress={save}
-        disabled={changes.length === 0}
-        loading={busy}
-      />
+      <PrimaryButton label="Save changes" onPress={save} disabled={changes.length === 0} loading={busy} />
     </Screen>
   );
 }

@@ -1,6 +1,6 @@
 import { Redirect } from "expo-router";
 import { View } from "react-native";
-import { ActivityIndicator } from "react-native";
+import { Spinner } from "heroui-native";
 import { useAuth } from "../providers/MockAuthProvider";
 
 // Entry gate: signed in → meetups (home); otherwise → onboarding/login.
@@ -9,8 +9,8 @@ export default function Index() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-canvas items-center justify-center">
-        <ActivityIndicator color="#5DA802" />
+      <View className="flex-1 bg-background items-center justify-center">
+        <Spinner />
       </View>
     );
   }

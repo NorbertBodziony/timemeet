@@ -1,9 +1,10 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Text, TextInput, View } from "react-native";
+import { Alert, View } from "react-native";
 import { useMutation } from "convex/react";
+import { Input, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
-import { GradientButton } from "../../components/GradientButton";
+import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
 
@@ -28,35 +29,28 @@ export default function Profile() {
     }
   }
 
-  const label = "text-brand-evergreen/65 text-[13px] mb-1.5 font-semibold";
-  const input =
-    "rounded-2xl bg-surface border border-brand-evergreen/15 px-4 py-3.5 text-[16px] text-brand-evergreen mb-5";
+  const label = "mb-1.5";
 
   return (
     <Screen title="Your profile">
-      <Text className={label}>Name</Text>
-      <TextInput
-        value={name}
-        onChangeText={setName}
-        placeholder="Karolina"
-        placeholderTextColor="rgba(15,26,0,0.35)"
-        className={input}
-      />
-      <Text className={label}>City</Text>
-      <TextInput
-        value={city}
-        onChangeText={setCity}
-        placeholder="Kraków"
-        placeholderTextColor="rgba(15,26,0,0.35)"
-        className={input}
-      />
-      <Text className={label}>Referral code</Text>
-      <View className="rounded-2xl bg-surface border border-brand-evergreen/10 px-4 py-3.5 mb-6">
-        <Text className="text-brand-evergreen/55 text-[15px]">
-          {currentUser?.referralCode ?? "—"}
-        </Text>
+      <Text type="body-sm" weight="semibold" color="muted" className={label}>
+        Name
+      </Text>
+      <Input value={name} onChangeText={setName} placeholder="Karolina" />
+
+      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
+        City
+      </Text>
+      <Input value={city} onChangeText={setCity} placeholder="Kraków" />
+
+      <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5 mt-5">
+        Referral code
+      </Text>
+      <View className="rounded-2xl bg-surface border border-border px-4 py-3.5 mb-6">
+        <Text color="muted">{currentUser?.referralCode ?? "—"}</Text>
       </View>
-      <GradientButton label="Save" onPress={save} disabled={!name.trim()} loading={busy} />
+
+      <PrimaryButton label="Save" onPress={save} disabled={!name.trim()} loading={busy} />
     </Screen>
   );
 }

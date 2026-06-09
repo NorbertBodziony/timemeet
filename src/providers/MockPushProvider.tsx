@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import type { ReactNode } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "heroui-native";
 
 // Mocked push (docs/meettime-mvp.md §7). Same payload shape as a real push, so
 // swapping to Expo Notifications later is mechanical. Renders an in-app banner
@@ -34,8 +35,8 @@ export function MockPushProvider({ children }: { children: ReactNode }) {
           pointerEvents="none"
           style={{ position: "absolute", top: insets.top + 8, left: 16, right: 16 }}
         >
-          <View className="rounded-2xl bg-brand-evergreen px-4 py-3 shadow-lg">
-            <Text className="text-ivory text-[15px] font-semibold">
+          <View className="rounded-2xl bg-foreground px-4 py-3">
+            <Text weight="semibold" className="text-background">
               {banner.joy ? "🎉 " : ""}
               {banner.title}
             </Text>

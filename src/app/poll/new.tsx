@@ -105,6 +105,7 @@ export default function NewPoll() {
           ? "Drop some times. Crew taps. Done."
           : "Pick a few spots. Crew taps. Done."
       }
+      dismiss="close"
     >
       {/* Segmented poll-type control */}
       <Tabs value={type} onValueChange={(v) => setType(v as PollType)} className="mb-5 mt-1">

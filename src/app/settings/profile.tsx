@@ -32,7 +32,7 @@ export default function Profile() {
   const label = "mb-1.5";
 
   return (
-    <Screen title="Your profile">
+    <Screen title="Your profile" dismiss="back">
       <Text type="body-sm" weight="semibold" color="muted" className={label}>
         Name
       </Text>

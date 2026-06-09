@@ -84,8 +84,9 @@ export default function PollDetail() {
   const castVote = useMutation(api.polls.vote);
   const convert = useMutation(api.polls.convertToEvent);
 
-  if (data === undefined) return <Screen title="Loading…">{null}</Screen>;
-  if (data === null) return <Screen title="Poll not found">{null}</Screen>;
+  if (data === undefined) return <Screen title="Loading…" dismiss="back">{null}</Screen>;
+  if (data === null)
+    return <Screen title="Poll not found" dismiss="back">{null}</Screen>;
 
   const { poll, slots, placeOptions, myVotes } = data;
   const isOrganizer = currentUser?._id === poll.creatorId;
@@ -128,6 +129,7 @@ export default function PollDetail() {
     <Screen
       title={poll.title}
       subtitle={converted ? "Converted to a meetup" : "Tap your pick for each option"}
+      dismiss="back"
     >
       {isPlace
         ? placeOptions.map((p) => (

@@ -39,8 +39,9 @@ export default function EditEvent() {
   const [startsAt, setStartsAt] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (data === undefined) return <Screen title="Loading…">{null}</Screen>;
-  if (data === null) return <Screen title="Event not found">{null}</Screen>;
+  if (data === undefined) return <Screen title="Loading…" dismiss="close">{null}</Screen>;
+  if (data === null)
+    return <Screen title="Event not found" dismiss="close">{null}</Screen>;
   const { event } = data;
 
   const curTitle = title ?? event.title;
@@ -80,7 +81,7 @@ export default function EditEvent() {
   }
 
   return (
-    <Screen title="Edit meetup">
+    <Screen title="Edit meetup" dismiss="close">
       <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5">
         Title
       </Text>

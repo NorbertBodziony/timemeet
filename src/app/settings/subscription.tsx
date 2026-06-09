@@ -34,7 +34,7 @@ export default function Subscription() {
   }
 
   return (
-    <Screen title="MeetTime+" subtitle="Power and convenience. The basics stay free.">
+    <Screen title="MeetTime+" subtitle="Power and convenience. The basics stay free." dismiss="back">
       <Card className="mb-4">
         <Card.Body className="flex-row items-center gap-3">
           <View className="h-10 w-10 rounded-xl bg-accent-soft items-center justify-center">

@@ -34,8 +34,9 @@ export default function EventDetail() {
 
   const [draft, setDraft] = useState("");
 
-  if (data === undefined) return <Screen title="Loading…">{null}</Screen>;
-  if (data === null) return <Screen title="Event not found">{null}</Screen>;
+  if (data === undefined) return <Screen title="Loading…" dismiss="back">{null}</Screen>;
+  if (data === null)
+    return <Screen title="Event not found" dismiss="back">{null}</Screen>;
 
   const { event, creator, counts, viewerStatus } = data;
   const isOrganizer = currentUser?._id === event.creatorId;
@@ -85,7 +86,7 @@ export default function EventDetail() {
   }
 
   return (
-    <Screen title={event.title}>
+    <Screen title={event.title} dismiss="back">
       {cancelled && (
         <View className="flex-row items-center gap-2 mb-3">
           <Icon name="close-circle" size={16} tint="danger" />

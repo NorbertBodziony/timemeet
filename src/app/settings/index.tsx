@@ -21,7 +21,7 @@ export default function SettingsHome() {
   const { currentUser, users, switchUser, signOut } = useAuth();
 
   return (
-    <Screen title="Settings">
+    <Screen title="Settings" dismiss="back">
       {/* Identity header */}
       <View className="flex-row items-center gap-3 mb-6">
         <UserAvatar name={currentUser?.displayName} size="lg" />

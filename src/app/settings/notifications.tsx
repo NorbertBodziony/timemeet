@@ -71,11 +71,11 @@ export default function Notifications() {
     save({ userId: currentUser._id, prefs: next });
   }
 
-  if (!prefs) return <Screen title="Notifications">{null}</Screen>;
+  if (!prefs) return <Screen title="Notifications" dismiss="back">{null}</Screen>;
   const off = !prefs.master;
 
   return (
-    <Screen title="Notifications" subtitle="Only the essentials. We never spam.">
+    <Screen title="Notifications" subtitle="Only the essentials. We never spam." dismiss="back">
       <ListGroup>
         <Row
           label="All notifications"

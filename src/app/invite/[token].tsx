@@ -27,19 +27,25 @@ export default function InviteLanding() {
   const setRsvp = useMutation(api.rsvps.set);
   const [done, setDone] = useState<RsvpStatus | null>(null);
 
-  if (data === undefined) return <Screen title="Loading…">{null}</Screen>;
+  if (data === undefined) return <Screen title="Loading…" dismiss="back">{null}</Screen>;
 
   if (data.status === "expired") {
     return (
-      <Screen title="This link has expired">
+      <Screen title="This link has expired" dismiss="back">
         <Text color="muted">Ask the organizer for a fresh invite.</Text>
+        <View className="mt-5">
+          <PrimaryButton label="Go to MeetTime" onPress={() => router.replace("/")} />
+        </View>
       </Screen>
     );
   }
   if (data.status === "not_found") {
     return (
-      <Screen title="Invite not found">
+      <Screen title="Invite not found" dismiss="back">
         <Text color="muted">Double-check the link and try again.</Text>
+        <View className="mt-5">
+          <PrimaryButton label="Go to MeetTime" onPress={() => router.replace("/")} />
+        </View>
       </Screen>
     );
   }
@@ -56,7 +62,7 @@ export default function InviteLanding() {
   }
 
   return (
-    <Screen title={event.title}>
+    <Screen title={event.title} dismiss="back">
       <Card className="mb-6">
         <Card.Body className="gap-2">
           <View className="flex-row items-center gap-2">

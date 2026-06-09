@@ -52,7 +52,7 @@ export default function Privacy() {
   }
 
   return (
-    <Screen title="Privacy & data">
+    <Screen title="Privacy & data" dismiss="back">
       <ListGroup>
         <ListGroup.Item>
           <ListGroup.ItemPrefix>

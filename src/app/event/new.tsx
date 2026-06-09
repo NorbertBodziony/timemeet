@@ -59,7 +59,7 @@ export default function NewEvent() {
 
   if (preview && when !== null) {
     return (
-      <Screen title="Preview" subtitle="This is what your crew will see.">
+      <Screen title="Preview" subtitle="This is what your crew will see." dismiss="close">
         <Card className="mb-6">
           <Card.Body className="gap-2">
             <Text type="h2" weight="bold">
@@ -93,7 +93,7 @@ export default function NewEvent() {
   }
 
   return (
-    <Screen title="New meetup">
+    <Screen title="New meetup" dismiss="close">
       <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5">
         Title
       </Text>

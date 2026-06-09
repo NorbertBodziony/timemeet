@@ -40,7 +40,13 @@ export default function RootLayout(): JSX.Element | null {
               <HeroUINativeProvider>
                 <MockPushProvider>
                   <StatusBar style="dark" />
-                  <Stack screenOptions={{ headerShown: false }} />
+                  <Stack screenOptions={{ headerShown: false }}>
+                    {/* Self-contained edit flow as a modal (close = cancel). */}
+                    <Stack.Screen
+                      name="event/[id]/edit"
+                      options={{ presentation: "modal" }}
+                    />
+                  </Stack>
                 </MockPushProvider>
               </HeroUINativeProvider>
             </MockAuthProvider>

@@ -39,7 +39,7 @@ export default function Referrals() {
   }
 
   return (
-    <Screen title="Refer a friend" subtitle="Bring your crew. Everyone wins.">
+    <Screen title="Refer a friend" subtitle="Bring your crew. Everyone wins." dismiss="back">
       <Card className="mb-5">
         <Card.Body className="items-center py-5">
           <Icon name="gift" size={28} tint="accent" />

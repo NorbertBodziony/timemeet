@@ -16,8 +16,10 @@ import type * as helpers from "../helpers.js";
 import type * as invites from "../invites.js";
 import type * as polls from "../polls.js";
 import type * as posts from "../posts.js";
+import type * as referrals from "../referrals.js";
 import type * as rsvps from "../rsvps.js";
 import type * as seed from "../seed.js";
+import type * as subscriptions from "../subscriptions.js";
 import type * as users from "../users.js";
 
 declare const fullApi: ApiFromModules<{
@@ -26,8 +28,10 @@ declare const fullApi: ApiFromModules<{
   invites: typeof invites;
   polls: typeof polls;
   posts: typeof posts;
+  referrals: typeof referrals;
   rsvps: typeof rsvps;
   seed: typeof seed;
+  subscriptions: typeof subscriptions;
   users: typeof users;
 }>;
 

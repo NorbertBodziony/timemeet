@@ -26,6 +26,18 @@ export default defineSchema({
     photoUrl: v.optional(v.string()),
     referralCode: v.string(), // MEETTIME-NAME-XXX
     authSubject: v.optional(v.string()), // null while auth is mocked
+    // Notification prefs — mocked push (meettime-mvp.md §3.7). All default on.
+    notificationPrefs: v.optional(
+      v.object({
+        master: v.boolean(),
+        newInvite: v.boolean(),
+        pollResolved: v.boolean(),
+        eventCancelled: v.boolean(),
+        reminder2h: v.boolean(),
+      })
+    ),
+    analyticsOptIn: v.optional(v.boolean()), // opt-IN (RODO, §38)
+    deletedAt: v.optional(v.number()), // soft delete; hard-delete cron is deferred
   }).index("by_authSubject", ["authSubject"]),
 
   polls: defineTable({

@@ -14,10 +14,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo-google-fonts/lato": "^0.4.1",
     "@expo/metro-runtime": "~56.0.13",
     "@gorhom/bottom-sheet": "^5.2.14",
+    "convex": "^1.40.0",
     "expo": "~56.0.5",
     "expo-constants": "~56.0.16",
+    "expo-font": "~56.0.5",
+    "expo-linear-gradient": "~56.0.4",
     "expo-linking": "~56.0.12",
     "expo-router": "~56.2.7",
     "expo-splash-screen": "~56.0.10",

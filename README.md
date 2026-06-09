@@ -1,21 +1,33 @@
-# Welcome to your HeroUI Native app 👋
+# MeetTime 📅
 
-This is an [Expo](https://expo.dev) project preconfigured with
-[HeroUI Native](https://heroui.com/docs/native), [Uniwind](https://docs.uniwind.dev)
-(Tailwind CSS for React Native), and [Expo Router](https://docs.expo.dev/router/introduction).
+A calm-tech mobile app for organizing group meetups with people you already know.
+Built with [Expo](https://expo.dev) + [HeroUI Native](https://heroui.com/docs/native) +
+[Uniwind](https://docs.uniwind.dev) + a real local [Convex](https://convex.dev) backend.
+
+> **Product & build spec:** [`docs/meettime-mvp.md`](docs/meettime-mvp.md) · rules in
+> [`CLAUDE.md`](CLAUDE.md). Auth, payments, push and deeplinks are **mocked**; polls, events
+> and RSVPs run on real Convex.
 
 ## Get started
 
 1. Install dependencies
 
    ```bash
-   npm install
+   bun install
    ```
 
-2. Start the app
+2. Start the Convex backend (writes `EXPO_PUBLIC_CONVEX_URL` to `.env.local`), then seed
+   demo data. Leave this running in its own terminal:
 
    ```bash
-   npx expo start
+   bunx convex dev          # first run: choose a local/anonymous deployment
+   bunx convex run seed:run # seed Karolina + a crew, a sample poll and events
+   ```
+
+3. Start the app
+
+   ```bash
+   bun run ios   # or: bun run start
    ```
 
 In the output, you'll find options to open the app in a

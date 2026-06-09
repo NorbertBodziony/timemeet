@@ -6,3 +6,37 @@
 /* End-user path: heroui-native lives in the project's node_modules, one
    level up from this src/global.css file. */
 @source '../node_modules/heroui-native/lib';
+
+/* MeetTime design tokens → Tailwind colors (docs/meettime-mvp.md §13).
+   Use as className utilities, e.g. bg-brand-lime, text-rsvp-going. */
+@theme {
+  --font-lato: "Lato_400Regular", system-ui, sans-serif;
+
+  /* Brand mono-green */
+  --color-brand-lime: #a3ff12;
+  --color-brand-yellowgreen: #7ed600;
+  --color-brand-fern: #5da802;
+  --color-brand-moss: #4a8500;
+  --color-brand-green: #3d6e00;
+  --color-brand-olive: #2c5000;
+  --color-brand-blackforest: #1a2b00;
+  --color-brand-evergreen: #0f1a00;
+  --color-ivory: #fafff2;
+
+  /* Surfaces */
+  --color-canvas: #fafff2;
+  --color-surface: #ffffff;
+
+  /* RSVP (UI-only) */
+  --color-rsvp-going: #5da802;
+  --color-rsvp-maybe: #f59e0b;
+  --color-rsvp-waitlist: #8b5cf6;
+  --color-rsvp-declined: #ff3d5a;
+  --color-rsvp-none: #9ca3af;
+
+  /* Semantic (UI-only) */
+  --color-semantic-danger: #ff3d5a;
+  --color-semantic-warning: #f59e0b;
+  --color-semantic-info: #8b5cf6;
+  --color-semantic-neutral: #9ca3af;
+}

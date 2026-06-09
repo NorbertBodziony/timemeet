@@ -52,7 +52,7 @@ launch (index)
                                                                                   │
   external invite link ─▶ invite/[token] ─(RSVP-first)─▶ confirmation ─▶ event/[id]
                                                                                   │
-  (tabs) ─▶ settings 🔭 ─▶ profile / notifications / subscription / referrals / privacy
+  (tabs) mine ─▶ ⚙ settings ─▶ profile / notifications / subscription / referrals / privacy
 ```
 
 ## Tab bar (4 tabs, light theme locked)

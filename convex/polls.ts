@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { voteValue } from "./schema";
 import { DAY_MS, requireUser } from "./helpers";
 import { notify } from "./notifications";
+import { scheduleEventJobs } from "./reminders";
 import type { Id } from "./_generated/dataModel";
 
 // Create a Time Poll (3–7 slots). Place polls share the same shape via placeOptions.
@@ -237,6 +238,7 @@ export const convertToEvent = mutation({
     }
 
     await ctx.db.patch(args.pollId, { status: "converted", eventId });
+    await scheduleEventJobs(ctx, eventId, slot.startsAt, slot.endsAt);
 
     // Notify everyone auto-RSVP'd (except the organizer who converted).
     await notify(

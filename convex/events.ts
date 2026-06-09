@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireUser } from "./helpers";
 import { notify } from "./notifications";
+import { scheduleEventJobs } from "./reminders";
 import type { Doc, Id } from "./_generated/dataModel";
 
 const eventFields = {
@@ -38,6 +39,7 @@ export const create = mutation({
       status: "going",
       changedAt: Date.now(),
     });
+    await scheduleEventJobs(ctx, eventId, fields.startsAt, fields.endsAt, fields.minThreshold);
     return eventId;
   },
 });

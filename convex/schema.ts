@@ -38,6 +38,7 @@ export default defineSchema({
     ),
     analyticsOptIn: v.optional(v.boolean()), // opt-IN (RODO, §38)
     deletedAt: v.optional(v.number()), // soft delete; hard-delete cron is deferred
+    pushToken: v.optional(v.string()), // Expo push token (real device push)
   }).index("by_authSubject", ["authSubject"]),
 
   polls: defineTable({

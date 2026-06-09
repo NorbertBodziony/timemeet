@@ -79,6 +79,15 @@ export const setAnalyticsOptIn = mutation({
   },
 });
 
+// Store the device's Expo push token for real (backgrounded) push.
+export const setPushToken = mutation({
+  args: { userId: v.id("users"), token: v.string() },
+  handler: async (ctx, { userId, token }) => {
+    await requireUser(ctx, userId);
+    await ctx.db.patch(userId, { pushToken: token });
+  },
+});
+
 // Real-auth seam (docs §12): find-or-create a user by OAuth subject. Mock auth
 // doesn't use this yet; a real provider (Apple/Google) calls it after sign-in.
 export const upsertFromAuth = mutation({

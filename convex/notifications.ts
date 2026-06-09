@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { requireUser } from "./helpers";
@@ -22,9 +23,17 @@ export async function notify(
   eventId?: Id<"events">
 ) {
   await Promise.all(
-    [...new Set(recipients)].map((userId) =>
-      ctx.db.insert("notifications", { userId, type, title, eventId, read: false })
-    )
+    [...new Set(recipients)].map(async (userId) => {
+      await ctx.db.insert("notifications", { userId, type, title, eventId, read: false });
+      // Real device push (if the user registered a token).
+      const user = await ctx.db.get(userId);
+      if (user?.pushToken) {
+        await ctx.scheduler.runAfter(0, internal.push.sendExpo, {
+          token: user.pushToken,
+          title,
+        });
+      }
+    })
   );
 }
 

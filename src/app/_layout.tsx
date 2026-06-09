@@ -14,6 +14,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ScopedTheme } from "uniwind";
 
 import { NotificationListener } from "../components/NotificationListener";
+import { PushManager } from "../components/PushManager";
 import { CelebrationProvider } from "../providers/CelebrationProvider";
 import { ConvexClientProvider } from "../providers/ConvexClientProvider";
 import { MockAuthProvider } from "../providers/MockAuthProvider";
@@ -44,6 +45,7 @@ export default function RootLayout(): JSX.Element | null {
                   <CelebrationProvider>
                     <StatusBar style="dark" />
                     <NotificationListener />
+                    <PushManager />
                     <Stack screenOptions={{ headerShown: false }}>
                       {/* Self-contained edit flow as a modal (close = cancel). */}
                       <Stack.Screen

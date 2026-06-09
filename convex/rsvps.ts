@@ -16,31 +16,51 @@ export const set = mutation({
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error("Event not found.");
 
-    const existing = await ctx.db
+    const all = await ctx.db
       .query("rsvps")
-      .withIndex("by_event_user", (q) =>
-        q.eq("eventId", eventId).eq("userId", userId)
-      )
-      .unique();
+      .withIndex("by_event", (q) => q.eq("eventId", eventId))
+      .collect();
+    const existing = all.find((r) => r.userId === userId) ?? null;
     const changedAt = Date.now();
     const wasGoing = existing?.status === "going";
 
-    // Tell the organizer when someone newly commits to "going".
-    if (status === "going" && !wasGoing && event.creatorId !== userId) {
-      await notify(
-        ctx,
-        [event.creatorId],
-        "rsvp",
-        `${me.displayName} is going to ${event.title}`,
-        eventId
-      );
+    // Capacity: a "going" request beyond capacity becomes "waitlist".
+    let effective = status;
+    if (status === "going" && event.capacity) {
+      const goingOthers = all.filter((r) => r.status === "going" && r.userId !== userId).length;
+      if (goingOthers >= event.capacity) effective = "waitlist";
     }
 
-    if (existing) {
-      await ctx.db.patch(existing._id, { status, changedAt });
-      return existing._id;
+    // Notify the organizer when someone newly commits to "going".
+    if (effective === "going" && !wasGoing && event.creatorId !== userId) {
+      await notify(ctx, [event.creatorId], "rsvp", `${me.displayName} is going to ${event.title}`, eventId);
     }
-    return await ctx.db.insert("rsvps", { eventId, userId, status, changedAt });
+    // Tell the user they landed on the waitlist.
+    if (effective === "waitlist" && status === "going") {
+      await notify(ctx, [userId], "rsvp", `${event.title} is full — you're on the waitlist.`, eventId);
+    }
+
+    const rsvpId = existing
+      ? (await ctx.db.patch(existing._id, { status: effective, changedAt }), existing._id)
+      : await ctx.db.insert("rsvps", { eventId, userId, status: effective, changedAt });
+
+    // Auto-promote: if a going spot opened up, move the oldest waitlister in.
+    if (wasGoing && effective !== "going" && event.capacity) {
+      const goingNow = all.filter(
+        (r) => r.status === "going" && r.userId !== userId
+      ).length;
+      if (goingNow < event.capacity) {
+        const waitlist = all
+          .filter((r) => r.status === "waitlist" && r.userId !== userId)
+          .sort((a, b) => a.changedAt - b.changedAt);
+        const next = waitlist[0];
+        if (next) {
+          await ctx.db.patch(next._id, { status: "going", changedAt });
+          await notify(ctx, [next.userId], "rsvp", `A spot opened — you're in for ${event.title}!`, eventId);
+        }
+      }
+    }
+    return rsvpId;
   },
 });
 

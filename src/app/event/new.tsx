@@ -34,8 +34,13 @@ export default function NewEvent() {
   const [title, setTitle] = useState(params.title ?? "");
   const [address, setAddress] = useState(params.address ?? "");
   const [when, setWhen] = useState<number | null>(null);
+  const [capacity, setCapacity] = useState("");
+  const [minPeople, setMinPeople] = useState("");
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(false);
+
+  const cap = capacity ? Math.max(1, parseInt(capacity, 10) || 0) : undefined;
+  const minT = minPeople ? Math.max(1, parseInt(minPeople, 10) || 0) : undefined;
 
   const valid = title.trim().length > 0 && when !== null;
 
@@ -52,7 +57,9 @@ export default function NewEvent() {
         customAddress: address.trim() || undefined,
         category: [],
         visibility: "invite_only",
-        waitlistEnabled: false,
+        waitlistEnabled: cap !== undefined,
+        capacity: cap,
+        minThreshold: minT,
       });
       celebrate("Meetup created!");
       router.replace({ pathname: "/event/[id]", params: { id: eventId } });
@@ -137,6 +144,35 @@ export default function NewEvent() {
           );
         })}
       </ListGroup>
+
+      {/* Optional anti-flake controls */}
+      <View className="flex-row gap-3 mt-5">
+        <View className="flex-1">
+          <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5">
+            Capacity
+          </Text>
+          <Input
+            value={capacity}
+            onChangeText={setCapacity}
+            placeholder="Any"
+            keyboardType="number-pad"
+          />
+        </View>
+        <View className="flex-1">
+          <Text type="body-sm" weight="semibold" color="muted" className="mb-1.5">
+            Min to confirm
+          </Text>
+          <Input
+            value={minPeople}
+            onChangeText={setMinPeople}
+            placeholder="None"
+            keyboardType="number-pad"
+          />
+        </View>
+      </View>
+      <Text type="body-xs" color="muted" className="mt-1.5 ml-1">
+        Min auto-cancels if too few are in 2h before. Over capacity → waitlist.
+      </Text>
 
       <View className="mt-5">
         <PrimaryButton label="Preview" onPress={() => setPreview(true)} disabled={!valid} />

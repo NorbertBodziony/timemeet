@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ScopedTheme } from "uniwind";
 
+import { CelebrationProvider } from "../providers/CelebrationProvider";
 import { ConvexClientProvider } from "../providers/ConvexClientProvider";
 import { MockAuthProvider } from "../providers/MockAuthProvider";
 import { MockPushProvider } from "../providers/MockPushProvider";
@@ -39,14 +40,16 @@ export default function RootLayout(): JSX.Element | null {
             <MockAuthProvider>
               <HeroUINativeProvider>
                 <MockPushProvider>
-                  <StatusBar style="dark" />
-                  <Stack screenOptions={{ headerShown: false }}>
-                    {/* Self-contained edit flow as a modal (close = cancel). */}
-                    <Stack.Screen
-                      name="event/[id]/edit"
-                      options={{ presentation: "modal" }}
-                    />
-                  </Stack>
+                  <CelebrationProvider>
+                    <StatusBar style="dark" />
+                    <Stack screenOptions={{ headerShown: false }}>
+                      {/* Self-contained edit flow as a modal (close = cancel). */}
+                      <Stack.Screen
+                        name="event/[id]/edit"
+                        options={{ presentation: "modal" }}
+                      />
+                    </Stack>
+                  </CelebrationProvider>
                 </MockPushProvider>
               </HeroUINativeProvider>
             </MockAuthProvider>

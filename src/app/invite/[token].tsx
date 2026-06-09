@@ -12,7 +12,7 @@ import { UserAvatar } from "../../components/UserAvatar";
 import { formatDateTime } from "../../lib/datetime";
 import { type RsvpStatus } from "../../lib/theme";
 import { useAuth } from "../../providers/MockAuthProvider";
-import { usePush } from "../../providers/MockPushProvider";
+import { useCelebrate } from "../../providers/CelebrationProvider";
 
 // ⭐ Invited flow (docs §3.8). RSVP first, then (mock) auth is already present,
 // so we confirm immediately. Target: RSVP in < 30s.
@@ -20,7 +20,7 @@ export default function InviteLanding() {
   const router = useRouter();
   const { token } = useLocalSearchParams<{ token: string }>();
   const { currentUser } = useAuth();
-  const push = usePush();
+  const { celebrate } = useCelebrate();
   const now = useMemo(() => Date.now(), []);
 
   const data = useQuery(api.invites.resolve, { token: token ?? "", now });
@@ -57,7 +57,7 @@ export default function InviteLanding() {
     await setRsvp({ userId: currentUser._id, eventId: event._id, status });
     setDone(status);
     if (status === "going") {
-      push.push({ title: `Nice, we'll let ${creator?.displayName ?? "them"} know!` });
+      celebrate(`Nice, we'll let ${creator?.displayName ?? "them"} know!`);
     }
   }
 

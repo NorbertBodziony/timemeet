@@ -30,6 +30,33 @@ Built with [Expo](https://expo.dev) + [HeroUI Native](https://heroui.com/docs/na
    bun run ios   # or: bun run start
    ```
 
+## Device / TestFlight build (EAS)
+
+`bun run ios` runs in Expo Go (great for the demo). For a real device build or
+TestFlight — and to exercise **real Apple Sign-In** — use EAS (cloud build, so it
+sidesteps local Xcode/Hermes issues):
+
+```bash
+npm i -g eas-cli
+eas login
+eas build --profile development --platform ios   # dev client on a device
+eas build --profile production --platform ios     # store build
+```
+
+Profiles live in [`eas.json`](eas.json).
+
+## Real auth (drop-in)
+
+Auth is mocked so the demo always works. The seam is in place:
+
+- **Apple** — `src/lib/auth.ts#appleSignIn` uses `expo-apple-authentication`; the login
+  screen calls it and falls back to the mock session in Expo Go. Works for real in a native
+  build (`usesAppleSignIn` + the `expo-apple-authentication` plugin are configured in
+  `app.json`).
+- **Backend** — `api.users.upsertFromAuth` finds-or-creates a user by OAuth subject.
+- **Google / email** — add an `expo-auth-session` provider in `src/lib/auth.ts` returning the
+  same `{ authSubject, displayName, email }` shape, then wire its button like Apple's.
+
 In the output, you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)

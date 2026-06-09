@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, View } from "react-native";
+import { Alert, Share, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
 import { Button, Card, Input, Separator, Text } from "heroui-native";
 import { api } from "../../../../convex/_generated/api";
@@ -59,7 +59,12 @@ export default function EventDetail() {
   async function share() {
     if (!currentUser) return;
     const token = await createToken({ userId: currentUser._id, eventId });
-    Alert.alert("Share link (mock)", `meettime://invite/${token}`);
+    const url = `meettime://invite/${token}`;
+    try {
+      await Share.share({ message: `Join me — ${event.title}\n${url}`, url });
+    } catch {
+      Alert.alert("Couldn't open share", url);
+    }
   }
 
   function confirmCancel() {

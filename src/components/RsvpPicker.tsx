@@ -1,5 +1,6 @@
 import { View } from "react-native";
 import { Chip } from "heroui-native";
+import { tap } from "../lib/haptics";
 import { RSVP, RSVP_ACTIONS, type RsvpStatus } from "../lib/theme";
 
 // The 5-status RSVP control (docs §3.3 / §16) using HeroUI Chips with a status
@@ -22,7 +23,10 @@ export function RsvpPicker({
             color={meta.color}
             variant={active ? "primary" : "tertiary"}
             size="md"
-            onPress={() => onChange(status)}
+            onPress={() => {
+              tap();
+              onChange(status);
+            }}
             className="flex-1 justify-center"
           >
             <Chip.Label>{meta.label}</Chip.Label>

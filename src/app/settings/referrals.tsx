@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, View } from "react-native";
+import { Alert, Share, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
 import { Card, Input, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
@@ -24,7 +24,9 @@ export default function Referrals() {
   const [code, setCode] = useState("");
 
   function share() {
-    Alert.alert("Share (mock)", `Join me on MeetTime — code ${stats?.code ?? ""}`);
+    Share.share({
+      message: `Join me on MeetTime — use my code ${stats?.code ?? ""}`,
+    }).catch(() => {});
   }
 
   async function submitReferredBy() {

@@ -7,8 +7,9 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { formatDate, formatRange } from "../../lib/datetime";
+import { tap } from "../../lib/haptics";
 import { useAuth } from "../../providers/MockAuthProvider";
-import { usePush } from "../../providers/MockPushProvider";
+import { useCelebrate } from "../../providers/CelebrationProvider";
 
 type Vote = "yes" | "maybe" | "no";
 const VOTES: { value: Vote; label: string; color: "success" | "warning" | "default" }[] = [
@@ -74,7 +75,7 @@ export default function PollDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const pollId = id as Id<"polls">;
   const { currentUser } = useAuth();
-  const push = usePush();
+  const { celebrate } = useCelebrate();
 
   const data = useQuery(
     api.polls.get,
@@ -103,10 +104,12 @@ export default function PollDetail() {
 
   async function voteSlot(slotId: Id<"pollSlots">, value: Vote) {
     if (!currentUser) return;
+    tap();
     await castVote({ userId: currentUser._id, pollId, slotId, value });
   }
   async function votePlace(placeOptionId: Id<"pollPlaceOptions">, value: Vote) {
     if (!currentUser) return;
+    tap();
     await castVote({ userId: currentUser._id, pollId, placeOptionId, value });
   }
 
@@ -118,7 +121,7 @@ export default function PollDetail() {
         pollId,
         winningSlotId: leader.id,
       });
-      push.push({ title: "Plan's set! You've got a meetup.", joy: true });
+      celebrate("Plan's set! You've got a meetup.");
       router.replace({ pathname: "/event/[id]", params: { id: eventId } });
     } catch (e) {
       Alert.alert("Couldn't convert", String((e as Error).message));

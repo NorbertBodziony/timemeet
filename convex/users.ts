@@ -79,6 +79,36 @@ export const setAnalyticsOptIn = mutation({
   },
 });
 
+// Real-auth seam (docs §12): find-or-create a user by OAuth subject. Mock auth
+// doesn't use this yet; a real provider (Apple/Google) calls it after sign-in.
+export const upsertFromAuth = mutation({
+  args: {
+    authSubject: v.string(),
+    displayName: v.string(),
+    email: v.optional(v.string()),
+    photoUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, { authSubject, displayName, email, photoUrl }) => {
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_authSubject", (q) => q.eq("authSubject", authSubject))
+      .unique();
+    if (existing) {
+      if (existing.deletedAt) await ctx.db.patch(existing._id, { deletedAt: undefined });
+      return existing._id;
+    }
+    const code = displayName.split(" ")[0]?.toUpperCase() || "FRIEND";
+    return await ctx.db.insert("users", {
+      displayName,
+      email,
+      photoUrl,
+      city: "Kraków",
+      authSubject,
+      referralCode: `MEETTIME-${code}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`,
+    });
+  },
+});
+
 // Delete account (Settings → Privacy). Soft delete + 30-day grace (RODO, §38).
 // Real hard-delete cron is deferred for this MVP slice.
 export const deleteAccount = mutation({

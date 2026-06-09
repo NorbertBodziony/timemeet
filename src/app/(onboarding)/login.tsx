@@ -6,15 +6,18 @@ import { api } from "../../../convex/_generated/api";
 import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
+import { appleSignIn } from "../../lib/auth";
 import { useAuth } from "../../providers/MockAuthProvider";
 
-// Mock login (docs §3.8). OAuth/email buttons are no-ops that establish a mock
-// session and seed a user if the DB is empty. Real OAuth drops in here later.
+// Login (docs §3.8). Apple uses real Sign-In where available (native build),
+// falling back to a seeded mock session in Expo Go so the demo always works.
 export default function Login() {
   const router = useRouter();
   const { signIn, users, isLoading } = useAuth();
   const seed = useMutation(api.seed.run);
+  const upsert = useMutation(api.users.upsertFromAuth);
 
+  // Mock entry — seed a user if the DB is empty, then sign in.
   async function enter() {
     try {
       if (users.length === 0) {
@@ -23,6 +26,19 @@ export default function Login() {
       } else {
         signIn();
       }
+      router.replace("/going");
+    } catch (e) {
+      Alert.alert("Couldn't sign in", String((e as Error).message));
+    }
+  }
+
+  // Real Apple Sign-In when available; otherwise fall back to the mock entry.
+  async function withApple() {
+    const id = await appleSignIn();
+    if (!id) return enter();
+    try {
+      const userId = await upsert(id);
+      signIn(userId);
       router.replace("/going");
     } catch (e) {
       Alert.alert("Couldn't sign in", String((e as Error).message));
@@ -43,7 +59,7 @@ export default function Login() {
         </Text>
       </View>
       <View className="pb-4 gap-2">
-        <Button variant="outline" size="lg" onPress={enter}>
+        <Button variant="outline" size="lg" onPress={withApple}>
           <Button.Label>Continue with Apple</Button.Label>
         </Button>
         <Button variant="outline" size="lg" onPress={enter}>

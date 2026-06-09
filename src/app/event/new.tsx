@@ -9,6 +9,7 @@ import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { formatDate, formatDateTime, formatRange } from "../../lib/datetime";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { useCelebrate } from "../../providers/CelebrationProvider";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -24,6 +25,7 @@ function candidateSlots(now: number) {
 export default function NewEvent() {
   const router = useRouter();
   const { currentUser } = useAuth();
+  const { celebrate } = useCelebrate();
   const create = useMutation(api.events.create);
   const slots = useMemo(() => candidateSlots(Date.now()), []);
 
@@ -50,6 +52,7 @@ export default function NewEvent() {
         visibility: "invite_only",
         waitlistEnabled: false,
       });
+      celebrate("Meetup created!");
       router.replace({ pathname: "/event/[id]", params: { id: eventId } });
     } catch (e) {
       Alert.alert("Couldn't create the event", String((e as Error).message));

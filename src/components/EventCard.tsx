@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
 import { Chip, Text } from "heroui-native";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { formatTime } from "../lib/datetime";
@@ -34,6 +35,10 @@ export function EventCard({
   const status = viewerStatus ? RSVP[viewerStatus] : null;
 
   return (
+    <Animated.View
+      entering={FadeIn.duration(220)}
+      layout={LinearTransition.springify().damping(18)}
+    >
     <PressableScale
       onPress={onPress}
       className="mb-3"
@@ -125,5 +130,6 @@ export function EventCard({
         </View>
       </View>
     </PressableScale>
+    </Animated.View>
   );
 }

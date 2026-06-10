@@ -1,8 +1,18 @@
+import { useEffect } from "react";
 import { View } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import { Text } from "heroui-native";
 
 // Lutek — MeetTime's otter. The brand voice shows up in a few calm moments
-// (named empty states + joy beats), never everywhere. Emoji-based for now.
+// (named empty states + joy beats), never everywhere. Emoji-based for now,
+// with a slow idle bob so he reads as alive, not as a frozen glyph.
 export type LutekMood = "thinking" | "waving" | "celebrating";
 
 const FACE: Record<LutekMood, string> = {
@@ -20,6 +30,21 @@ export function Lutek({
   line?: string;
   size?: number;
 }) {
+  // Calm breathing bob — 2.4s cycle, 3pt travel. Never frantic.
+  const bob = useSharedValue(0);
+  useEffect(() => {
+    bob.value = withRepeat(
+      withSequence(
+        withTiming(-3, { duration: 1200, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration: 1200, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1
+    );
+  }, [bob]);
+  const bobbing = useAnimatedStyle(() => ({
+    transform: [{ translateY: bob.value }],
+  }));
+
   return (
     <View className="items-center gap-3">
       {!!line && (
@@ -29,12 +54,12 @@ export function Lutek({
           </Text>
         </View>
       )}
-      <View
+      <Animated.View
         className="rounded-full bg-default-soft items-center justify-center"
-        style={{ width: size + 24, height: size + 24 }}
+        style={[{ width: size + 24, height: size + 24 }, bobbing]}
       >
         <Text style={{ fontSize: size }}>{FACE[mood]}</Text>
-      </View>
+      </Animated.View>
     </View>
   );
 }

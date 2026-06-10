@@ -1,7 +1,46 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+} from "react-native-reanimated";
 import { useThemeColor } from "heroui-native";
 import { tap } from "../lib/haptics";
+
+// One editable star with a small spring pop when tapped — tactile, not flashy.
+function EditableStar({
+  filled,
+  size,
+  color,
+  onPress,
+}: {
+  filled: boolean;
+  size: number;
+  color: string;
+  onPress: () => void;
+}) {
+  const scale = useSharedValue(1);
+  const animated = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return (
+    <Pressable
+      hitSlop={6}
+      onPress={() => {
+        tap();
+        scale.value = withSequence(
+          withSpring(1.25, { damping: 12, stiffness: 300 }),
+          withSpring(1, { damping: 14 })
+        );
+        onPress();
+      }}
+    >
+      <Animated.View style={animated}>
+        <Ionicons name={filled ? "star" : "star-outline"} size={size} color={color} />
+      </Animated.View>
+    </Pressable>
+  );
+}
 
 // Star rating. Editable (tap 1–5) when `onChange` is given; otherwise read-only,
 // supporting fractional values (averages) via half-stars.
@@ -21,20 +60,13 @@ export function StarRating({
     return (
       <View className="flex-row gap-1.5">
         {[1, 2, 3, 4, 5].map((n) => (
-          <Pressable
+          <EditableStar
             key={n}
-            hitSlop={6}
-            onPress={() => {
-              tap();
-              onChange(n);
-            }}
-          >
-            <Ionicons
-              name={n <= value ? "star" : "star-outline"}
-              size={size}
-              color={n <= value ? accent : muted}
-            />
-          </Pressable>
+            filled={n <= value}
+            size={size}
+            color={n <= value ? accent : muted}
+            onPress={() => onChange(n)}
+          />
         ))}
       </View>
     );

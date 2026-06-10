@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
 import { Button, Text } from "heroui-native";
@@ -40,25 +41,37 @@ export default function InviteFriends() {
   );
   const invite = useMutation(api.friends.inviteFriend);
   const inviteCrew = useMutation(api.crews.inviteToEvent);
+  // One in-flight invite at a time — guards against double taps.
+  const [busy, setBusy] = useState<string | null>(null);
 
   async function onInvite(friendId: Id<"users">, name: string) {
-    if (!currentUser) return;
+    if (!currentUser || busy) return;
     tap();
-    const ok = await attempt(() => invite({ userId: currentUser._id, eventId, friendId }));
-    if (ok) push.push({ title: t("inviteSheet.invited", { name: name.split(" ")[0] }) });
+    setBusy(friendId);
+    try {
+      const ok = await attempt(() => invite({ userId: currentUser._id, eventId, friendId }));
+      if (ok) push.push({ title: t("inviteSheet.invited", { name: name.split(" ")[0] }) });
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function onInviteCrew(crewId: Id<"crews">, name: string) {
-    if (!currentUser) return;
+    if (!currentUser || busy) return;
     tap();
+    setBusy(crewId);
     let invited = 0;
-    const ok = await attempt(async () => {
-      ({ invited } = await inviteCrew({ userId: currentUser._id, eventId, crewId }));
-    });
-    if (ok) {
-      push.push({
-        title: invited > 0 ? t("inviteSheet.invitedCrew", { name }) : t("inviteSheet.allIn", { name }),
+    try {
+      const ok = await attempt(async () => {
+        ({ invited } = await inviteCrew({ userId: currentUser._id, eventId, crewId }));
       });
+      if (ok) {
+        push.push({
+          title: invited > 0 ? t("inviteSheet.invitedCrew", { name }) : t("inviteSheet.allIn", { name }),
+        });
+      }
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -78,7 +91,7 @@ export default function InviteFriends() {
                     {tn("common.peopleCount", c.members.length)}
                   </Text>
                 </View>
-                <Button variant="primary" size="sm" onPress={() => onInviteCrew(c._id, c.name)}>
+                <Button variant="primary" size="sm" isDisabled={!!busy} onPress={() => onInviteCrew(c._id, c.name)}>
                   <Button.Label>{t("inviteSheet.inviteAll")}</Button.Label>
                 </Button>
               </SurfaceCard>
@@ -108,6 +121,7 @@ export default function InviteFriends() {
                 <Button
                   variant="primary"
                   size="sm"
+                  isDisabled={!!busy}
                   onPress={() => onInvite(friend._id, friend.displayName)}
                 >
                   <Icon name="add" size={16} color="#FFFFFF" />

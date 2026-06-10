@@ -80,8 +80,11 @@ export default function NewPoll() {
   function addCustomPlace() {
     const name = placeName.trim();
     if (!name) return;
+    // Keep ids unique even when two typed names slugify identically.
+    let placeId = `custom_${slugify(name)}`;
+    while (places.some((x) => x.placeId === placeId)) placeId += "_";
     addPlace({
-      placeId: `custom_${slugify(name)}`,
+      placeId,
       name,
       address: placeAddress.trim(),
       lat: 0,

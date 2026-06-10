@@ -304,6 +304,15 @@ export const convertToEvent = mutation({
       .collect();
     const now = Date.now();
     const seen = new Set<string>();
+    // The organizer is always going to their own event (same as events.create),
+    // even if they skipped voting or voted "no" on the winning slot.
+    seen.add(args.userId);
+    await ctx.db.insert("rsvps", {
+      eventId,
+      userId: args.userId,
+      status: "going",
+      changedAt: now,
+    });
     for (const vt of votes) {
       if (vt.slotId !== args.winningSlotId || !vt.userId) continue;
       if (vt.value === "no") continue;

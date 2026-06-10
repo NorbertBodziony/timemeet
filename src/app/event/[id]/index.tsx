@@ -16,8 +16,8 @@ import { SurfaceCard } from "../../../components/SurfaceCard";
 import { StarRating } from "../../../components/StarRating";
 import { UserAvatar } from "../../../components/UserAvatar";
 import { formatDateTime } from "../../../lib/datetime";
-import { attempt } from "../../../lib/attempt";
-import { success, tap } from "../../../lib/haptics";
+import { attempt, errorMessage } from "../../../lib/attempt";
+import { success, tap, warn } from "../../../lib/haptics";
 import { addToCalendar } from "../../../lib/calendar";
 import { openMaps } from "../../../lib/maps";
 import { type RsvpStatus } from "../../../lib/theme";
@@ -125,7 +125,14 @@ export default function EventDetail() {
   async function share() {
     if (!currentUser) return;
     tap();
-    const token = await createToken({ userId: currentUser._id, eventId });
+    let token: string;
+    try {
+      token = await createToken({ userId: currentUser._id, eventId });
+    } catch (e) {
+      warn();
+      Alert.alert(t("errors.shareTitle"), errorMessage(e));
+      return;
+    }
     // Runtime-correct deep link (exp:// in Expo Go, meettime:// in builds).
     const url = ExpoLinking.createURL(`/invite/${token}`);
     try {
@@ -156,8 +163,9 @@ export default function EventDetail() {
               style: "destructive",
               onPress: async () => {
                 if (!currentUser) return;
-                await cancelEvent({ userId: currentUser._id, eventId });
-                router.back();
+                if (await attempt(() => cancelEvent({ userId: currentUser._id, eventId }))) {
+                  router.back();
+                }
               },
             },
           ]),
@@ -335,7 +343,7 @@ export default function EventDetail() {
             return (
               <Card key={it._id} className="mb-2">
                 <Card.Body className="flex-row items-center gap-3 py-2.5">
-                  <Pressable onPress={() => currentUser && attempt(() => toggleClaim({ userId: currentUser._id, itemId: it._id }))}>
+                  <Pressable hitSlop={8} onPress={() => currentUser && attempt(() => toggleClaim({ userId: currentUser._id, itemId: it._id }))}>
                     <Icon
                       name={it.claimedBy ? "checkmark-circle" : "ellipse-outline"}
                       size={22}

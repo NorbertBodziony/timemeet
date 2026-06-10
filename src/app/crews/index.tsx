@@ -6,6 +6,7 @@ import { api } from "../../../convex/_generated/api";
 import { EmptyState } from "../../components/EmptyState";
 import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
+import { SkeletonList } from "../../components/Skeleton";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAuth } from "../../providers/MockAuthProvider";
@@ -41,7 +42,9 @@ export default function Crews() {
         </Button>
       }
     >
-      {crews === undefined ? null : crews.length === 0 ? (
+      {crews === undefined ? (
+        <SkeletonList count={3} />
+      ) : crews.length === 0 ? (
         <EmptyState
           icon="people-outline"
           text={t("crews.empty")}

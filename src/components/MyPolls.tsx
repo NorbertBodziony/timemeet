@@ -7,6 +7,7 @@ import { Icon } from "./Icon";
 import { SectionHeader } from "./SectionHeader";
 import { SurfaceCard } from "./SurfaceCard";
 import { useAuth } from "../providers/MockAuthProvider";
+import { tn } from "../lib/i18n";
 import { useT } from "../providers/LanguageProvider";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -48,7 +49,7 @@ export function MyPolls() {
                 </Text>
                 <Text type="body-xs" color="muted">
                   {t(isPlace ? "myPolls.placePoll" : "myPolls.timePoll")} ·{" "}
-                  {daysLeft === 0 ? t("myPolls.closingToday") : t("myPolls.daysLeft", { count: daysLeft })}
+                  {daysLeft === 0 ? t("myPolls.closingToday") : tn("myPolls.daysLeft", daysLeft)}
                 </Text>
               </View>
               <Icon name="chevron-forward" size={16} tint="muted" />

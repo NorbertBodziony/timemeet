@@ -10,6 +10,7 @@ import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { tap } from "../../lib/haptics";
+import { tn } from "../../lib/i18n";
 import { useT } from "../../providers/LanguageProvider";
 
 export default function Crews() {
@@ -52,7 +53,7 @@ export default function Crews() {
               <View className="flex-row items-center justify-between">
                 <Text weight="semibold">{c.name}</Text>
                 <Text type="body-xs" color="muted">
-                  {t(c.members.length === 1 ? "crews.personCount" : "crews.peopleCount", { count: c.members.length })}
+                  {tn("common.peopleCount", c.members.length)}
                 </Text>
               </View>
               <View className="flex-row flex-wrap gap-2">

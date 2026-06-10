@@ -12,6 +12,9 @@ export const pl: Record<string, string> = {
   "common.tomorrow": "Jutro",
   "common.todayTile": "DZIŚ",
   "common.people": "osób",
+  "common.peopleCount.one": "1 osoba",
+  "common.peopleCount.few": "{count} osoby",
+  "common.peopleCount.many": "{count} osób",
   "common.person": "osoba",
 
   // ----- errors (client) -----
@@ -195,7 +198,6 @@ export const pl: Record<string, string> = {
   "inviteSheet.invited": "Zaproszono: {name} ✨",
   "inviteSheet.invitedCrew": "Zaproszono: {name} ✨",
   "inviteSheet.allIn": "{name} — wszyscy już są",
-  "inviteSheet.peopleCount": "{count} osób",
   "inviteSheet.empty": "Brak znajomych — dodaj kogoś, żeby zapraszać.",
   "inviteSheet.statusGoing": "Idzie",
   "inviteSheet.statusMaybe": "Może",
@@ -254,7 +256,9 @@ export const pl: Record<string, string> = {
   "myPolls.timePoll": "Ankieta terminu",
   "myPolls.placePoll": "Ankieta miejsca",
   "myPolls.closingToday": "kończy się dziś",
-  "myPolls.daysLeft": "zostało {count} dni",
+  "myPolls.daysLeft.one": "został 1 dzień",
+  "myPolls.daysLeft.few": "zostały {count} dni",
+  "myPolls.daysLeft.many": "zostało {count} dni",
 
   // ----- calendar -----
   "calendar.title": "Kalendarz",
@@ -263,8 +267,9 @@ export const pl: Record<string, string> = {
   "calendar.emptyFiltered": "Nic nie pasuje do filtra — kliknij Wszystkie.",
   "filter.all": "Wszystkie",
   "filter.count": "{count} {noun} · {status}",
-  "filter.meetup": "spotka",
-  "filter.meetups": "spotki",
+  "filter.meetup.one": "spotka",
+  "filter.meetup.few": "spotki",
+  "filter.meetup.many": "spotek",
 
   // ----- invite landing -----
   "invite.expiredTitle": "Ten link wygasł",
@@ -318,8 +323,6 @@ export const pl: Record<string, string> = {
   "crews.subtitle": "Grupy, które zapraszasz jednym kliknięciem.",
   "crews.new": "Nowa",
   "crews.empty": "Brak ekip — stwórz jedną i zapraszaj całą paczkę naraz.",
-  "crews.personCount": "{count} osoba",
-  "crews.peopleCount": "{count} osób",
   "crewsNew.title": "Nowa ekipa",
   "crewsNew.subtitle": "Nazwij ją i wybierz, kto wchodzi.",
   "crewsNew.namePlaceholder": "Nazwa ekipy (np. Wspinaczkowa)",
@@ -503,7 +506,9 @@ export const pl: Record<string, string> = {
   "maps.cancel": "Anuluj",
   "mine.title": "Moje wydarzenia",
   "event.boardEmptyHint": "Napisz coś jako pierwszy_a.",
-  "event.boardCount": "{count} wpisów",
+  "event.boardCount.one": "1 wpis",
+  "event.boardCount.few": "{count} wpisy",
+  "event.boardCount.many": "{count} wpisów",
   "event.boardOne": "1 wpis",
   "event.noteSaved": "Zapisano ✓",
   "event.guestsTitle": "Kto wbija?",

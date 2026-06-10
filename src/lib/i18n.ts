@@ -36,3 +36,24 @@ export function translate(
 export function t(key: string, params?: Record<string, string | number>): string {
   return translate(currentLang, key, params);
 }
+
+// Polish plural category: 1 → one; 2–4 → few (except 12–14); else many.
+// English collapses few into many ("people").
+export function pluralCategory(lang: Lang, n: number): "one" | "few" | "many" {
+  if (n === 1) return "one";
+  if (lang === "pl") {
+    const d = n % 10;
+    const h = n % 100;
+    if (d >= 2 && d <= 4 && !(h >= 12 && h <= 14)) return "few";
+  }
+  return "many";
+}
+
+// Count-aware translate: looks up `${key}.${one|few|many}` with {count} bound.
+export function translateCount(lang: Lang, key: string, count: number): string {
+  return translate(lang, `${key}.${pluralCategory(lang, count)}`, { count });
+}
+
+export function tn(key: string, count: number): string {
+  return translateCount(currentLang, key, count);
+}

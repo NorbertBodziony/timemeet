@@ -23,6 +23,7 @@ import { openMaps } from "../../../lib/maps";
 import { type RsvpStatus } from "../../../lib/theme";
 import { useAuth } from "../../../providers/MockAuthProvider";
 import { usePush } from "../../../providers/MockPushProvider";
+import { tn } from "../../../lib/i18n";
 import { useT } from "../../../providers/LanguageProvider";
 
 export default function EventDetail() {
@@ -404,7 +405,7 @@ export default function EventDetail() {
               <Text type="body-xs" color="muted">
                 {posts.length === 1
                   ? t("event.boardOne")
-                  : t("event.boardCount", { count: posts.length })}
+                  : tn("event.boardCount", posts.length)}
               </Text>
             </>
           ) : (

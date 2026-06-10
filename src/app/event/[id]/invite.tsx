@@ -14,6 +14,7 @@ import { useAuth } from "../../../providers/MockAuthProvider";
 import { attempt } from "../../../lib/attempt";
 import { tap } from "../../../lib/haptics";
 import { usePush } from "../../../providers/MockPushProvider";
+import { tn } from "../../../lib/i18n";
 import { useT } from "../../../providers/LanguageProvider";
 
 const STATE_KEY: Record<string, string> = {
@@ -74,7 +75,7 @@ export default function InviteFriends() {
                 <View className="flex-1">
                   <Text weight="semibold">{c.name}</Text>
                   <Text type="body-xs" color="muted">
-                    {t("inviteSheet.peopleCount", { count: c.members.length })}
+                    {tn("common.peopleCount", c.members.length)}
                   </Text>
                 </View>
                 <Button variant="primary" size="sm" onPress={() => onInviteCrew(c._id, c.name)}>

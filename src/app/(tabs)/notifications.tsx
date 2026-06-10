@@ -44,7 +44,7 @@ export default function Notifications() {
   }, [currentUser, rows, markAllRead]);
 
   return (
-    <Screen title={t("notifScreen.title")}>
+    <Screen title={t("notifScreen.title")} bottomInset={49}>
       {rows === undefined ? (
         <SkeletonList count={5} />
       ) : rows.length === 0 ? (

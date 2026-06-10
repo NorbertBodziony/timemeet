@@ -13,6 +13,7 @@ import { Icon } from "./Icon";
 import { PressableScale } from "./PressableScale";
 import { GRADIENTS, RSVP, RSVP_ACTIONS, RSVP_COLORS, type RsvpStatus } from "../lib/theme";
 import type { IconName } from "../lib/icons";
+import { pluralCategory } from "../lib/i18n";
 import { useT } from "../providers/LanguageProvider";
 
 export type RsvpFilter = RsvpStatus | null; // null = all
@@ -128,10 +129,10 @@ export function FilterBar({
 
 // ResultCount (§05) — shows how many rows match when the filter is narrowed.
 export function ResultCount({ count, filter }: { count: number; filter: RsvpFilter }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   if (!filter) return null;
   const c = RSVP_COLORS[filter];
-  const noun = t(count === 1 ? "filter.meetup" : "filter.meetups");
+  const noun = t(`filter.meetup.${pluralCategory(lang, count)}`);
   return (
     <View className="flex-row mt-3">
       <View

@@ -12,11 +12,11 @@ import { Screen } from "../../../components/Screen";
 import { RsvpPicker } from "../../../components/RsvpPicker";
 import { SecondaryButton } from "../../../components/SecondaryButton";
 import { SectionHeader } from "../../../components/SectionHeader";
+import { SurfaceCard } from "../../../components/SurfaceCard";
 import { StarRating } from "../../../components/StarRating";
 import { UserAvatar } from "../../../components/UserAvatar";
 import { formatDateTime } from "../../../lib/datetime";
 import { attempt } from "../../../lib/attempt";
-import { pickImages, uploadImage } from "../../../lib/photos";
 import { success, tap } from "../../../lib/haptics";
 import { addToCalendar } from "../../../lib/calendar";
 import { openMaps } from "../../../lib/maps";
@@ -45,8 +45,6 @@ export default function EventDetail() {
     currentUser ? { eventId, userId: currentUser._id } : { eventId }
   );
   const setRsvp = useMutation(api.rsvps.set);
-  const addPost = useMutation(api.posts.add);
-  const uploadUrl = useMutation(api.posts.generateUploadUrl);
   const cancelEvent = useMutation(api.events.cancel);
   const createToken = useMutation(api.invites.createToken);
   const setRating = useMutation(api.ratings.set);
@@ -54,10 +52,9 @@ export default function EventDetail() {
   const toggleClaim = useMutation(api.items.toggleClaim);
   const removeItem = useMutation(api.items.remove);
 
-  const [draft, setDraft] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const [itemDraft, setItemDraft] = useState("");
-  const [uploading, setUploading] = useState(false);
+  const [noteSaved, setNoteSaved] = useState(false);
 
   // Initialize the note input from my existing rating once loaded.
   useEffect(() => {
@@ -94,41 +91,12 @@ export default function EventDetail() {
 
   async function saveNote() {
     if (!currentUser || !myStars) return;
-    tap();
-    await attempt(() => setRating({ userId: currentUser._id, eventId, stars: myStars, note: note ?? undefined }));
-  }
-
-  async function post() {
-    if (!currentUser || !draft.trim()) return;
-    tap();
-    const ok = await attempt(() => addPost({ userId: currentUser._id, eventId, body: draft.trim(), isAnnouncement: isOrganizer }));
-    if (ok) setDraft("");
-  }
-
-  async function addPhoto() {
-    if (!currentUser || uploading) return;
-    tap();
-    const uris = await pickImages({ multiple: true });
-    if (uris.length === 0) return;
-    setUploading(true);
-    try {
-      const imageIds: string[] = [];
-      for (const uri of uris) {
-        const url = await uploadUrl({ userId: currentUser._id });
-        imageIds.push(await uploadImage(uri, url));
-      }
-      await addPost({
-        userId: currentUser._id,
-        eventId,
-        body: draft.trim(),
-        isAnnouncement: false,
-        imageIds: imageIds as never,
-      });
-      setDraft("");
-    } catch {
-      Alert.alert(t("errors.photosTitle"), t("errors.retryMoment"));
-    } finally {
-      setUploading(false);
+    const ok = await attempt(() =>
+      setRating({ userId: currentUser._id, eventId, stars: myStars, note: note ?? undefined })
+    );
+    if (ok) {
+      setNoteSaved(true);
+      setTimeout(() => setNoteSaved(false), 2000);
     }
   }
 
@@ -255,9 +223,17 @@ export default function EventDetail() {
       {/* Attendees */}
       {going.length > 0 && (
         <View className="mb-5">
-          <SectionHeader tight>
-            {isPast ? t("event.whoCame") : t("event.goingMaybe", { going: counts.going, maybe: counts.maybe })}
-          </SectionHeader>
+          <Pressable
+            onPress={() =>
+              router.push({ pathname: "/event/[id]/guests" as never, params: { id: eventId } })
+            }
+            className="flex-row items-center gap-1"
+          >
+            <SectionHeader tight>
+              {isPast ? t("event.whoCame") : t("event.goingMaybe", { going: counts.going, maybe: counts.maybe })}
+            </SectionHeader>
+            <Icon name="chevron-forward" size={13} tint="muted" />
+          </Pressable>
           <View className="flex-row flex-wrap gap-3">
             {going.map((r) => (
               <View key={r._id} className="items-center gap-1 w-14">
@@ -308,19 +284,18 @@ export default function EventDetail() {
               )}
             </View>
             <StarRating value={myStars} onChange={rate} size={28} />
-            <View className="flex-row gap-2 items-center">
-              <View className="flex-1">
-                <Input
-                  value={note ?? ""}
-                  onChangeText={setNote}
-                  placeholder={t("event.notePlaceholder")}
-                  editable={myStars > 0}
-                />
-              </View>
-              <Button variant="outline" size="md" isDisabled={!myStars} onPress={saveNote}>
-                <Button.Label>{t("event.saveNote")}</Button.Label>
-              </Button>
-            </View>
+            <Input
+              value={note ?? ""}
+              onChangeText={setNote}
+              placeholder={t("event.notePlaceholder")}
+              editable={myStars > 0}
+              onEndEditing={saveNote}
+            />
+            {noteSaved && (
+              <Text type="body-xs" color="muted">
+                {t("event.noteSaved")}
+              </Text>
+            )}
           </Card.Body>
         </Card>
       )}
@@ -409,54 +384,37 @@ export default function EventDetail() {
         </View>
       )}
 
-      {/* Board */}
+      {/* Board — its own page; show a one-row preview here. */}
       <SectionHeader>{t("event.board")}</SectionHeader>
-      <View className="flex-row gap-2 mb-3 items-center">
+      <SurfaceCard
+        className="flex-row items-center gap-3"
+        onPress={() =>
+          router.push({ pathname: "/event/[id]/board" as never, params: { id: eventId } })
+        }
+      >
+        <Icon name="chatbubble-outline" size={20} tint="accent" />
         <View className="flex-1">
-          <Input value={draft} onChangeText={setDraft} placeholder={t("event.boardPlaceholder")} />
-        </View>
-        <Button variant="outline" size="md" isIconOnly onPress={addPhoto} isDisabled={uploading}>
-          {uploading ? <Spinner size="sm" /> : <Icon name="image-outline" size={18} tint="foreground" />}
-        </Button>
-        <Button variant="primary" size="md" isIconOnly onPress={post}>
-          <Icon name="arrow-up" size={18} color="#FFFFFF" />
-        </Button>
-      </View>
-      {(posts ?? []).map((p) => (
-        <Card key={p._id} className="mb-2">
-          <Card.Body className="flex-row gap-2.5 py-2.5">
-            <UserAvatar name={p.author?.displayName} photoUrl={p.author?.photoUrl} size="sm" />
-            <View className="flex-1">
-              <Text type="body-xs" weight="semibold" color="muted">
-                {p.author?.displayName ?? "—"}
-                {p.isAnnouncement ? t("event.announcement") : ""}
+          {posts && posts.length > 0 ? (
+            <>
+              <Text type="body-sm" weight="semibold" numberOfLines={1}>
+                {posts[0].author?.displayName ?? "—"}
+                {": "}
+                {posts[0].body || "📷"}
               </Text>
-              {!!p.body && <Text type="body-sm">{p.body}</Text>}
-              {p.imageUrls.length === 1 && (
-                <Image
-                  source={{ uri: p.imageUrls[0] }}
-                  className="mt-2 rounded-xl w-full"
-                  style={{ aspectRatio: 4 / 3 }}
-                  resizeMode="cover"
-                />
-              )}
-              {p.imageUrls.length > 1 && (
-                <View className="mt-2 flex-row flex-wrap gap-1.5">
-                  {p.imageUrls.map((u) => (
-                    <Image
-                      key={u}
-                      source={{ uri: u }}
-                      className="rounded-xl"
-                      style={{ width: "48.5%", aspectRatio: 1 }}
-                      resizeMode="cover"
-                    />
-                  ))}
-                </View>
-              )}
-            </View>
-          </Card.Body>
-        </Card>
-      ))}
+              <Text type="body-xs" color="muted">
+                {posts.length === 1
+                  ? t("event.boardOne")
+                  : t("event.boardCount", { count: posts.length })}
+              </Text>
+            </>
+          ) : (
+            <Text type="body-sm" color="muted">
+              {t("event.boardEmptyHint")}
+            </Text>
+          )}
+        </View>
+        <Icon name="chevron-forward" size={16} tint="muted" />
+      </SurfaceCard>
 
       {/* Past → plan again; upcoming organizer → edit/share/cancel */}
       {isPast && !cancelled && (

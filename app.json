@@ -61,7 +61,8 @@
         {
           "calendarPermission": "MeetTime saves meetups you choose to your calendar."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,3 +1,4 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, Image, Pressable, View } from "react-native";
@@ -10,7 +11,7 @@ import { PressableScale } from "../../components/PressableScale";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { CATEGORIES, type CategoryKey } from "../../lib/categories";
-import { formatDate, formatDateTime, formatRange } from "../../lib/datetime";
+import { formatDateTime } from "../../lib/datetime";
 import { tap, warn } from "../../lib/haptics";
 import { pickImages, uploadImage } from "../../lib/photos";
 import { useAuth } from "../../providers/MockAuthProvider";
@@ -20,14 +21,7 @@ import { errorMessage } from "../../lib/attempt";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function candidateSlots(now: number) {
-  return Array.from({ length: 7 }, (_, i) => {
-    const day = new Date(now + (i + 1) * DAY_MS);
-    day.setHours(18, 0, 0, 0);
-    const startsAt = day.getTime();
-    return { startsAt, endsAt: startsAt + 2 * 60 * 60 * 1000 };
-  });
-}
+
 
 export default function NewEvent() {
   const router = useRouter();
@@ -36,14 +30,17 @@ export default function NewEvent() {
   const { celebrate } = useCelebrate();
   const create = useMutation(api.events.create);
   const uploadUrlFor = useMutation(api.posts.generateUploadUrl);
-  const slots = useMemo(() => candidateSlots(Date.now()), []);
   // Prefilled when re-running a past meetup ("Plan again").
   const params = useLocalSearchParams<{ title?: string; address?: string }>();
 
   const [title, setTitle] = useState(params.title ?? "");
   const [address, setAddress] = useState(params.address ?? "");
   const [description, setDescription] = useState("");
-  const [when, setWhen] = useState<number | null>(null);
+  const [when, setWhen] = useState<Date>(() => {
+    const d = new Date(Date.now() + DAY_MS);
+    d.setHours(18, 0, 0, 0);
+    return d;
+  });
   const [capacity, setCapacity] = useState("");
   const [minPeople, setMinPeople] = useState("");
   const [category, setCategory] = useState<CategoryKey | null>(null);
@@ -73,18 +70,18 @@ export default function NewEvent() {
   const cap = capacity ? Math.max(1, parseInt(capacity, 10) || 0) : undefined;
   const minT = minPeople ? Math.max(1, parseInt(minPeople, 10) || 0) : undefined;
 
-  const valid = title.trim().length > 0 && when !== null;
+  const valid = title.trim().length > 0 && when.getTime() > Date.now();
 
   async function submit() {
-    if (!currentUser || when === null) return;
+    if (!currentUser) return;
     setBusy(true);
     try {
-      const slot = slots.find((s) => s.startsAt === when)!;
+      const startsAt = when.getTime();
       const eventId = await create({
         userId: currentUser._id,
         title: title.trim(),
-        startsAt: slot.startsAt,
-        endsAt: slot.endsAt,
+        startsAt,
+        endsAt: startsAt + 2 * 60 * 60 * 1000,
         customAddress: address.trim() || undefined,
         description: description.trim() || undefined,
         coverImageId: cover ? (cover.id as never) : undefined,
@@ -103,7 +100,7 @@ export default function NewEvent() {
     }
   }
 
-  if (preview && when !== null) {
+  if (preview) {
     return (
       <Screen title={t("eventForm.previewTitle")} subtitle={t("eventForm.previewSubtitle")} dismiss="close">
         <Card className="mb-6">
@@ -121,7 +118,7 @@ export default function NewEvent() {
             </Text>
             <View className="flex-row items-center gap-2">
               <Icon name="calendar-outline" size={16} tint="accent" />
-              <Text color="muted">{formatDateTime(when)}</Text>
+              <Text color="muted">{formatDateTime(when.getTime())}</Text>
             </View>
             {!!address.trim() && (
               <View className="flex-row items-center gap-2">
@@ -188,36 +185,24 @@ export default function NewEvent() {
       </Pressable>
 
       <FormLabel className="mt-5">{t("eventForm.when")}</FormLabel>
-      <ListGroup>
-        {slots.map((slot, i) => {
-          const on = when === slot.startsAt;
-          return (
-            <View key={slot.startsAt}>
-              {i > 0 && <Separator className="ml-4" />}
-              <ListGroup.Item
-                onPress={() => {
-                  tap();
-                  setWhen(slot.startsAt);
-                }}
-              >
-                <ListGroup.ItemContent>
-                  <ListGroup.ItemTitle>{formatDate(slot.startsAt)}</ListGroup.ItemTitle>
-                  <ListGroup.ItemDescription>
-                    {formatRange(slot.startsAt, slot.endsAt)}
-                  </ListGroup.ItemDescription>
-                </ListGroup.ItemContent>
-                <ListGroup.ItemSuffix>
-                  {on ? (
-                    <Icon name="checkmark-circle" size={22} tint="accent" />
-                  ) : (
-                    <View className="w-[22px]" />
-                  )}
-                </ListGroup.ItemSuffix>
-              </ListGroup.Item>
-            </View>
-          );
-        })}
-      </ListGroup>
+      <View className="rounded-2xl bg-surface px-3 py-2 flex-row items-center justify-between">
+        <DateTimePicker
+          value={when}
+          mode="date"
+          minimumDate={new Date()}
+          onChange={(_, d) => d && setWhen((prev) => {
+            const next = new Date(d);
+            next.setHours(prev.getHours(), prev.getMinutes(), 0, 0);
+            return next;
+          })}
+        />
+        <DateTimePicker
+          value={when}
+          mode="time"
+          minuteInterval={5}
+          onChange={(_, d) => d && setWhen(d)}
+        />
+      </View>
 
       <FormLabel className="mt-5">{t("eventForm.category")}</FormLabel>
       <View className="flex-row flex-wrap gap-2">

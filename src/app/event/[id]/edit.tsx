@@ -1,3 +1,4 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, View } from "react-native";
@@ -19,13 +20,7 @@ import { useT } from "../../../providers/LanguageProvider";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function candidateSlots(now: number) {
-  return Array.from({ length: 7 }, (_, i) => {
-    const day = new Date(now + (i + 1) * DAY_MS);
-    day.setHours(18, 0, 0, 0);
-    return day.getTime();
-  });
-}
+
 
 export default function EditEvent() {
   const router = useRouter();
@@ -37,7 +32,6 @@ export default function EditEvent() {
 
   const data = useQuery(api.events.get, { eventId });
   const edit = useMutation(api.events.edit);
-  const slots = useMemo(() => candidateSlots(Date.now()), []);
 
   const [title, setTitle] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
@@ -99,33 +93,26 @@ export default function EditEvent() {
       <Input value={curDesc} onChangeText={setDescription} placeholder={t("eventEdit.notesPlaceholder")} multiline />
 
       <FormLabel className="mt-5">{t("eventForm.when")}</FormLabel>
-      <ListGroup>
-        {slots.map((s, i) => {
-          const on = curStart === s;
-          return (
-            <View key={s}>
-              {i > 0 && <Separator className="ml-4" />}
-              <ListGroup.Item
-                onPress={() => {
-                  tap();
-                  setStartsAt(s);
-                }}
-              >
-                <ListGroup.ItemContent>
-                  <ListGroup.ItemTitle>{formatDateTime(s)}</ListGroup.ItemTitle>
-                </ListGroup.ItemContent>
-                <ListGroup.ItemSuffix>
-                  {on ? (
-                    <Icon name="checkmark-circle" size={22} tint="accent" />
-                  ) : (
-                    <View className="w-[22px]" />
-                  )}
-                </ListGroup.ItemSuffix>
-              </ListGroup.Item>
-            </View>
-          );
-        })}
-      </ListGroup>
+      <View className="rounded-2xl bg-surface px-3 py-2 flex-row items-center justify-between">
+        <DateTimePicker
+          value={new Date(curStart)}
+          mode="date"
+          minimumDate={new Date()}
+          onChange={(_, d) => {
+            if (!d) return;
+            const prev = new Date(curStart);
+            const next = new Date(d);
+            next.setHours(prev.getHours(), prev.getMinutes(), 0, 0);
+            setStartsAt(next.getTime());
+          }}
+        />
+        <DateTimePicker
+          value={new Date(curStart)}
+          mode="time"
+          minuteInterval={5}
+          onChange={(_, d) => d && setStartsAt(d.getTime())}
+        />
+      </View>
 
       {changes.length > 0 && (
         <Card className="mt-5 mb-4">

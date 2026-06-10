@@ -46,7 +46,13 @@ export function PushManager() {
         const token = (
           await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined)
         ).data;
-        if (token) await setToken({ userId: currentUser._id, token });
+        if (token)
+          await setToken({
+            userId: currentUser._id,
+            token,
+            // Device offset from UTC, for server-side quiet hours (22–8 local).
+            tzOffsetMinutes: -new Date().getTimezoneOffset(),
+          });
       } catch {
         // Expo Go / simulator: remote token unavailable — local reminders still work.
       }

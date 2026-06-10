@@ -16,6 +16,8 @@ type Prefs = {
   pollResolved: boolean;
   eventCancelled: boolean;
   reminder2h: boolean;
+  activity?: boolean;
+  quietHours?: boolean;
 };
 
 const TRANSACTIONAL: { key: keyof Prefs; label: string; icon: IconName }[] = [
@@ -23,6 +25,7 @@ const TRANSACTIONAL: { key: keyof Prefs; label: string; icon: IconName }[] = [
   { key: "pollResolved", label: "Poll resolved", icon: "checkmark-done-outline" },
   { key: "eventCancelled", label: "Event cancelled", icon: "close-circle-outline" },
   { key: "reminder2h", label: "2 hours before", icon: "alarm-outline" },
+  { key: "activity", label: "RSVPs & posts", icon: "people-outline" },
 ];
 
 function Row({
@@ -102,7 +105,7 @@ export default function Notifications() {
             <Row
               label={t.label}
               icon={t.icon}
-              value={prefs[t.key]}
+              value={prefs[t.key] ?? true}
               disabled={off}
               onChange={(v) => set(t.key, v)}
             />
@@ -110,8 +113,18 @@ export default function Notifications() {
         ))}
       </ListGroup>
 
-      <Text type="body-xs" color="muted" className="mt-4 ml-1">
-        Quiet hours 22:00–08:00 — coming soon. We won't wake you.
+      <SectionHeader>Quiet hours</SectionHeader>
+      <ListGroup>
+        <Row
+          label="Quiet hours (22:00–08:00)"
+          icon="moon-outline"
+          value={prefs.quietHours ?? true}
+          disabled={off}
+          onChange={(v) => set("quietHours", v)}
+        />
+      </ListGroup>
+      <Text type="body-xs" color="muted" className="mt-2 ml-1">
+        Nothing buzzes at night — except a cancellation. Everything else arrives at 8am.
       </Text>
     </Screen>
   );

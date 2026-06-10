@@ -8,6 +8,8 @@ const DEFAULT_PREFS = {
   pollResolved: true,
   eventCancelled: true,
   reminder2h: true,
+  activity: true,
+  quietHours: true,
 };
 
 // List active (non-deleted) users — backs the dev "switch user" control.
@@ -74,6 +76,8 @@ export const setNotificationPrefs = mutation({
       pollResolved: v.boolean(),
       eventCancelled: v.boolean(),
       reminder2h: v.boolean(),
+      activity: v.optional(v.boolean()),
+      quietHours: v.optional(v.boolean()),
     }),
   },
   handler: async (ctx, { userId, prefs }) => {
@@ -92,10 +96,14 @@ export const setAnalyticsOptIn = mutation({
 
 // Store the device's Expo push token for real (backgrounded) push.
 export const setPushToken = mutation({
-  args: { userId: v.id("users"), token: v.string() },
-  handler: async (ctx, { userId, token }) => {
+  args: {
+    userId: v.id("users"),
+    token: v.string(),
+    tzOffsetMinutes: v.optional(v.number()),
+  },
+  handler: async (ctx, { userId, token, tzOffsetMinutes }) => {
     await requireUser(ctx, userId);
-    await ctx.db.patch(userId, { pushToken: token });
+    await ctx.db.patch(userId, { pushToken: token, tzOffsetMinutes });
   },
 });
 

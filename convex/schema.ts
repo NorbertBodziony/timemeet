@@ -34,11 +34,14 @@ export default defineSchema({
         pollResolved: v.boolean(),
         eventCancelled: v.boolean(),
         reminder2h: v.boolean(),
+        activity: v.optional(v.boolean()), // rsvp + post pushes
+        quietHours: v.optional(v.boolean()), // 22:00–08:00, default on
       })
     ),
     analyticsOptIn: v.optional(v.boolean()), // opt-IN (RODO, §38)
     deletedAt: v.optional(v.number()), // soft delete; hard-delete cron is deferred
     pushToken: v.optional(v.string()), // Expo push token (real device push)
+    tzOffsetMinutes: v.optional(v.number()), // device offset from UTC (quiet hours)
   })
     .index("by_authSubject", ["authSubject"])
     .index("by_referralCode", ["referralCode"]),

@@ -9,6 +9,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { EmptyState } from "../../components/EmptyState";
 import { Screen } from "../../components/Screen";
+import { SectionHeader } from "../../components/SectionHeader";
 import { StatusPills, type PillOption } from "../../components/StatusPills";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { formatDate, formatRange } from "../../lib/datetime";
@@ -74,9 +75,47 @@ export default function GuestPoll() {
     );
 
   const { poll, slots, placeOptions, creator, myVotes } = data;
-  const isPlace = poll.type === "place";
+  const hasSlots = poll.type !== "place";
+  const hasPlaces = poll.type !== "time";
+  const both = hasSlots && hasPlaces;
   const countsFor = (key: string) => agg?.[key] ?? { yes: 0, maybe: 0, no: 0 };
   const closed = poll.status !== "active";
+
+  // One voteable option card — shared by the time and place sections.
+  function OptionCard({
+    id,
+    title,
+    subtitle,
+    target,
+  }: {
+    id: string;
+    title: string;
+    subtitle: string;
+    target: { slotId?: Id<"pollSlots">; placeOptionId?: Id<"pollPlaceOptions"> };
+  }) {
+    const c = countsFor(id);
+    return (
+      <SurfaceCard className="mb-3 gap-3 py-3.5">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1 pr-2">
+            <Text weight="bold">{title}</Text>
+            <Text type="body-xs" color="muted">{subtitle}</Text>
+          </View>
+          <Text type="body-xs" weight="semibold" color="muted">
+            {c.yes} yes{c.maybe ? ` · ${c.maybe} maybe` : ""}
+          </Text>
+        </View>
+        {!closed && (
+          <StatusPills
+            options={VOTE_OPTIONS}
+            value={myVotes[id] ?? null}
+            onChange={(v) => vote(target, v as Vote)}
+            columns={3}
+          />
+        )}
+      </SurfaceCard>
+    );
+  }
 
   return (
     <Screen
@@ -90,37 +129,35 @@ export default function GuestPoll() {
         </View>
       )}
 
-      {(isPlace ? placeOptions : slots).map((opt) => {
-        const id = opt._id;
-        const title = isPlace ? (opt as typeof placeOptions[number]).name : formatDate((opt as typeof slots[number]).startsAt);
-        const subtitle = isPlace
-          ? (opt as typeof placeOptions[number]).address
-          : formatRange((opt as typeof slots[number]).startsAt, (opt as typeof slots[number]).endsAt);
-        const c = countsFor(id);
-        return (
-          <SurfaceCard key={id} className="mb-3 gap-3 py-3.5">
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1 pr-2">
-                <Text weight="bold">{title}</Text>
-                <Text type="body-xs" color="muted">{subtitle}</Text>
-              </View>
-              <Text type="body-xs" weight="semibold" color="muted">
-                {c.yes} yes{c.maybe ? ` · ${c.maybe} maybe` : ""}
-              </Text>
-            </View>
-            {!closed && (
-              <StatusPills
-                options={VOTE_OPTIONS}
-                value={myVotes[id] ?? null}
-                onChange={(v) =>
-                  vote(isPlace ? { placeOptionId: id as Id<"pollPlaceOptions"> } : { slotId: id as Id<"pollSlots"> }, v as Vote)
-                }
-                columns={3}
-              />
-            )}
-          </SurfaceCard>
-        );
-      })}
+      {hasSlots && (
+        <>
+          {both && <SectionHeader tight>When</SectionHeader>}
+          {slots.map((s) => (
+            <OptionCard
+              key={s._id}
+              id={s._id}
+              title={formatDate(s.startsAt)}
+              subtitle={formatRange(s.startsAt, s.endsAt)}
+              target={{ slotId: s._id }}
+            />
+          ))}
+        </>
+      )}
+
+      {hasPlaces && (
+        <>
+          {both && <SectionHeader>Where</SectionHeader>}
+          {placeOptions.map((p) => (
+            <OptionCard
+              key={p._id}
+              id={p._id}
+              title={p.name}
+              subtitle={p.address}
+              target={{ placeOptionId: p._id }}
+            />
+          ))}
+        </>
+      )}
 
       <Text type="body-xs" color="muted" align="center" className="mt-2">
         Your votes are saved on this device — come back anytime to change them.

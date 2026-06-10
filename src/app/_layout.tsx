@@ -115,6 +115,11 @@ export default function RootLayout(): JSX.Element | null {
                         name="p/[token]"
                         options={{ presentation: "modal" }}
                       />
+                      {/* Creation chooser (event vs the three poll kinds). */}
+                      <Stack.Screen
+                        name="create"
+                        options={{ presentation: "modal" }}
+                      />
                     </Stack>
                   </CelebrationProvider>
                 </MockPushProvider>

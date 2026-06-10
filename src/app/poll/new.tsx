@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, View } from "react-native";
 import { useMutation } from "convex/react";
@@ -14,7 +14,7 @@ import { useAuth } from "../../providers/MockAuthProvider";
 import { errorMessage } from "../../lib/attempt";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-type PollType = "time" | "place";
+type PollType = "time" | "place" | "time_place";
 
 function candidateSlots(now: number) {
   return Array.from({ length: 7 }, (_, i) => {
@@ -54,8 +54,12 @@ export default function NewPoll() {
   const { currentUser } = useAuth();
   const createPoll = useMutation(api.polls.create);
   const slots = useMemo(() => candidateSlots(Date.now()), []);
+  // Preselected by the creation chooser (/create).
+  const params = useLocalSearchParams<{ type?: string }>();
 
-  const [type, setType] = useState<PollType>("time");
+  const [type, setType] = useState<PollType>(
+    params.type === "place" || params.type === "time_place" ? params.type : "time"
+  );
   const [title, setTitle] = useState("");
   const [pickedSlots, setPickedSlots] = useState<Set<number>>(new Set());
   const [pickedPlaces, setPickedPlaces] = useState<Set<string>>(new Set());
@@ -67,31 +71,29 @@ export default function NewPoll() {
     return next;
   };
 
-  const count = type === "time" ? pickedSlots.size : pickedPlaces.size;
-  const min = type === "time" ? 3 : 2;
-  const valid = title.trim().length > 0 && count >= min && (type === "place" || count <= 7);
+  const wantsSlots = type !== "place";
+  const wantsPlaces = type !== "time";
+  const slotsOk = !wantsSlots || (pickedSlots.size >= 3 && pickedSlots.size <= 7);
+  const placesOk = !wantsPlaces || pickedPlaces.size >= 2;
+  const valid = title.trim().length > 0 && slotsOk && placesOk;
 
   async function submit() {
     if (!currentUser || !valid) return;
     setBusy(true);
     try {
-      const pollId = await createPoll(
-        type === "time"
-          ? {
-              userId: currentUser._id,
-              type: "time",
-              title: title.trim(),
-              slots: [...pickedSlots].sort((a, b) => a - b).map((i) => slots[i]),
-            }
-          : {
-              userId: currentUser._id,
-              type: "place",
-              title: title.trim(),
-              placeOptions: MOCK_PLACES.filter((p) => pickedPlaces.has(p.placeId)).map(
-                ({ multisport, ...p }) => p
-              ),
-            }
-      );
+      const pollId = await createPoll({
+        userId: currentUser._id,
+        type,
+        title: title.trim(),
+        slots: wantsSlots
+          ? [...pickedSlots].sort((a, b) => a - b).map((i) => slots[i])
+          : undefined,
+        placeOptions: wantsPlaces
+          ? MOCK_PLACES.filter((p) => pickedPlaces.has(p.placeId)).map(
+              ({ multisport, ...p }) => p
+            )
+          : undefined,
+      });
       router.replace({ pathname: "/poll/[id]", params: { id: pollId } });
     } catch (e) {
       Alert.alert("Couldn't create the poll", errorMessage(e));
@@ -99,25 +101,26 @@ export default function NewPoll() {
     }
   }
 
+  const TITLES: Record<PollType, [string, string]> = {
+    time: ["When works?", "Drop some times. Crew taps. Done."],
+    place: ["Where to?", "Pick a few spots. Crew taps. Done."],
+    time_place: ["When & where?", "Drop times and spots. Crew taps. Done."],
+  };
+
   return (
-    <Screen
-      title={type === "time" ? "When works?" : "Where to?"}
-      subtitle={
-        type === "time"
-          ? "Drop some times. Crew taps. Done."
-          : "Pick a few spots. Crew taps. Done."
-      }
-      dismiss="close"
-    >
+    <Screen title={TITLES[type][0]} subtitle={TITLES[type][1]} dismiss="close">
       {/* Segmented poll-type control */}
       <Tabs value={type} onValueChange={(v) => setType(v as PollType)} className="mb-5 mt-1">
         <Tabs.List>
           <Tabs.Indicator />
           <Tabs.Trigger value="time">
-            <Tabs.Label>Time Poll</Tabs.Label>
+            <Tabs.Label>Time</Tabs.Label>
           </Tabs.Trigger>
           <Tabs.Trigger value="place">
-            <Tabs.Label>Place Poll</Tabs.Label>
+            <Tabs.Label>Place</Tabs.Label>
+          </Tabs.Trigger>
+          <Tabs.Trigger value="time_place">
+            <Tabs.Label>Both</Tabs.Label>
           </Tabs.Trigger>
         </Tabs.List>
       </Tabs>
@@ -126,19 +129,15 @@ export default function NewPoll() {
       <Input
         value={title}
         onChangeText={setTitle}
-        placeholder={type === "time" ? "Board game night 🎲" : "Saturday hangout"}
+        placeholder={type === "place" ? "Saturday hangout" : "Board game night 🎲"}
         maxLength={100}
       />
 
-      <FormLabel className="mt-6">
-        {type === "time"
-          ? `Pick 3–7 time slots (${pickedSlots.size} chosen)`
-          : `Pick 2+ places (${pickedPlaces.size} chosen)`}
-      </FormLabel>
-
-      <ListGroup>
-        {type === "time"
-          ? slots.map((slot, i) => (
+      {wantsSlots && (
+        <>
+          <FormLabel className="mt-6">{`Pick 3–7 time slots (${pickedSlots.size} chosen)`}</FormLabel>
+          <ListGroup>
+            {slots.map((slot, i) => (
               <View key={slot.startsAt}>
                 {i > 0 && <Separator className="ml-4" />}
                 <SelectRow
@@ -148,8 +147,16 @@ export default function NewPoll() {
                   onPress={() => setPickedSlots((s) => toggle(s, i))}
                 />
               </View>
-            ))
-          : MOCK_PLACES.map((p, i) => (
+            ))}
+          </ListGroup>
+        </>
+      )}
+
+      {wantsPlaces && (
+        <>
+          <FormLabel className="mt-6">{`Pick 2+ places (${pickedPlaces.size} chosen)`}</FormLabel>
+          <ListGroup>
+            {MOCK_PLACES.map((p, i) => (
               <View key={p.placeId}>
                 {i > 0 && <Separator className="ml-4" />}
                 <SelectRow
@@ -160,7 +167,9 @@ export default function NewPoll() {
                 />
               </View>
             ))}
-      </ListGroup>
+          </ListGroup>
+        </>
+      )}
 
       <View className="mt-5">
         <PrimaryButton label="Create poll" onPress={submit} disabled={!valid} loading={busy} />

@@ -8,6 +8,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { SecondaryButton } from "../../components/SecondaryButton";
+import { SectionHeader } from "../../components/SectionHeader";
 import { StatusPills, type PillOption } from "../../components/StatusPills";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { Icon } from "../../components/Icon";
@@ -92,19 +93,24 @@ export default function PollDetail() {
   const { poll, slots, placeOptions, myVotes } = data;
   const isOrganizer = currentUser?._id === poll.creatorId;
   const converted = poll.status === "converted";
-  const isPlace = poll.type === "place";
+  const isPlace = poll.type === "place"; // place-only
+  const hasSlots = poll.type !== "place";
+  const hasPlaces = poll.type !== "time";
+  const both = hasSlots && hasPlaces;
   const countsFor = (key: string) => agg?.[key] ?? { yes: 0, maybe: 0, no: 0 };
 
-  const leader = isPlace
+  const leader = !hasSlots
     ? null
     : slots.reduce<{ id: Id<"pollSlots">; yes: number } | null>((best, s) => {
         const yes = countsFor(s._id).yes;
         return !best || yes > best.yes ? { id: s._id, yes } : best;
       }, null);
 
-  // Leading venue for a place poll — its winner seeds a new meetup's location.
-  const placeLeader = isPlace
-    ? placeOptions.reduce<{ name: string; address: string; yes: number } | null>(
+  // Leading venue — fills the converted meetup's location (time_place), or
+  // seeds a new meetup for a place-only poll.
+  const placeLeader = !hasPlaces
+    ? null
+    : placeOptions.reduce<{ name: string; address: string; yes: number } | null>(
         (best, p) => {
           const yes = countsFor(p._id).yes;
           return !best || yes > best.yes
@@ -112,8 +118,7 @@ export default function PollDetail() {
             : best;
         },
         null
-      )
-    : null;
+      );
 
   async function voteSlot(slotId: Id<"pollSlots">, value: Vote) {
     if (!currentUser) return;
@@ -144,6 +149,8 @@ export default function PollDetail() {
         userId: currentUser._id,
         pollId,
         winningSlotId: leader.id,
+        // time_place: the winning venue becomes the meetup's address.
+        customAddress: both ? placeLeader?.address : undefined,
       });
       celebrate("Plan's set! You've got a meetup.");
       router.replace({ pathname: "/event/[id]", params: { id: eventId } });
@@ -163,19 +170,10 @@ export default function PollDetail() {
           <SecondaryButton icon="share-outline" label="Share to collect votes" onPress={sharePoll} />
         </View>
       )}
-      {isPlace
-        ? placeOptions.map((p) => (
-            <VoteRow
-              key={p._id}
-              title={p.name}
-              subtitle={`★ ${p.rating ?? "—"} · ${p.address}`}
-              counts={countsFor(p._id)}
-              mine={myVotes[p._id]}
-              disabled={converted}
-              onVote={(v) => votePlace(p._id, v)}
-            />
-          ))
-        : slots.map((slot) => (
+      {hasSlots && (
+        <>
+          {both && <SectionHeader tight>When</SectionHeader>}
+          {slots.map((slot) => (
             <VoteRow
               key={slot._id}
               title={formatDate(slot.startsAt)}
@@ -187,16 +185,37 @@ export default function PollDetail() {
               onVote={(v) => voteSlot(slot._id, v)}
             />
           ))}
+        </>
+      )}
 
-      {isOrganizer && !converted && !isPlace && (
+      {hasPlaces && (
+        <>
+          {both && <SectionHeader>Where</SectionHeader>}
+          {placeOptions.map((p) => (
+            <VoteRow
+              key={p._id}
+              title={p.name}
+              subtitle={`★ ${p.rating ?? "—"} · ${p.address}`}
+              counts={countsFor(p._id)}
+              mine={myVotes[p._id]}
+              disabled={converted}
+              onVote={(v) => votePlace(p._id, v)}
+            />
+          ))}
+        </>
+      )}
+
+      {isOrganizer && !converted && hasSlots && (
         <View className="mt-3">
           <PrimaryButton
-            label="Convert winning slot → meetup"
+            label={both ? "Convert winners → meetup" : "Convert winning slot → meetup"}
             onPress={doConvert}
             disabled={!leader || leader.yes === 0}
           />
           <Text type="body-xs" color="muted" align="center" className="mt-2">
-            Picks the slot with the most “yes”. Voters auto-RSVP.
+            {both
+              ? "Picks the top time and place. Voters auto-RSVP."
+              : "Picks the slot with the most “yes”. Voters auto-RSVP."}
           </Text>
         </View>
       )}

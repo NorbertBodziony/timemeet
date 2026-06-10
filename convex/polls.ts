@@ -46,6 +46,9 @@ export const create = mutation({
         throw new ConvexError("Add between 3 and 7 time slots.");
       }
     }
+    if (args.type !== "time" && (args.placeOptions ?? []).length < 2) {
+      throw new ConvexError("Add at least 2 places.");
+    }
 
     const pollId = await ctx.db.insert("polls", {
       creatorId: args.userId,

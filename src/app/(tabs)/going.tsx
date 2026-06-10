@@ -27,7 +27,7 @@ export default function GoingScreen() {
         </View>
       }
       action={
-        <PrimaryButton label="New plan" onPress={() => router.push("/poll/new")} />
+        <PrimaryButton label="New plan" onPress={() => router.push("/create" as never)} />
       }
     />
   );

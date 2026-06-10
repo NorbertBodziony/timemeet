@@ -16,7 +16,7 @@ export default function MineScreen() {
       right={
         // Nav-style actions — home keeps the single hero CTA, this tab gets a "+".
         <View className="flex-row items-center gap-4">
-          <Pressable onPress={() => router.push("/poll/new")} hitSlop={8}>
+          <Pressable onPress={() => router.push("/create" as never)} hitSlop={8}>
             <Icon name="add-circle-outline" size={24} tint="accent" />
           </Pressable>
           <Pressable onPress={() => router.push("/settings")} hitSlop={8}>

@@ -1,4 +1,5 @@
 import { Alert } from "react-native";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 
 // Shared photo plumbing: a calm source chooser (camera or library) and the
@@ -36,14 +37,16 @@ export function pickImages({ multiple = false } = {}): Promise<string[]> {
 }
 
 // Upload one local image to a Convex storage upload URL → storageId.
+// Uses FileSystem.uploadAsync — RN's fetch(file://).blob() is unreliable for
+// local files, which silently broke uploads on device.
 export async function uploadImage(uri: string, uploadUrl: string): Promise<string> {
-  const res = await fetch(uri);
-  const blob = await res.blob();
-  const up = await fetch(uploadUrl, {
-    method: "POST",
-    headers: { "Content-Type": blob.type || "image/jpeg" },
-    body: blob,
+  const mime = uri.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
+  const res = await FileSystem.uploadAsync(uploadUrl, uri, {
+    httpMethod: "POST",
+    headers: { "Content-Type": mime },
+    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
   });
-  const { storageId } = await up.json();
-  return storageId as string;
+  if (res.status !== 200) throw new Error(`Upload failed (${res.status})`);
+  const { storageId } = JSON.parse(res.body) as { storageId: string };
+  return storageId;
 }

@@ -18,7 +18,12 @@ export const resolveCode = query({
       .withIndex("by_referralCode", (q) => q.eq("referralCode", code.trim()))
       .unique();
     if (!user || user.deletedAt) return null;
-    return { _id: user._id, displayName: user.displayName, city: user.city };
+    return {
+      _id: user._id,
+      displayName: user.displayName,
+      city: user.city,
+      photoUrl: user.photoUrl,
+    };
   },
 });
 

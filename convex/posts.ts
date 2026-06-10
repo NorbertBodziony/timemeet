@@ -19,17 +19,20 @@ export const add = mutation({
     body: v.string(),
     isAnnouncement: v.boolean(),
     imageId: v.optional(v.id("_storage")),
+    imageIds: v.optional(v.array(v.id("_storage"))),
   },
-  handler: async (ctx, { userId, eventId, body, isAnnouncement, imageId }) => {
+  handler: async (ctx, { userId, eventId, body, isAnnouncement, imageId, imageIds }) => {
     const me = await requireUser(ctx, userId);
     const text = body.trim();
-    if (!text && !imageId) throw new ConvexError("Write something or add a photo first.");
+    const hasImages = !!imageId || (imageIds ?? []).length > 0;
+    if (!text && !hasImages) throw new ConvexError("Write something or add a photo first.");
     const postId = await ctx.db.insert("posts", {
       eventId,
       authorId: userId,
       body: text,
       isAnnouncement,
       imageId,
+      imageIds,
     });
 
     // Announcements ping everyone who responded (except the author).
@@ -59,11 +62,18 @@ export const listForEvent = query({
       .order("desc")
       .collect();
     return Promise.all(
-      posts.map(async (p) => ({
-        ...p,
-        author: await ctx.db.get(p.authorId),
-        imageUrl: p.imageId ? await ctx.storage.getUrl(p.imageId) : null,
-      }))
+      posts.map(async (p) => {
+        // Merge legacy single image into the multi-photo list.
+        const ids = [...(p.imageIds ?? []), ...(p.imageId ? [p.imageId] : [])];
+        const urls = (
+          await Promise.all(ids.map((id) => ctx.storage.getUrl(id)))
+        ).filter((u): u is string => !!u);
+        return {
+          ...p,
+          author: await ctx.db.get(p.authorId),
+          imageUrls: urls,
+        };
+      })
     );
   },
 });

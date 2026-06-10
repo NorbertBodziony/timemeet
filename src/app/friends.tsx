@@ -55,7 +55,7 @@ export default function Friends() {
         <View className="gap-2.5">
           {friends.map((f) => (
             <SurfaceCard key={f._id} className="flex-row items-center gap-3">
-              <UserAvatar name={f.displayName} size="md" />
+              <UserAvatar name={f.displayName} photoUrl={f.photoUrl} size="md" />
               <View className="flex-1">
                 <Text weight="semibold">{f.displayName}</Text>
                 <Text type="body-xs" color="muted">

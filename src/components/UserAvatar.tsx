@@ -1,7 +1,7 @@
 import { Avatar } from "heroui-native";
 
-// Initials avatar from a display name (seed users have no photo). Deterministic
-// color so the same person reads consistently across screens.
+// Avatar: real photo when the user has one, deterministic-color initials
+// otherwise (seed users have no photo).
 const COLORS = ["accent", "success", "warning", "danger", "default"] as const;
 
 function initials(name?: string): string {
@@ -18,13 +18,16 @@ function colorFor(name?: string): (typeof COLORS)[number] {
 
 export function UserAvatar({
   name,
+  photoUrl,
   size = "md",
 }: {
   name?: string;
+  photoUrl?: string | null;
   size?: "sm" | "md" | "lg";
 }) {
   return (
     <Avatar size={size} color={colorFor(name)} alt={name ?? "user"}>
+      {photoUrl ? <Avatar.Image source={{ uri: photoUrl }} /> : null}
       <Avatar.Fallback>{initials(name).toUpperCase()}</Avatar.Fallback>
     </Avatar>
   );

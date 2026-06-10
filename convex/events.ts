@@ -17,6 +17,7 @@ const eventFields = {
   waitlistEnabled: v.boolean(),
   minThreshold: v.optional(v.number()),
   description: v.optional(v.string()),
+  coverImageId: v.optional(v.id("_storage")),
 };
 
 export const create = mutation({
@@ -57,6 +58,7 @@ export const edit = mutation({
       category: v.optional(v.array(v.string())),
       capacity: v.optional(v.number()),
       description: v.optional(v.string()),
+      coverImageId: v.optional(v.id("_storage")),
     }),
   },
   handler: async (ctx, { userId, eventId, patch }) => {
@@ -131,7 +133,10 @@ export const get = query({
         .unique();
       viewerStatus = mine?.status ?? null;
     }
-    return { event, creator, counts, viewerStatus };
+    const coverUrl = event.coverImageId
+      ? await ctx.storage.getUrl(event.coverImageId)
+      : null;
+    return { event, creator, counts, viewerStatus, coverUrl };
   },
 });
 
@@ -165,6 +170,9 @@ export const listByTab = query({
           event,
           counts: await countByStatus(ctx, event._id),
           rating: withRating ? await ratingFor(event._id) : undefined,
+          coverUrl: event.coverImageId
+            ? await ctx.storage.getUrl(event.coverImageId)
+            : null,
         }))
       );
 
@@ -241,6 +249,9 @@ export const upcoming = query({
         event,
         counts: await countByStatus(ctx, event._id),
         viewerStatus: status.get(event._id) ?? null,
+        coverUrl: event.coverImageId
+          ? await ctx.storage.getUrl(event.coverImageId)
+          : null,
       }))
     );
   },

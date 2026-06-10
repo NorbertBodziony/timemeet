@@ -56,7 +56,7 @@ export default function Crews() {
               <View className="flex-row flex-wrap gap-2">
                 {c.members.map((m) => (
                   <View key={m._id} className="flex-row items-center gap-1.5">
-                    <UserAvatar name={m.displayName} size="sm" />
+                    <UserAvatar name={m.displayName} photoUrl={m.photoUrl} size="sm" />
                     <Text type="body-xs" color="muted">
                       {m.displayName.split(" ")[0]}
                     </Text>

@@ -45,6 +45,17 @@ export const update = mutation({
   },
 });
 
+// Set the profile photo from an uploaded storage file (Settings → Profile).
+export const setPhoto = mutation({
+  args: { userId: v.id("users"), storageId: v.id("_storage") },
+  handler: async (ctx, { userId, storageId }) => {
+    await requireUser(ctx, userId);
+    const url = await ctx.storage.getUrl(storageId);
+    if (!url) throw new ConvexError("That photo didn't upload — try again.");
+    await ctx.db.patch(userId, { photoUrl: url });
+  },
+});
+
 // Notification preferences (Settings → Notifications). Returns effective prefs.
 export const notificationPrefs = query({
   args: { userId: v.id("users") },

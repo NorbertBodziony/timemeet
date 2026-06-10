@@ -54,7 +54,7 @@ export default function AddFriend() {
         <EmptyState icon="qr-code-outline" text="That code didn't match anyone. Try scanning again." />
       ) : (
         <View className="items-center justify-center py-12 gap-5">
-          <UserAvatar name={preview.displayName} size="lg" />
+          <UserAvatar name={preview.displayName} photoUrl={preview.photoUrl} size="lg" />
           <View className="items-center gap-1">
             <Text type="h2" weight="bold">
               {preview.displayName}

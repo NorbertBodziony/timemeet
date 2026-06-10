@@ -42,7 +42,7 @@ export default function SettingsHome() {
     <Screen title="Settings" dismiss="back">
       {/* Identity header */}
       <View className="flex-row items-center gap-3 mb-6">
-        <UserAvatar name={currentUser?.displayName} size="lg" />
+        <UserAvatar name={currentUser?.displayName} photoUrl={currentUser?.photoUrl} size="lg" />
         <View className="flex-1">
           <Text type="h3" weight="bold">
             {currentUser?.displayName ?? "—"}
@@ -87,7 +87,7 @@ export default function SettingsHome() {
                   className="items-center gap-1"
                   style={{ opacity: on ? 1 : 0.5 }}
                 >
-                  <UserAvatar name={u.displayName} size="md" />
+                  <UserAvatar name={u.displayName} photoUrl={u.photoUrl} size="md" />
                   <Text type="body-xs" color={on ? "default" : "muted"}>
                     {u.displayName}
                   </Text>

@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { Image, View } from "react-native";
 import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Text } from "heroui-native";
@@ -32,6 +32,7 @@ export function EventCard({
   viewerStatus,
   past,
   rating,
+  coverUrl,
   onPress,
 }: {
   event: Doc<"events">;
@@ -39,6 +40,7 @@ export function EventCard({
   viewerStatus?: RsvpStatus | null;
   past?: boolean;
   rating?: { average: number; count: number };
+  coverUrl?: string | null;
   onPress: () => void;
 }) {
   const declined = viewerStatus === "not_going";
@@ -143,6 +145,16 @@ export function EventCard({
               )
             )}
           </View>
+
+          {/* Cover thumbnail */}
+          {!!coverUrl && (
+            <Image
+              source={{ uri: coverUrl }}
+              className="rounded-xl"
+              style={{ width: 44, height: 44 }}
+              resizeMode="cover"
+            />
+          )}
 
           {/* Status pill in the RSVP palette (upcoming only) */}
           {!past && status && statusColor && (

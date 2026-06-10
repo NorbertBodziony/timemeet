@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Alert, Image, Pressable, View } from "react-native";
 import { useMutation } from "convex/react";
 import { Card, Input, ListGroup, Separator, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
@@ -12,6 +12,7 @@ import { Screen } from "../../components/Screen";
 import { CATEGORIES, type CategoryKey } from "../../lib/categories";
 import { formatDate, formatDateTime, formatRange } from "../../lib/datetime";
 import { tap, warn } from "../../lib/haptics";
+import { pickImages, uploadImage } from "../../lib/photos";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
 import { errorMessage } from "../../lib/attempt";
@@ -32,6 +33,7 @@ export default function NewEvent() {
   const { currentUser } = useAuth();
   const { celebrate } = useCelebrate();
   const create = useMutation(api.events.create);
+  const uploadUrlFor = useMutation(api.posts.generateUploadUrl);
   const slots = useMemo(() => candidateSlots(Date.now()), []);
   // Prefilled when re-running a past meetup ("Plan again").
   const params = useLocalSearchParams<{ title?: string; address?: string }>();
@@ -45,6 +47,26 @@ export default function NewEvent() {
   const [category, setCategory] = useState<CategoryKey | null>(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [cover, setCover] = useState<{ id: string; uri: string } | null>(null);
+  const [coverBusy, setCoverBusy] = useState(false);
+
+  async function pickCover() {
+    if (!currentUser || coverBusy) return;
+    tap();
+    const uris = await pickImages();
+    if (uris.length === 0) return;
+    setCoverBusy(true);
+    try {
+      const url = await uploadUrlFor({ userId: currentUser._id });
+      const id = await uploadImage(uris[0], url);
+      setCover({ id, uri: uris[0] });
+    } catch {
+      warn();
+      Alert.alert("Couldn't add that photo", "Give it another try in a moment.");
+    } finally {
+      setCoverBusy(false);
+    }
+  }
 
   const cap = capacity ? Math.max(1, parseInt(capacity, 10) || 0) : undefined;
   const minT = minPeople ? Math.max(1, parseInt(minPeople, 10) || 0) : undefined;
@@ -63,6 +85,7 @@ export default function NewEvent() {
         endsAt: slot.endsAt,
         customAddress: address.trim() || undefined,
         description: description.trim() || undefined,
+        coverImageId: cover ? (cover.id as never) : undefined,
         category: category ? [category] : [],
         visibility: "invite_only",
         waitlistEnabled: cap !== undefined,
@@ -82,6 +105,14 @@ export default function NewEvent() {
     return (
       <Screen title="Preview" subtitle="This is what your crew will see." dismiss="close">
         <Card className="mb-6">
+          {cover && (
+            <Image
+              source={{ uri: cover.uri }}
+              className="w-full"
+              style={{ aspectRatio: 2.2 }}
+              resizeMode="cover"
+            />
+          )}
           <Card.Body className="gap-2">
             <Text type="h2" weight="bold">
               {title.trim()}
@@ -134,6 +165,25 @@ export default function NewEvent() {
         multiline
         maxLength={1000}
       />
+
+      <FormLabel className="mt-5">Cover photo</FormLabel>
+      <Pressable onPress={pickCover}>
+        {cover ? (
+          <Image
+            source={{ uri: cover.uri }}
+            className="w-full rounded-2xl"
+            style={{ aspectRatio: 2.2 }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="rounded-2xl bg-surface border border-border items-center justify-center py-6">
+            <Icon name={coverBusy ? "hourglass-outline" : "image-outline"} size={22} tint="muted" />
+            <Text type="body-xs" color="muted" className="mt-1">
+              {coverBusy ? "Uploading…" : "Add a cover (optional)"}
+            </Text>
+          </View>
+        )}
+      </Pressable>
 
       <FormLabel className="mt-5">When</FormLabel>
       <ListGroup>

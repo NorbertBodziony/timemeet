@@ -2,7 +2,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Image, Pressable, Share, View } from "react-native";
 import * as ExpoLinking from "expo-linking";
-import * as ImagePicker from "expo-image-picker";
 import { useMutation, useQuery } from "convex/react";
 import { Button, Card, Input, Separator, Spinner, Text } from "heroui-native";
 import { api } from "../../../../convex/_generated/api";
@@ -17,6 +16,7 @@ import { StarRating } from "../../../components/StarRating";
 import { UserAvatar } from "../../../components/UserAvatar";
 import { formatDateTime } from "../../../lib/datetime";
 import { attempt } from "../../../lib/attempt";
+import { pickImages, uploadImage } from "../../../lib/photos";
 import { success, tap } from "../../../lib/haptics";
 import { addToCalendar } from "../../../lib/ics";
 import { openMaps } from "../../../lib/maps";
@@ -66,7 +66,7 @@ export default function EventDetail() {
   if (data === null)
     return <Screen title="Event not found" dismiss="back">{null}</Screen>;
 
-  const { event, creator, counts, viewerStatus } = data;
+  const { event, creator, counts, viewerStatus, coverUrl } = data;
   const isOrganizer = currentUser?._id === event.creatorId;
   const place = event.customAddress ?? event.placeId ?? "";
   const cancelled = event.status === "cancelled";
@@ -106,32 +106,25 @@ export default function EventDetail() {
   async function addPhoto() {
     if (!currentUser || uploading) return;
     tap();
-    const picked = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 0.6,
-    });
-    if (picked.canceled || !picked.assets[0]) return;
+    const uris = await pickImages({ multiple: true });
+    if (uris.length === 0) return;
     setUploading(true);
     try {
-      const url = await uploadUrl({ userId: currentUser._id });
-      const res = await fetch(picked.assets[0].uri);
-      const blob = await res.blob();
-      const up = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": blob.type || "image/jpeg" },
-        body: blob,
-      });
-      const { storageId } = await up.json();
+      const imageIds: string[] = [];
+      for (const uri of uris) {
+        const url = await uploadUrl({ userId: currentUser._id });
+        imageIds.push(await uploadImage(uri, url));
+      }
       await addPost({
         userId: currentUser._id,
         eventId,
         body: draft.trim(),
         isAnnouncement: false,
-        imageId: storageId,
+        imageIds: imageIds as never,
       });
       setDraft("");
     } catch {
-      Alert.alert("Couldn't add that photo", "Give it another try in a moment.");
+      Alert.alert("Couldn't add those photos", "Give it another try in a moment.");
     } finally {
       setUploading(false);
     }
@@ -212,6 +205,14 @@ export default function EventDetail() {
         </View>
       )}
 
+      {!!coverUrl && (
+        <Image
+          source={{ uri: coverUrl }}
+          className="w-full rounded-2xl mb-4"
+          style={{ aspectRatio: 2.2 }}
+          resizeMode="cover"
+        />
+      )}
       <Card className="mb-5">
         <Card.Body className="gap-2">
           <View className="flex-row items-center gap-2">
@@ -241,7 +242,7 @@ export default function EventDetail() {
           {!!event.description && <Text type="body-sm" color="muted">{event.description}</Text>}
           <Separator className="my-1" />
           <View className="flex-row items-center gap-2">
-            <UserAvatar name={creator?.displayName} size="sm" />
+            <UserAvatar name={creator?.displayName} photoUrl={creator?.photoUrl} size="sm" />
             <Text type="body-xs" color="muted">
               Organized by {creator?.displayName ?? "—"}
             </Text>
@@ -258,7 +259,7 @@ export default function EventDetail() {
           <View className="flex-row flex-wrap gap-3">
             {going.map((r) => (
               <View key={r._id} className="items-center gap-1 w-14">
-                <UserAvatar name={r.user?.displayName} size="md" />
+                <UserAvatar name={r.user?.displayName} photoUrl={r.user?.photoUrl} size="md" />
                 <Text type="body-xs" color="muted" numberOfLines={1}>
                   {r.user?.displayName?.split(" ")[0] ?? "—"}
                 </Text>
@@ -282,7 +283,7 @@ export default function EventDetail() {
           <View className="flex-row flex-wrap gap-3">
             {pending.map((r) => (
               <View key={r._id} className="items-center gap-1 w-14" style={{ opacity: 0.6 }}>
-                <UserAvatar name={r.user?.displayName} size="md" />
+                <UserAvatar name={r.user?.displayName} photoUrl={r.user?.photoUrl} size="md" />
                 <Text type="body-xs" color="muted" numberOfLines={1}>
                   {r.user?.displayName?.split(" ")[0] ?? "—"}
                 </Text>
@@ -422,20 +423,33 @@ export default function EventDetail() {
       {(posts ?? []).map((p) => (
         <Card key={p._id} className="mb-2">
           <Card.Body className="flex-row gap-2.5 py-2.5">
-            <UserAvatar name={p.author?.displayName} size="sm" />
+            <UserAvatar name={p.author?.displayName} photoUrl={p.author?.photoUrl} size="sm" />
             <View className="flex-1">
               <Text type="body-xs" weight="semibold" color="muted">
                 {p.author?.displayName ?? "—"}
                 {p.isAnnouncement ? " · announcement" : ""}
               </Text>
               {!!p.body && <Text type="body-sm">{p.body}</Text>}
-              {!!p.imageUrl && (
+              {p.imageUrls.length === 1 && (
                 <Image
-                  source={{ uri: p.imageUrl }}
+                  source={{ uri: p.imageUrls[0] }}
                   className="mt-2 rounded-xl w-full"
                   style={{ aspectRatio: 4 / 3 }}
                   resizeMode="cover"
                 />
+              )}
+              {p.imageUrls.length > 1 && (
+                <View className="mt-2 flex-row flex-wrap gap-1.5">
+                  {p.imageUrls.map((u) => (
+                    <Image
+                      key={u}
+                      source={{ uri: u }}
+                      className="rounded-xl"
+                      style={{ width: "48.5%", aspectRatio: 1 }}
+                      resizeMode="cover"
+                    />
+                  ))}
+                </View>
               )}
             </View>
           </Card.Body>

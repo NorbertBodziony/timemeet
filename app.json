@@ -7,7 +7,9 @@
     "icon": "./assets/images/icon.png",
     "scheme": "meettime",
     "userInterfaceStyle": "light",
-    "runtimeVersion": { "policy": "appVersion" },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "updates": {
       "url": "https://u.expo.dev/c7e155c6-cf10-4c61-88bd-7abc32627648"
     },
@@ -46,6 +48,13 @@
         {
           "cameraPermission": "MeetTime uses the camera to scan a friend's QR code."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MeetTime uses your photos for covers, the board, and your profile.",
+          "cameraPermission": "MeetTime uses the camera to snap photos for your meetups."
+        }
       ]
     ],
     "experiments": {
@@ -58,12 +67,6 @@
         "projectId": "c7e155c6-cf10-4c61-88bd-7abc32627648"
       }
     },
-    "owner": "norbertbodziony",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/c7e155c6-cf10-4c61-88bd-7abc32627648"
-    }
+    "owner": "norbertbodziony"
   }
 }

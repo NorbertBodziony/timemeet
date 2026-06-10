@@ -94,7 +94,7 @@ export default function InviteFriends() {
         <View className="gap-2.5">
           {friends.map(({ friend, state }) => (
             <SurfaceCard key={friend._id} className="flex-row items-center gap-3">
-              <UserAvatar name={friend.displayName} size="md" />
+              <UserAvatar name={friend.displayName} photoUrl={friend.photoUrl} size="md" />
               <View className="flex-1">
                 <Text weight="semibold">{friend.displayName}</Text>
                 <Text type="body-xs" color="muted">

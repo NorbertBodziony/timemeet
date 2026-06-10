@@ -130,7 +130,7 @@ export default function InviteLanding() {
     <Screen dismiss="back">
       {/* F187 — the inviter IS the trust signal. */}
       <View className="items-center mb-6">
-        <UserAvatar name={creator?.displayName} size="lg" />
+        <UserAvatar name={creator?.displayName} photoUrl={creator?.photoUrl} size="lg" />
         <Text weight="semibold" color="muted" className="mt-2">
           {inviter} invited you
         </Text>

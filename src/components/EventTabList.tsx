@@ -123,6 +123,7 @@ export function EventTabList({
             counts={row.counts}
             past={tab === "history"}
             rating={row.rating}
+            coverUrl={row.coverUrl}
             onPress={() =>
               router.push({ pathname: "/event/[id]", params: { id: row.event._id } })
             }

@@ -110,6 +110,7 @@ export default defineSchema({
     waitlistEnabled: v.boolean(),
     minThreshold: v.optional(v.number()),
     description: v.optional(v.string()),
+    coverImageId: v.optional(v.id("_storage")), // optional cover photo
     status: v.union(
       v.literal("draft"),
       v.literal("published"),
@@ -147,6 +148,7 @@ export default defineSchema({
     body: v.string(),
     isAnnouncement: v.boolean(),
     imageId: v.optional(v.id("_storage")), // optional photo on the board
+    imageIds: v.optional(v.array(v.id("_storage"))), // multi-photo posts
   }).index("by_event", ["eventId"]),
 
   // Bring-list / potluck — things people commit to bring to a meetup.

@@ -91,6 +91,7 @@ export default function Calendar() {
                 event={r.event}
                 counts={r.counts}
                 viewerStatus={r.viewerStatus}
+                coverUrl={r.coverUrl}
                 onPress={() =>
                   router.push({ pathname: "/event/[id]", params: { id: r.event._id } })
                 }

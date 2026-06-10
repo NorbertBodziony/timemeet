@@ -11,9 +11,9 @@ function esc(s: string): string {
   return s.replace(/\\/g, "\\\\").replace(/[,;]/g, (m) => "\\" + m).replace(/\n/g, "\\n");
 }
 
-// Build a single-event .ics file and hand it to the OS share sheet, which
-// offers "Add to Calendar". Works in Expo Go (no native calendar module).
-export async function addToCalendar(event: {
+// Build a single-event .ics file and hand it to the OS share sheet — the
+// fallback path when direct calendar access is declined/unavailable.
+export async function shareIcs(event: {
   title: string;
   startsAt: number;
   endsAt?: number;

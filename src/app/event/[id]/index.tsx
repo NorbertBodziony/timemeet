@@ -18,7 +18,7 @@ import { formatDateTime } from "../../../lib/datetime";
 import { attempt } from "../../../lib/attempt";
 import { pickImages, uploadImage } from "../../../lib/photos";
 import { success, tap } from "../../../lib/haptics";
-import { addToCalendar } from "../../../lib/ics";
+import { addToCalendar } from "../../../lib/calendar";
 import { openMaps } from "../../../lib/maps";
 import { type RsvpStatus } from "../../../lib/theme";
 import { useAuth } from "../../../providers/MockAuthProvider";

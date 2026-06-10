@@ -11,9 +11,11 @@ import { SurfaceCard } from "../components/SurfaceCard";
 import { UserAvatar } from "../components/UserAvatar";
 import { useAuth } from "../providers/MockAuthProvider";
 import { tap } from "../lib/haptics";
+import { useT } from "../providers/LanguageProvider";
 
 export default function Friends() {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser } = useAuth();
   const friends = useQuery(
     api.friends.list,
@@ -22,8 +24,8 @@ export default function Friends() {
 
   return (
     <Screen
-      title="Friends"
-      subtitle="Your crew — invite them from any meetup."
+      title={t("friends.title")}
+      subtitle={t("friends.subtitle")}
       dismiss="back"
       right={
         <Pressable onPress={() => router.push("/qr")} hitSlop={10}>
@@ -41,7 +43,7 @@ export default function Friends() {
         }}
       >
         <Icon name="qr-code" size={18} color="#FFFFFF" />
-        <Button.Label>Add by QR code</Button.Label>
+        <Button.Label>{t("friends.addByQr")}</Button.Label>
       </Button>
 
       {friends === undefined ? (
@@ -49,7 +51,7 @@ export default function Friends() {
       ) : friends.length === 0 ? (
         <EmptyState
           icon="qr-code-outline"
-          text="No friends yet — share your QR code or scan one to connect."
+          text={t("friends.empty")}
         />
       ) : (
         <View className="gap-2.5">

@@ -58,27 +58,29 @@ async function runSend(ctx: MutationCtx, eventId: Id<"events">, kind: ReminderKi
     rsvps.filter((r) => statuses.includes(r.status)).map((r) => r.userId);
 
   let recipients: Id<"users">[];
-  let title: string;
+  let titleKey: string;
+  const params: Record<string, string> = { title: event.title };
   if (kind === "day_before") {
     // Confirmed folks get the plain reminder; the undecided get the nudge below.
     recipients = byStatus("going");
-    title = `Tomorrow — ${event.title}`;
+    titleKey = "notif.dayBefore";
   } else if (kind === "two_hours") {
     recipients = byStatus("going", "maybe");
-    title = `In 2 hours — ${event.title} 👀`;
+    titleKey = "notif.twoHours";
   } else if (kind === "nudge_unanswered") {
     if (event.startsAt < Date.now()) return;
     const organizer = await ctx.db.get(event.creatorId);
     recipients = byStatus("no_response");
-    title = `${organizer?.displayName ?? "Your crew"} is waiting — you in for ${event.title}?`;
+    titleKey = "notif.nudgeWaiting";
+    params.name = organizer?.displayName ?? "MeetTime";
   } else if (kind === "nudge_day_before") {
     recipients = byStatus("no_response", "maybe");
-    title = `Tomorrow — ${event.title}. Still time to say you're in.`;
+    titleKey = "notif.nudgeTomorrow";
   } else {
     recipients = byStatus("going");
-    title = `How was ${event.title}? Tap to rate.`;
+    titleKey = "notif.recap";
   }
-  await notify(ctx, recipients, "reminder", title, eventId);
+  await notify(ctx, recipients, "reminder", titleKey, params, eventId);
 }
 
 async function runThresholdCheck(ctx: MutationCtx, eventId: Id<"events">) {
@@ -95,7 +97,8 @@ async function runThresholdCheck(ctx: MutationCtx, eventId: Id<"events">) {
       ctx,
       rsvps.map((r) => r.userId),
       "event_cancelled",
-      `Not enough people — ${event.title} is off this time.`,
+      "notif.notEnough",
+      { title: event.title },
       eventId
     );
   }

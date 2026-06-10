@@ -9,16 +9,12 @@ import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { GRADIENTS } from "../../lib/theme";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { useT } from "../../providers/LanguageProvider";
 
-const PLUS_BENEFITS = [
-  "Unlimited events",
-  "Unlimited crew size",
-  "Friend reliability stats",
-  "Export history (PDF/CSV)",
-  "Partner discounts 15–20%",
-];
+const PLUS_BENEFITS = ["sub.b1", "sub.b2", "sub.b3", "sub.b4", "sub.b5"];
 
 export default function Subscription() {
+  const { t } = useT();
   const { currentUser } = useAuth();
   const sub = useQuery(
     api.subscriptions.get,
@@ -32,21 +28,21 @@ export default function Subscription() {
     if (!currentUser) return;
     await setPlan({ userId: currentUser._id, plan: next });
     if (next === "meettime_plus") {
-      Alert.alert("You're on MeetTime+", "Mock upgrade — no charge in this build.");
+      Alert.alert(t("sub.upgraded"), t("sub.mockNote"));
     }
   }
 
   return (
-    <Screen title="MeetTime+" subtitle="Power and convenience. The basics stay free." dismiss="back">
+    <Screen title={t("sub.title")} subtitle={t("sub.subtitle")} dismiss="back">
       <Card className="mb-4">
         <Card.Body className="flex-row items-center gap-3">
           <IconTile name="star" size="md" />
           <View className="flex-1">
             <Text type="body-xs" weight="semibold" color="muted" className="tracking-wider">
-              CURRENT PLAN
+              {t("sub.currentPlan")}
             </Text>
             <Text type="h3" weight="bold">
-              {plan === "free" ? "Free" : plan === "founder" ? "Founder Edition" : "MeetTime+"}
+              {plan === "free" ? t("sub.free") : plan === "founder" ? t("sub.founder") : "MeetTime+"}
             </Text>
           </View>
         </Card.Body>
@@ -66,22 +62,22 @@ export default function Subscription() {
           <View key={b} className="flex-row items-center gap-2 mb-2">
             <Icon name="checkmark-circle" size={18} color="#A3FF12" />
             <Text type="body-sm" style={{ color: "#FFFFFF" }}>
-              {b}
+              {t(b)}
             </Text>
           </View>
         ))}
         <Text type="body-sm" className="mt-1" style={{ color: "#C9E8A6" }}>
-          9.99 zł / month · 4.99 zł for 3 months if you were referred
+          {t("sub.price")}
         </Text>
       </LinearGradient>
 
       {isPlus ? (
-        <PrimaryButton label="Switch to Free" variant="outline" onPress={() => choose("free")} />
+        <PrimaryButton label={t("sub.switchFree")} variant="outline" onPress={() => choose("free")} />
       ) : (
-        <PrimaryButton label="Upgrade to MeetTime+" onPress={() => choose("meettime_plus")} />
+        <PrimaryButton label={t("sub.upgrade")} onPress={() => choose("meettime_plus")} />
       )}
       <Text type="body-xs" color="muted" align="center" className="mt-3">
-        Voting is always free. Free trial covers your first 3 plans.
+        {t("sub.footer")}
       </Text>
     </Screen>
   );

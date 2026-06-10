@@ -14,7 +14,7 @@ export const set = mutation({
   handler: async (ctx, { userId, eventId, status }) => {
     const me = await requireUser(ctx, userId);
     const event = await ctx.db.get(eventId);
-    if (!event) throw new ConvexError("Event not found.");
+    if (!event) throw new ConvexError({ k: "errors.eventNotFound" });
 
     const all = await ctx.db
       .query("rsvps")
@@ -33,11 +33,11 @@ export const set = mutation({
 
     // Notify the organizer when someone newly commits to "going".
     if (effective === "going" && !wasGoing && event.creatorId !== userId) {
-      await notify(ctx, [event.creatorId], "rsvp", `${me.displayName} is going to ${event.title}`, eventId);
+      await notify(ctx, [event.creatorId], "rsvp", "notif.rsvpGoing", { name: me.displayName, title: event.title }, eventId);
     }
     // Tell the user they landed on the waitlist.
     if (effective === "waitlist" && status === "going") {
-      await notify(ctx, [userId], "rsvp", `${event.title} is full — you're on the waitlist.`, eventId);
+      await notify(ctx, [userId], "rsvp", "notif.waitlisted", { title: event.title }, eventId);
     }
 
     const rsvpId = existing
@@ -56,7 +56,7 @@ export const set = mutation({
         const next = waitlist[0];
         if (next) {
           await ctx.db.patch(next._id, { status: "going", changedAt });
-          await notify(ctx, [next.userId], "rsvp", `A spot opened — you're in for ${event.title}!`, eventId);
+          await notify(ctx, [next.userId], "rsvp", "notif.spotOpened", { title: event.title }, eventId);
         }
       }
     }

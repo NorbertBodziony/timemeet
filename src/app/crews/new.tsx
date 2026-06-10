@@ -13,9 +13,11 @@ import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { impact } from "../../lib/haptics";
+import { useT } from "../../providers/LanguageProvider";
 
 export default function NewCrew() {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser } = useAuth();
   const friends = useQuery(
     api.friends.list,
@@ -54,16 +56,16 @@ export default function NewCrew() {
   const ready = !!name.trim() && picked.size > 0;
 
   return (
-    <Screen title="New crew" subtitle="Name it, then pick who's in." dismiss="close">
+    <Screen title={t("crewsNew.title")} subtitle={t("crewsNew.subtitle")} dismiss="close">
       <Input
         value={name}
         onChangeText={setName}
-        placeholder="Crew name (e.g. Climbing crew)"
+        placeholder={t("crewsNew.namePlaceholder")}
         className="mb-5"
       />
-      <SectionHeader tight>Members</SectionHeader>
+      <SectionHeader tight>{t("crewsNew.members")}</SectionHeader>
       {friends === undefined ? null : friends.length === 0 ? (
-        <EmptyState icon="people-outline" text="Add friends first, then build a crew." />
+        <EmptyState icon="people-outline" text={t("crewsNew.empty")} />
       ) : (
         <View className="gap-2.5">
           {friends.map((f) => {
@@ -95,7 +97,7 @@ export default function NewCrew() {
         isDisabled={!ready || saving}
         onPress={save}
       >
-        <Button.Label>{saving ? "Creating…" : "Create crew"}</Button.Label>
+        <Button.Label>{saving ? t("crewsNew.creating") : t("crewsNew.create")}</Button.Label>
       </Button>
     </Screen>
   );

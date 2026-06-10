@@ -7,6 +7,7 @@ import { Icon } from "./Icon";
 import { SectionHeader } from "./SectionHeader";
 import { SurfaceCard } from "./SurfaceCard";
 import { useAuth } from "../providers/MockAuthProvider";
+import { useT } from "../providers/LanguageProvider";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -14,6 +15,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // a dead end after you leave it. Converted polls live on as events.
 export function MyPolls() {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser } = useAuth();
   const polls = useQuery(
     api.polls.listMine,
@@ -24,7 +26,7 @@ export function MyPolls() {
 
   return (
     <View className="mb-2">
-      <SectionHeader tight>Open polls</SectionHeader>
+      <SectionHeader tight>{t("myPolls.open")}</SectionHeader>
       <View className="gap-2.5 mb-2">
         {open.map((p) => {
           const daysLeft = Math.max(0, Math.ceil((p.expiresAt - Date.now()) / DAY_MS));
@@ -45,8 +47,8 @@ export function MyPolls() {
                   {p.title}
                 </Text>
                 <Text type="body-xs" color="muted">
-                  {isPlace ? "Place Poll" : "Time Poll"} ·{" "}
-                  {daysLeft === 0 ? "closing today" : `${daysLeft}d left`}
+                  {t(isPlace ? "myPolls.placePoll" : "myPolls.timePoll")} ·{" "}
+                  {daysLeft === 0 ? t("myPolls.closingToday") : t("myPolls.daysLeft", { count: daysLeft })}
                 </Text>
               </View>
               <Icon name="chevron-forward" size={16} tint="muted" />

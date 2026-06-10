@@ -10,17 +10,19 @@ import { FilterBar, ResultCount, type RsvpFilter } from "../components/FilterBar
 import { Screen } from "../components/Screen";
 import { SkeletonList } from "../components/Skeleton";
 import { useAuth } from "../providers/MockAuthProvider";
+import { useT } from "../providers/LanguageProvider";
+import { getLang } from "../lib/i18n";
 
 function startOfDay(ms: number): number {
   const d = new Date(ms);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 
-function dayLabel(ms: number, now: number): string {
+function dayLabel(ms: number, now: number, t: (k: string) => string): string {
   const diff = Math.round((startOfDay(ms) - startOfDay(now)) / 86_400_000);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Tomorrow";
-  return new Date(ms).toLocaleDateString(undefined, {
+  if (diff === 0) return t("common.today");
+  if (diff === 1) return t("common.tomorrow");
+  return new Date(ms).toLocaleDateString(getLang() === "pl" ? "pl-PL" : "en-US", {
     weekday: "long",
     month: "short",
     day: "numeric",
@@ -29,6 +31,7 @@ function dayLabel(ms: number, now: number): string {
 
 export default function Calendar() {
   const router = useRouter();
+  const { t, lang } = useT();
   const { currentUser } = useAuth();
   const now = useMemo(() => Date.now(), []);
   const rows = useQuery(
@@ -53,15 +56,15 @@ export default function Calendar() {
       const k = String(startOfDay(r.event.startsAt));
       if (k !== key) {
         key = k;
-        out.push({ label: dayLabel(r.event.startsAt, now), rows: [] });
+        out.push({ label: dayLabel(r.event.startsAt, now, t), rows: [] });
       }
       out[out.length - 1].rows.push(r);
     }
     return out;
-  }, [filtered, now]);
+  }, [filtered, now, t]);
 
   return (
-    <Screen title="Calendar" subtitle="Everything you're in on, soonest first." dismiss="back">
+    <Screen title={t("calendar.title")} subtitle={t("calendar.subtitle")} dismiss="back">
       {!!rows && rows.length > 0 && (
         <View className="mb-4">
           <FilterBar value={filter} onChange={setFilter} />
@@ -75,8 +78,8 @@ export default function Calendar() {
           icon="calendar-outline"
           text={
             filter
-              ? "Nothing matches this filter — tap All to see everything."
-              : "Nothing on the horizon yet — plan something."
+              ? t("calendar.emptyFiltered")
+              : t("calendar.empty")
           }
         />
       ) : (

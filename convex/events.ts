@@ -26,7 +26,7 @@ export const create = mutation({
     const { userId, ...fields } = args;
     await requireUser(ctx, userId);
     if (fields.title.trim().length < 1 || fields.title.length > 100) {
-      throw new ConvexError("Title must be 1–100 characters.");
+      throw new ConvexError({ k: "errors.titleLength" });
     }
     const eventId = await ctx.db.insert("events", {
       creatorId: userId,
@@ -64,9 +64,9 @@ export const edit = mutation({
   handler: async (ctx, { userId, eventId, patch }) => {
     await requireUser(ctx, userId);
     const event = await ctx.db.get(eventId);
-    if (!event) throw new ConvexError("Event not found.");
+    if (!event) throw new ConvexError({ k: "errors.eventNotFound" });
     if (event.creatorId !== userId) {
-      throw new ConvexError("Only the organizer can edit this event.");
+      throw new ConvexError({ k: "errors.organizerOnlyEdit" });
     }
     await ctx.db.patch(eventId, patch);
   },
@@ -77,9 +77,9 @@ export const cancel = mutation({
   handler: async (ctx, { userId, eventId }) => {
     await requireUser(ctx, userId);
     const event = await ctx.db.get(eventId);
-    if (!event) throw new ConvexError("Event not found.");
+    if (!event) throw new ConvexError({ k: "errors.eventNotFound" });
     if (event.creatorId !== userId) {
-      throw new ConvexError("Only the organizer can cancel this event.");
+      throw new ConvexError({ k: "errors.organizerOnlyCancel" });
     }
     await ctx.db.patch(eventId, { status: "cancelled" });
 
@@ -92,7 +92,8 @@ export const cancel = mutation({
       ctx,
       rsvps.map((r) => r.userId).filter((id) => id !== userId),
       "event_cancelled",
-      `Cancelled — ${event.title}`,
+      "notif.cancelled",
+      { title: event.title },
       eventId
     );
   },

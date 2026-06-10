@@ -14,14 +14,16 @@ import { useAuth } from "../../../providers/MockAuthProvider";
 import { attempt } from "../../../lib/attempt";
 import { tap } from "../../../lib/haptics";
 import { usePush } from "../../../providers/MockPushProvider";
+import { useT } from "../../../providers/LanguageProvider";
 
-const STATE_LABEL: Record<string, string> = {
-  going: "Going",
-  maybe: "Maybe",
-  invited: "Invited",
+const STATE_KEY: Record<string, string> = {
+  going: "inviteSheet.statusGoing",
+  maybe: "inviteSheet.statusMaybe",
+  invited: "inviteSheet.statusInvited",
 };
 
 export default function InviteFriends() {
+  const { t } = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const eventId = id as Id<"events">;
   const { currentUser } = useAuth();
@@ -42,7 +44,7 @@ export default function InviteFriends() {
     if (!currentUser) return;
     tap();
     const ok = await attempt(() => invite({ userId: currentUser._id, eventId, friendId }));
-    if (ok) push.push({ title: `Invited ${name.split(" ")[0]} ✨` });
+    if (ok) push.push({ title: t("inviteSheet.invited", { name: name.split(" ")[0] }) });
   }
 
   async function onInviteCrew(crewId: Id<"crews">, name: string) {
@@ -54,17 +56,17 @@ export default function InviteFriends() {
     });
     if (ok) {
       push.push({
-        title: invited > 0 ? `Invited ${name} ✨` : `${name} are all already in`,
+        title: invited > 0 ? t("inviteSheet.invitedCrew", { name }) : t("inviteSheet.allIn", { name }),
       });
     }
   }
 
   return (
-    <Screen title="Invite friends" subtitle="Tap to add them to this meetup." dismiss="close">
+    <Screen title={t("inviteSheet.title")} subtitle={t("inviteSheet.subtitle")} dismiss="close">
       {/* Invite a whole crew at once. */}
       {!!crews && crews.length > 0 && (
         <View className="mb-2">
-          <SectionHeader tight>Crews</SectionHeader>
+          <SectionHeader tight>{t("inviteSheet.crews")}</SectionHeader>
           <View className="gap-2.5">
             {crews.map((c) => (
               <SurfaceCard key={c._id} className="flex-row items-center gap-3">
@@ -72,11 +74,11 @@ export default function InviteFriends() {
                 <View className="flex-1">
                   <Text weight="semibold">{c.name}</Text>
                   <Text type="body-xs" color="muted">
-                    {c.members.length} people
+                    {t("inviteSheet.peopleCount", { count: c.members.length })}
                   </Text>
                 </View>
                 <Button variant="primary" size="sm" onPress={() => onInviteCrew(c._id, c.name)}>
-                  <Button.Label>Invite all</Button.Label>
+                  <Button.Label>{t("inviteSheet.inviteAll")}</Button.Label>
                 </Button>
               </SurfaceCard>
             ))}
@@ -84,11 +86,11 @@ export default function InviteFriends() {
         </View>
       )}
 
-      {!!crews && crews.length > 0 && <SectionHeader>Friends</SectionHeader>}
+      {!!crews && crews.length > 0 && <SectionHeader>{t("inviteSheet.friends")}</SectionHeader>}
       {friends === undefined ? null : friends.length === 0 ? (
         <EmptyState
           icon="people-outline"
-          text="No friends yet — add some to invite them along."
+          text={t("inviteSheet.empty")}
         />
       ) : (
         <View className="gap-2.5">
@@ -108,13 +110,13 @@ export default function InviteFriends() {
                   onPress={() => onInvite(friend._id, friend.displayName)}
                 >
                   <Icon name="add" size={16} color="#FFFFFF" />
-                  <Button.Label>Invite</Button.Label>
+                  <Button.Label>{t("inviteSheet.invite")}</Button.Label>
                 </Button>
               ) : (
                 <View className="flex-row items-center gap-1.5">
                   <Icon name="checkmark-circle" size={16} tint="success" />
                   <Text type="body-sm" color="muted">
-                    {STATE_LABEL[state]}
+                    {t(STATE_KEY[state])}
                   </Text>
                 </View>
               )}

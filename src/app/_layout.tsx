@@ -10,11 +10,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ScopedTheme } from "uniwind";
 
+import { t } from "../lib/i18n";
 import { NotificationListener } from "../components/NotificationListener";
 import { OfflineBanner } from "../components/OfflineBanner";
 import { PushManager } from "../components/PushManager";
 import { CelebrationProvider } from "../providers/CelebrationProvider";
 import { ConvexClientProvider } from "../providers/ConvexClientProvider";
+import { LanguageProvider } from "../providers/LanguageProvider";
 import { MockAuthProvider } from "../providers/MockAuthProvider";
 import { MockPushProvider } from "../providers/MockPushProvider";
 import "../global.css";
@@ -35,10 +37,10 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps): JSX.Element
     >
       <RNText style={{ fontSize: 56 }}>🦦</RNText>
       <RNText style={{ fontSize: 20, fontWeight: "700", color: "#1c1917" }}>
-        Something went sideways
+        {t("crash.title")}
       </RNText>
       <RNText style={{ fontSize: 14, color: "#78716c", textAlign: "center", lineHeight: 20 }}>
-        Not your fault — give it another go. If it keeps happening, restart the app.
+        {t("crash.body")}
       </RNText>
       <RNText style={{ fontSize: 11, color: "#a8a29e" }} numberOfLines={2}>
         {error.message}
@@ -53,7 +55,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps): JSX.Element
           paddingVertical: 12,
         }}
       >
-        <RNText style={{ color: "#ffffff", fontWeight: "600", fontSize: 16 }}>Try again</RNText>
+        <RNText style={{ color: "#ffffff", fontWeight: "600", fontSize: 16 }}>{t("crash.retry")}</RNText>
       </Pressable>
     </View>
   );
@@ -74,6 +76,7 @@ export default function RootLayout(): JSX.Element | null {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <ConvexClientProvider>
             <MockAuthProvider>
+              <LanguageProvider>
               <HeroUINativeProvider>
                 <MockPushProvider>
                   <CelebrationProvider>
@@ -124,6 +127,7 @@ export default function RootLayout(): JSX.Element | null {
                   </CelebrationProvider>
                 </MockPushProvider>
               </HeroUINativeProvider>
+              </LanguageProvider>
             </MockAuthProvider>
           </ConvexClientProvider>
         </GestureHandlerRootView>

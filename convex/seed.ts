@@ -50,6 +50,7 @@ export const run = mutation({
       ctx.db.insert("users", {
         displayName: name,
         city: "Kraków",
+        language: "pl",
         referralCode: `MEETTIME-${code}-${Math.random()
           .toString(36)
           .slice(2, 5)

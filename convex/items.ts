@@ -27,9 +27,9 @@ export const add = mutation({
     title: v.string(),
   },
   handler: async (ctx, { userId, eventId, title }) => {
-    await requireEventParticipant(ctx, userId, eventId, "Join this meetup to add to the list.");
+    await requireEventParticipant(ctx, userId, eventId, "errors.joinToList");
     const text = title.trim();
-    if (!text) throw new ConvexError("Name the thing first.");
+    if (!text) throw new ConvexError({ k: "errors.nameItem" });
     return ctx.db.insert("eventItems", {
       eventId,
       title: text,
@@ -45,11 +45,11 @@ export const toggleClaim = mutation({
   handler: async (ctx, { userId, itemId }) => {
     await requireUser(ctx, userId);
     const item = await ctx.db.get(itemId);
-    if (!item) throw new ConvexError("That item is gone.");
-    await requireEventParticipant(ctx, userId, item.eventId, "Join this meetup to claim items.");
+    if (!item) throw new ConvexError({ k: "errors.itemGone" });
+    await requireEventParticipant(ctx, userId, item.eventId, "errors.joinToClaim");
     // Only the claimer can release it; you can't take one already taken.
     if (item.claimedBy && item.claimedBy !== userId) {
-      throw new ConvexError("Someone's already bringing that.");
+      throw new ConvexError({ k: "errors.itemTaken" });
     }
     await ctx.db.patch(itemId, { claimedBy: item.claimedBy === userId ? undefined : userId });
   },
@@ -62,7 +62,7 @@ export const remove = mutation({
     await requireUser(ctx, userId);
     const item = await ctx.db.get(itemId);
     if (!item) return;
-    if (item.createdBy !== userId) throw new ConvexError("Only the person who added it can remove it.");
+    if (item.createdBy !== userId) throw new ConvexError({ k: "errors.itemRemoveOwner" });
     await ctx.db.delete(itemId);
   },
 });

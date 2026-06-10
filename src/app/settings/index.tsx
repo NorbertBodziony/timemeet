@@ -10,6 +10,7 @@ import { SectionHeader } from "../../components/SectionHeader";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAuth } from "../../providers/MockAuthProvider";
 import type { IconName } from "../../lib/icons";
+import { useT } from "../../providers/LanguageProvider";
 
 const PLAN_LABEL: Record<string, string> = {
   free: "Free",
@@ -17,20 +18,22 @@ const PLAN_LABEL: Record<string, string> = {
   founder: "Founder",
 };
 
-const ROWS: { label: string; icon: IconName; href: string }[] = [
-  { label: "Profile", icon: "person-outline", href: "/settings/profile" },
-  { label: "Friends", icon: "people-outline", href: "/friends" },
-  { label: "Crews", icon: "people-circle-outline", href: "/crews" },
-  { label: "Notifications", icon: "notifications-outline", href: "/settings/notifications" },
-  { label: "MeetTime+", icon: "star-outline", href: "/settings/subscription" },
-  { label: "Refer a friend", icon: "gift-outline", href: "/settings/referrals" },
-  { label: "Privacy & data", icon: "lock-closed-outline", href: "/settings/privacy" },
-  { label: "Help", icon: "help-circle-outline", href: "/settings/help" },
-  { label: "Legal", icon: "document-text-outline", href: "/settings/legal" },
+const ROWS: { key: string; icon: IconName; href: string }[] = [
+  { key: "settings.profile", icon: "person-outline", href: "/settings/profile" },
+  { key: "settings.friends", icon: "people-outline", href: "/friends" },
+  { key: "settings.crews", icon: "people-circle-outline", href: "/crews" },
+  { key: "settings.language", icon: "globe-outline", href: "/settings/language" },
+  { key: "settings.notifications", icon: "notifications-outline", href: "/settings/notifications" },
+  { key: "settings.plus", icon: "star-outline", href: "/settings/subscription" },
+  { key: "settings.refer", icon: "gift-outline", href: "/settings/referrals" },
+  { key: "settings.privacy", icon: "lock-closed-outline", href: "/settings/privacy" },
+  { key: "settings.help", icon: "help-circle-outline", href: "/settings/help" },
+  { key: "settings.legal", icon: "document-text-outline", href: "/settings/legal" },
 ];
 
 export default function SettingsHome() {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser, users, switchUser, signOut } = useAuth();
   const sub = useQuery(
     api.subscriptions.get,
@@ -39,7 +42,7 @@ export default function SettingsHome() {
   const plan = sub?.plan ?? "free";
 
   return (
-    <Screen title="Settings" dismiss="back">
+    <Screen title={t("settings.title")} dismiss="back">
       {/* Identity header */}
       <View className="flex-row items-center gap-3 mb-6">
         <UserAvatar name={currentUser?.displayName} photoUrl={currentUser?.photoUrl} size="lg" />
@@ -65,7 +68,7 @@ export default function SettingsHome() {
                 <Icon name={r.icon} size={20} tint="accent" />
               </ListGroup.ItemPrefix>
               <ListGroup.ItemContent>
-                <ListGroup.ItemTitle>{r.label}</ListGroup.ItemTitle>
+                <ListGroup.ItemTitle>{t(r.key)}</ListGroup.ItemTitle>
               </ListGroup.ItemContent>
               <ListGroup.ItemSuffix />
             </ListGroup.Item>
@@ -76,7 +79,7 @@ export default function SettingsHome() {
       {/* Dev-only: switch the mock user to exercise other flows. */}
       {users.length > 1 && (
         <View>
-          <SectionHeader>Switch user (dev)</SectionHeader>
+          <SectionHeader>{t("settings.switchUser")}</SectionHeader>
           <View className="flex-row flex-wrap gap-3">
             {users.map((u) => {
               const on = u._id === currentUser?._id;
@@ -107,7 +110,7 @@ export default function SettingsHome() {
       >
         <Icon name="log-out-outline" size={18} tint="danger" />
         <Text weight="semibold" className="text-danger">
-          Sign out
+          {t("settings.signOut")}
         </Text>
       </Pressable>
       <Text type="body-xs" color="muted" align="center" className="mt-2">

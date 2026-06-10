@@ -1,14 +1,37 @@
 // Display formatting only. Convex stores epoch ms UTC (docs/meettime-mvp.md §13).
+// Day/month names + clock style follow the active language (pl default).
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
+import { getLang } from "./i18n";
+
+const NAMES = {
+  en: {
+    days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  },
+  pl: {
+    days: ["niedz.", "pon.", "wt.", "śr.", "czw.", "pt.", "sob."],
+    months: ["sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis", "gru"],
+  },
+} as const;
+
+function names() {
+  return NAMES[getLang()];
+}
+
+function dayMonth(d: Date): string {
+  // pl: "14 maj" · en: "May 14"
+  return getLang() === "pl"
+    ? `${d.getDate()} ${names().months[d.getMonth()]}`
+    : `${names().months[d.getMonth()]} ${d.getDate()}`;
+}
 
 function clock(d: Date): string {
-  let h = d.getHours();
   const m = d.getMinutes();
+  if (getLang() === "pl") {
+    // Polish reads 24h.
+    return `${d.getHours()}:${String(m).padStart(2, "0")}`;
+  }
+  let h = d.getHours();
   const ampm = h >= 12 ? "pm" : "am";
   h = h % 12 || 12;
   return m === 0 ? `${h}${ampm}` : `${h}:${String(m).padStart(2, "0")}${ampm}`;
@@ -17,13 +40,13 @@ function clock(d: Date): string {
 // e.g. "Wed, May 14, 6:00pm"
 export function formatDateTime(ms: number): string {
   const d = new Date(ms);
-  return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${clock(d)}`;
+  return `${names().days[d.getDay()]}, ${dayMonth(d)}, ${clock(d)}`;
 }
 
 // e.g. "Wed, May 14"
 export function formatDate(ms: number): string {
   const d = new Date(ms);
-  return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
+  return `${names().days[d.getDay()]}, ${dayMonth(d)}`;
 }
 
 // e.g. "6:00pm"

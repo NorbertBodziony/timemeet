@@ -13,9 +13,11 @@ import { attempt, errorMessage } from "../../lib/attempt";
 import { success, tap, warn } from "../../lib/haptics";
 import { pickImages, uploadImage } from "../../lib/photos";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { useT } from "../../providers/LanguageProvider";
 
 export default function Profile() {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser } = useAuth();
   const update = useMutation(api.users.update);
   const uploadUrl = useMutation(api.posts.generateUploadUrl);
@@ -52,13 +54,13 @@ export default function Profile() {
       router.back();
     } catch (e) {
       warn();
-      Alert.alert("Couldn't save", errorMessage(e));
+      Alert.alert(t("errors.saveTitle"), errorMessage(e));
       setBusy(false);
     }
   }
 
   return (
-    <Screen title="Your profile" dismiss="back">
+    <Screen title={t("profile.title")} dismiss="back">
       {/* Profile photo — tap to take or choose one. */}
       <View className="items-center mb-6">
         <Pressable onPress={changePhoto} hitSlop={8}>
@@ -76,24 +78,24 @@ export default function Profile() {
           </View>
         </Pressable>
         <Text type="body-xs" color="muted" className="mt-2">
-          Tap to change your photo
+          {t("profile.changePhoto")}
         </Text>
       </View>
 
-      <FormLabel>Name</FormLabel>
+      <FormLabel>{t("profile.name")}</FormLabel>
       <Input value={name} onChangeText={setName} placeholder="Karolina" />
 
-      <FormLabel className="mt-5">City</FormLabel>
+      <FormLabel className="mt-5">{t("profile.city")}</FormLabel>
       <Input value={city} onChangeText={setCity} placeholder="Kraków" />
 
-      <FormLabel className="mt-5">Referral code</FormLabel>
+      <FormLabel className="mt-5">{t("profile.referralCode")}</FormLabel>
       <Card className="mb-6">
         <Card.Body>
           <Text color="muted">{currentUser?.referralCode ?? "—"}</Text>
         </Card.Body>
       </Card>
 
-      <PrimaryButton label="Save" onPress={save} disabled={!name.trim()} loading={busy} />
+      <PrimaryButton label={t("profile.save")} onPress={save} disabled={!name.trim()} loading={busy} />
     </Screen>
   );
 }

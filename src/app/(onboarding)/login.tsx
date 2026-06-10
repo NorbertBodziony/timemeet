@@ -12,12 +12,14 @@ import { appleSignIn } from "../../lib/auth";
 import { tap, warn } from "../../lib/haptics";
 import { TITLE_TRACKING } from "../../lib/ui";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { useT } from "../../providers/LanguageProvider";
 import { errorMessage } from "../../lib/attempt";
 
 // Login (docs §3.8). Apple uses real Sign-In where available (native build),
 // falling back to a seeded mock session in Expo Go so the demo always works.
 export default function Login() {
   const router = useRouter();
+  const { t } = useT();
   // RSVP-first invited flow: the invite screen sends users here with a `next`
   // param; after auth we land them back to finish their RSVP.
   const { next } = useLocalSearchParams<{ next?: string }>();
@@ -49,7 +51,7 @@ export default function Login() {
       router.replace(dest);
     } catch (e) {
       warn();
-      Alert.alert("Couldn't sign in", errorMessage(e));
+      Alert.alert(t("errors.signInTitle"), errorMessage(e));
     }
   }
 
@@ -64,7 +66,7 @@ export default function Login() {
       router.replace(dest);
     } catch (e) {
       warn();
-      Alert.alert("Couldn't sign in", errorMessage(e));
+      Alert.alert(t("errors.signInTitle"), errorMessage(e));
     }
   }
 
@@ -80,10 +82,10 @@ export default function Login() {
           className="text-4xl leading-tight"
           style={{ letterSpacing: TITLE_TRACKING }}
         >
-          Welcome! Glad you're here.
+          {t("onb.loginTitle")}
         </Text>
         <Text color="muted" className="mt-4 text-base leading-6">
-          Lutek helps your crew meet up more often, without the chaos.
+          {t("onb.loginBody")}
         </Text>
       </View>
       <View className="pb-4 gap-2">
@@ -97,26 +99,24 @@ export default function Login() {
           />
         ) : (
           <Button variant="outline" size="lg" onPress={withApple}>
-            <Button.Label>Continue with Apple</Button.Label>
+            <Button.Label>{t("onb.apple")}</Button.Label>
           </Button>
         )}
         <Button variant="outline" size="lg" onPress={enter}>
-          <Button.Label>Continue with Google</Button.Label>
+          <Button.Label>{t("onb.google")}</Button.Label>
         </Button>
         <Button variant="outline" size="lg" onPress={enter}>
-          <Button.Label>Continue with email</Button.Label>
+          <Button.Label>{t("onb.email")}</Button.Label>
         </Button>
         <View className="mt-3">
           <PrimaryButton
-            label={isLoading ? "Connecting…" : "Let's go"}
+            label={isLoading ? t("onb.connecting") : t("onb.letsGo")}
             onPress={enter}
             disabled={isLoading}
           />
         </View>
         <Text type="body-xs" color="muted" align="center" className="mt-3">
-          {appleAvailable
-            ? "Apple sign-in is live. Google & email are mock for now."
-            : "Mock sign-in — no account needed in this build."}
+          {t(appleAvailable ? "onb.appleLive" : "onb.mockNote")}
         </Text>
       </View>
     </Screen>

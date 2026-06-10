@@ -36,8 +36,8 @@ export const addByCode = mutation({
       .query("users")
       .withIndex("by_referralCode", (q) => q.eq("referralCode", code.trim()))
       .unique();
-    if (!target || target.deletedAt) throw new ConvexError("That code didn't match anyone.");
-    if (target._id === userId) throw new ConvexError("That's your own code 🙂");
+    if (!target || target.deletedAt) throw new ConvexError({ k: "errors.codeNoMatch" });
+    if (target._id === userId) throw new ConvexError({ k: "errors.ownCode" });
 
     const already = await ctx.db
       .query("friends")
@@ -48,7 +48,7 @@ export const addByCode = mutation({
     if (!already) {
       await ctx.db.insert("friends", { userId, friendId: target._id });
       await ctx.db.insert("friends", { userId: target._id, friendId: userId });
-      await notify(ctx, [target._id], "invite", `${me.displayName} added you as a friend`);
+      await notify(ctx, [target._id], "invite", "notif.addedFriend", { name: me.displayName });
     }
     return {
       alreadyFriends: !!already,
@@ -122,10 +122,10 @@ export const inviteFriend = mutation({
       ctx,
       userId,
       eventId,
-      "Join this meetup before inviting friends."
+      "errors.joinToInviteFriends"
     );
     const friend = await ctx.db.get(friendId);
-    if (!friend) throw new ConvexError("That friend isn't around anymore.");
+    if (!friend) throw new ConvexError({ k: "errors.friendGone" });
 
     // Skip if they're already on the guest list.
     const existing = (
@@ -156,7 +156,8 @@ export const inviteFriend = mutation({
       ctx,
       [friendId],
       "invite",
-      `${me.displayName} invited you to ${event.title}`,
+      "notif.invitedYou",
+      { name: me.displayName, title: event.title },
       eventId
     );
     return { invited: true };

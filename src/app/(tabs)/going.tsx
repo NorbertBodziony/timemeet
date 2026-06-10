@@ -5,18 +5,20 @@ import { Icon } from "../../components/Icon";
 import { NotificationBell } from "../../components/NotificationBell";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { useT } from "../../providers/LanguageProvider";
 
 export default function GoingScreen() {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser } = useAuth();
   const firstName = currentUser?.displayName?.split(" ")[0];
 
   return (
     <EventTabList
       tab="going"
-      title={firstName ? `Hi, ${firstName}!` : "Your meetups"}
-      subtitle="What are we planning?"
-      empty="Quiet group chat? Drop a time and let's fix that."
+      title={firstName ? t("tabs.going.titleNamed", { name: firstName }) : t("tabs.going.title")}
+      subtitle={t("tabs.going.subtitle")}
+      empty={t("tabs.going.empty")}
       emptyLutek="thinking"
       right={
         <View className="flex-row items-center gap-4">
@@ -27,7 +29,7 @@ export default function GoingScreen() {
         </View>
       }
       action={
-        <PrimaryButton label="New plan" onPress={() => router.push("/create" as never)} />
+        <PrimaryButton label={t("tabs.newPlan")} onPress={() => router.push("/create" as never)} />
       }
     />
   );

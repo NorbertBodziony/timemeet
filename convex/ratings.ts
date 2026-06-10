@@ -12,7 +12,7 @@ export const set = mutation({
   },
   handler: async (ctx, { userId, eventId, stars, note }) => {
     await requireUser(ctx, userId);
-    if (stars < 1 || stars > 5) throw new ConvexError("Pick 1 to 5 stars.");
+    if (stars < 1 || stars > 5) throw new ConvexError({ k: "errors.starsRange" });
     const existing = await ctx.db
       .query("eventRatings")
       .withIndex("by_event_user", (q) =>

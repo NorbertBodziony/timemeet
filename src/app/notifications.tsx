@@ -13,6 +13,7 @@ import { SurfaceCard } from "../components/SurfaceCard";
 import { formatRelative } from "../lib/datetime";
 import type { IconName } from "../lib/icons";
 import { useAuth } from "../providers/MockAuthProvider";
+import { useT } from "../providers/LanguageProvider";
 
 type NType = Doc<"notifications">["type"];
 
@@ -27,6 +28,7 @@ const META: Record<NType, { icon: IconName; tint: string }> = {
 
 export default function Notifications() {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser } = useAuth();
   const rows = useQuery(
     api.notifications.listForUser,
@@ -42,11 +44,11 @@ export default function Notifications() {
   }, [currentUser, rows, markAllRead]);
 
   return (
-    <Screen title="Notifications" dismiss="back">
+    <Screen title={t("notifScreen.title")} dismiss="back">
       {rows === undefined ? (
         <SkeletonList count={5} />
       ) : rows.length === 0 ? (
-        <EmptyState text="You're all caught up." icon="notifications-outline" />
+        <EmptyState text={t("notifScreen.empty")} icon="notifications-outline" />
       ) : (
         <View className="gap-2.5">
           {rows.map((n) => {

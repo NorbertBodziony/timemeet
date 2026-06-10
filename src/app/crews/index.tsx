@@ -10,9 +10,11 @@ import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { tap } from "../../lib/haptics";
+import { useT } from "../../providers/LanguageProvider";
 
 export default function Crews() {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser } = useAuth();
   const crews = useQuery(
     api.crews.list,
@@ -21,8 +23,8 @@ export default function Crews() {
 
   return (
     <Screen
-      title="Crews"
-      subtitle="Groups you can invite in one tap."
+      title={t("crews.title")}
+      subtitle={t("crews.subtitle")}
       dismiss="back"
       right={
         <Button
@@ -34,14 +36,14 @@ export default function Crews() {
           }}
         >
           <Icon name="add" size={16} color="#FFFFFF" />
-          <Button.Label>New</Button.Label>
+          <Button.Label>{t("crews.new")}</Button.Label>
         </Button>
       }
     >
       {crews === undefined ? null : crews.length === 0 ? (
         <EmptyState
           icon="people-outline"
-          text="No crews yet — make one to invite a whole group at once."
+          text={t("crews.empty")}
         />
       ) : (
         <View className="gap-2.5">
@@ -50,7 +52,7 @@ export default function Crews() {
               <View className="flex-row items-center justify-between">
                 <Text weight="semibold">{c.name}</Text>
                 <Text type="body-xs" color="muted">
-                  {c.members.length} {c.members.length === 1 ? "person" : "people"}
+                  {t(c.members.length === 1 ? "crews.personCount" : "crews.peopleCount", { count: c.members.length })}
                 </Text>
               </View>
               <View className="flex-row flex-wrap gap-2">

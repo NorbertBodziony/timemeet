@@ -15,6 +15,7 @@ import { tap, warn } from "../../../lib/haptics";
 import { useAuth } from "../../../providers/MockAuthProvider";
 import { usePush } from "../../../providers/MockPushProvider";
 import { errorMessage } from "../../../lib/attempt";
+import { useT } from "../../../providers/LanguageProvider";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -28,6 +29,7 @@ function candidateSlots(now: number) {
 
 export default function EditEvent() {
   const router = useRouter();
+  const { t } = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const eventId = id as Id<"events">;
   const { currentUser } = useAuth();
@@ -43,9 +45,9 @@ export default function EditEvent() {
   const [startsAt, setStartsAt] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (data === undefined) return <Screen title="Loading…" dismiss="close">{null}</Screen>;
+  if (data === undefined) return <Screen title={t("common.loading")} dismiss="close">{null}</Screen>;
   if (data === null)
-    return <Screen title="Event not found" dismiss="close">{null}</Screen>;
+    return <Screen title={t("common.eventNotFound")} dismiss="close">{null}</Screen>;
   const { event } = data;
 
   const curTitle = title ?? event.title;
@@ -54,13 +56,13 @@ export default function EditEvent() {
   const curStart = startsAt ?? event.startsAt;
 
   const changes: { label: string; from: string; to: string }[] = [];
-  if (curTitle !== event.title) changes.push({ label: "Title", from: event.title, to: curTitle });
+  if (curTitle !== event.title) changes.push({ label: t("eventForm.fieldTitle"), from: event.title, to: curTitle });
   if (curAddress !== (event.customAddress ?? ""))
-    changes.push({ label: "Where", from: event.customAddress ?? "—", to: curAddress || "—" });
+    changes.push({ label: t("eventForm.where"), from: event.customAddress ?? "—", to: curAddress || "—" });
   if (curDesc !== (event.description ?? ""))
-    changes.push({ label: "Notes", from: event.description ?? "—", to: curDesc || "—" });
+    changes.push({ label: t("eventEdit.notes"), from: event.description ?? "—", to: curDesc || "—" });
   if (curStart !== event.startsAt)
-    changes.push({ label: "When", from: formatDateTime(event.startsAt), to: formatDateTime(curStart) });
+    changes.push({ label: t("eventForm.when"), from: formatDateTime(event.startsAt), to: formatDateTime(curStart) });
 
   async function save() {
     if (!currentUser || changes.length === 0) return;
@@ -76,27 +78,27 @@ export default function EditEvent() {
           startsAt: curStart,
         },
       });
-      push.push({ title: `Updated: ${curTitle}` });
+      push.push({ title: t("eventEdit.updated", { title: curTitle }) });
       router.back();
     } catch (e) {
       warn();
-      Alert.alert("Couldn't save", errorMessage(e));
+      Alert.alert(t("errors.saveTitle"), errorMessage(e));
       setBusy(false);
     }
   }
 
   return (
-    <Screen title="Edit meetup" dismiss="close">
-      <FormLabel>Title</FormLabel>
+    <Screen title={t("eventEdit.title")} dismiss="close">
+      <FormLabel>{t("eventForm.fieldTitle")}</FormLabel>
       <Input value={curTitle} onChangeText={setTitle} maxLength={100} />
 
-      <FormLabel className="mt-5">Where</FormLabel>
-      <Input value={curAddress} onChangeText={setAddress} placeholder="Address" />
+      <FormLabel className="mt-5">{t("eventForm.where")}</FormLabel>
+      <Input value={curAddress} onChangeText={setAddress} placeholder={t("eventEdit.address")} />
 
-      <FormLabel className="mt-5">Notes</FormLabel>
-      <Input value={curDesc} onChangeText={setDescription} placeholder="Optional" multiline />
+      <FormLabel className="mt-5">{t("eventEdit.notes")}</FormLabel>
+      <Input value={curDesc} onChangeText={setDescription} placeholder={t("eventEdit.notesPlaceholder")} multiline />
 
-      <FormLabel className="mt-5">When</FormLabel>
+      <FormLabel className="mt-5">{t("eventForm.when")}</FormLabel>
       <ListGroup>
         {slots.map((s, i) => {
           const on = curStart === s;
@@ -128,7 +130,7 @@ export default function EditEvent() {
       {changes.length > 0 && (
         <Card className="mt-5 mb-4">
           <Card.Body>
-            <SectionHeader tight>Changes</SectionHeader>
+            <SectionHeader tight>{t("eventEdit.changes")}</SectionHeader>
             {changes.map((c) => (
               <Text key={c.label} type="body-sm" color="muted" className="mb-1">
                 {c.label}: {c.from} →{" "}
@@ -142,7 +144,7 @@ export default function EditEvent() {
       )}
 
       <View className="mt-2">
-        <PrimaryButton label="Save changes" onPress={save} disabled={changes.length === 0} loading={busy} />
+        <PrimaryButton label={t("eventEdit.save")} onPress={save} disabled={changes.length === 0} loading={busy} />
       </View>
     </Screen>
   );

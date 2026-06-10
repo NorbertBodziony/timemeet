@@ -3,10 +3,12 @@ import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useConvexConnectionState } from "convex/react";
 import { Text } from "heroui-native";
+import { useT } from "../providers/LanguageProvider";
 
 // Slim banner when the Convex websocket drops. Debounced so it never flashes
 // during normal app launch / brief blips.
 export function OfflineBanner() {
+  const { t } = useT();
   const state = useConvexConnectionState();
   const insets = useSafeAreaInsets();
   const [show, setShow] = useState(false);
@@ -30,7 +32,7 @@ export function OfflineBanner() {
     >
       <View className="bg-foreground rounded-full px-4 py-1.5 opacity-90">
         <Text type="body-xs" weight="semibold" className="text-background">
-          You're offline — changes will sync when you're back
+          {t("offline.banner")}
         </Text>
       </View>
     </View>

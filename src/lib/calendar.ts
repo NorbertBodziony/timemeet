@@ -1,6 +1,7 @@
 import { Alert, Platform } from "react-native";
 import * as Calendar from "expo-calendar";
 import { success } from "./haptics";
+import { t } from "./i18n";
 import { shareIcs } from "./ics";
 
 type EventInput = {
@@ -45,7 +46,7 @@ export async function addToCalendar(event: EventInput): Promise<void> {
       notes: event.description,
     });
     success();
-    Alert.alert("In your calendar 🎉", `${event.title} is saved.`);
+    Alert.alert(t("event.inCalendar"), t("event.calendarSaved", { title: event.title }));
   } catch {
     // Native write failed for any other reason — the share sheet still works.
     await shareIcs(event);

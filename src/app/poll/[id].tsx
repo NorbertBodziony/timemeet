@@ -18,13 +18,15 @@ import { tap, warn } from "../../lib/haptics";
 import { RSVP_COLORS } from "../../lib/theme";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
+import { useT } from "../../providers/LanguageProvider";
+import { t as tt } from "../../lib/i18n";
 
 type Vote = "yes" | "maybe" | "no";
 // Same status-pill control as RSVP, so voting reads identically across the app.
-const VOTE_OPTIONS: PillOption[] = [
-  { value: "yes", label: "Yes", fill: RSVP_COLORS.going.fill, icon: "checkmark-circle" },
-  { value: "maybe", label: "Maybe", fill: RSVP_COLORS.maybe.fill, icon: "help-circle" },
-  { value: "no", label: "No", fill: RSVP_COLORS.not_going.fill, icon: "close-circle" },
+const voteOptions = (): PillOption[] => [
+  { value: "yes", label: tt("poll.yes"), fill: RSVP_COLORS.going.fill, icon: "checkmark-circle" },
+  { value: "maybe", label: tt("poll.maybe"), fill: RSVP_COLORS.maybe.fill, icon: "help-circle" },
+  { value: "no", label: tt("poll.no"), fill: RSVP_COLORS.not_going.fill, icon: "close-circle" },
 ];
 
 function VoteRow({
@@ -57,12 +59,12 @@ function VoteRow({
           </View>
         </View>
         <Text type="body-xs" weight="semibold" color="muted">
-          {counts.yes} yes{counts.maybe ? ` · ${counts.maybe} maybe` : ""}
+          {tt("poll.yesCount", { count: counts.yes })}{counts.maybe ? tt("poll.maybeCount", { count: counts.maybe }) : ""}
         </Text>
       </View>
       {!disabled && (
         <StatusPills
-          options={VOTE_OPTIONS}
+          options={voteOptions()}
           value={mine ?? null}
           onChange={(v) => onVote(v as Vote)}
           columns={3}
@@ -74,6 +76,7 @@ function VoteRow({
 
 export default function PollDetail() {
   const router = useRouter();
+  const { t } = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const pollId = id as Id<"polls">;
   const { currentUser } = useAuth();
@@ -87,9 +90,9 @@ export default function PollDetail() {
   const castVote = useMutation(api.polls.vote);
   const convert = useMutation(api.polls.convertToEvent);
 
-  if (data === undefined) return <Screen title="Loading…" dismiss="back">{null}</Screen>;
+  if (data === undefined) return <Screen title={t("common.loading")} dismiss="back">{null}</Screen>;
   if (data === null)
-    return <Screen title="Poll not found" dismiss="back">{null}</Screen>;
+    return <Screen title={t("common.pollNotFound")} dismiss="back">{null}</Screen>;
 
   const { poll, slots, placeOptions, myVotes } = data;
   const isOrganizer = currentUser?._id === poll.creatorId;
@@ -137,9 +140,9 @@ export default function PollDetail() {
     if (!token) return;
     const url = Linking.createURL(`/p/${token}`);
     try {
-      await Share.share({ message: `Vote on "${poll.title}" — no account needed\n${url}`, url });
+      await Share.share({ message: t("poll.shareMessage", { title: poll.title, url }), url });
     } catch {
-      Alert.alert("Couldn't open share", url);
+      Alert.alert(t("errors.shareTitle"), url);
     }
   }
 
@@ -153,28 +156,28 @@ export default function PollDetail() {
         // time_place: the winning venue becomes the meetup's address.
         customAddress: both ? placeLeader?.address : undefined,
       });
-      celebrate("Plan's set! You've got a meetup.");
+      celebrate(t("poll.planSetCelebrate"));
       router.replace({ pathname: "/event/[id]", params: { id: eventId } });
     } catch (e) {
       warn();
-      Alert.alert("Couldn't convert", errorMessage(e));
+      Alert.alert(t("errors.convertTitle"), errorMessage(e));
     }
   }
 
   return (
     <Screen
       title={poll.title}
-      subtitle={converted ? "Converted to a meetup" : "Tap your pick for each option"}
+      subtitle={converted ? t("poll.converted") : t("poll.tapYourPick")}
       dismiss="back"
     >
       {!converted && !!poll.shareToken && (
         <View className="mb-4">
-          <SecondaryButton icon="share-outline" label="Share to collect votes" onPress={sharePoll} />
+          <SecondaryButton icon="share-outline" label={t("poll.share")} onPress={sharePoll} />
         </View>
       )}
       {hasSlots && (
         <>
-          {both && <SectionHeader tight>When</SectionHeader>}
+          {both && <SectionHeader tight>{t("poll.when")}</SectionHeader>}
           {slots.map((slot) => (
             <VoteRow
               key={slot._id}
@@ -192,7 +195,7 @@ export default function PollDetail() {
 
       {hasPlaces && (
         <>
-          {both && <SectionHeader>Where</SectionHeader>}
+          {both && <SectionHeader>{t("poll.where")}</SectionHeader>}
           {placeOptions.map((p) => (
             <VoteRow
               key={p._id}
@@ -210,14 +213,12 @@ export default function PollDetail() {
       {isOrganizer && !converted && hasSlots && (
         <View className="mt-3">
           <PrimaryButton
-            label={both ? "Convert winners → meetup" : "Convert winning slot → meetup"}
+            label={t(both ? "poll.convertBoth" : "poll.convertSlot")}
             onPress={doConvert}
             disabled={!leader || leader.yes === 0}
           />
           <Text type="body-xs" color="muted" align="center" className="mt-2">
-            {both
-              ? "Picks the top time and place. Voters auto-RSVP."
-              : "Picks the slot with the most “yes”. Voters auto-RSVP."}
+            {t(both ? "poll.convertHintBoth" : "poll.convertHint")}
           </Text>
         </View>
       )}
@@ -225,7 +226,7 @@ export default function PollDetail() {
       {isPlace && !converted && isOrganizer && (
         <View className="mt-3">
           <PrimaryButton
-            label="Use winning place → new meetup"
+            label={t("poll.usePlace")}
             onPress={() =>
               placeLeader &&
               router.push({
@@ -236,20 +237,20 @@ export default function PollDetail() {
             disabled={!placeLeader || placeLeader.yes === 0}
           />
           <Text type="body-xs" color="muted" align="center" className="mt-2">
-            Seeds a meetup at the top venue — you pick the time next.
+            {t("poll.usePlaceHint")}
           </Text>
         </View>
       )}
       {isPlace && !converted && !isOrganizer && (
         <Text type="body-xs" color="muted" align="center" className="mt-2">
-          Place polls settle the venue. The organizer turns the winner into a meetup.
+          {t("poll.placeOrganizerHint")}
         </Text>
       )}
 
       {converted && poll.eventId && (
         <View className="mt-3">
           <PrimaryButton
-            label="Open the meetup"
+            label={t("poll.openMeetup")}
             onPress={() =>
               router.replace({
                 pathname: "/event/[id]",

@@ -8,10 +8,14 @@ import { Icon } from "./Icon";
 import { PressableScale } from "./PressableScale";
 import { StarRating } from "./StarRating";
 import { cardShadow } from "../lib/ui";
+import { useT } from "../providers/LanguageProvider";
 import { GRADIENTS, RSVP, RSVP_COLORS, type RsvpStatus } from "../lib/theme";
 
 type Counts = Record<RsvpStatus, number>;
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS: Record<string, string[]> = {
+  en: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"],
+  pl: ["NDZ", "PON", "WT", "ŚR", "CZW", "PT", "SOB"],
+};
 
 function isToday(ms: number): boolean {
   const a = new Date(ms);
@@ -43,6 +47,7 @@ export function EventCard({
   coverUrl?: string | null;
   onPress: () => void;
 }) {
+  const { t, lang } = useT();
   const declined = viewerStatus === "not_going";
   const d = new Date(event.startsAt);
   const place = event.customAddress ?? event.placeId ?? "";
@@ -85,7 +90,7 @@ export function EventCard({
             ) : (
               <>
                 <Text type="body-xs" weight="semibold" className="text-accent-soft-foreground">
-                  {today ? "TODAY" : DAYS[d.getDay()].toUpperCase()}
+                  {today ? t("common.todayTile") : DAYS[lang][d.getDay()]}
                 </Text>
                 <Text type="h3" weight="bold" className="text-accent-soft-foreground leading-none">
                   {d.getDate()}
@@ -130,7 +135,7 @@ export function EventCard({
                   </>
                 ) : (
                   <Text type="body-xs" color="muted">
-                    Tap to rate
+                    {t("ratings.tapToRate")}
                   </Text>
                 )}
               </View>
@@ -139,7 +144,7 @@ export function EventCard({
                 <View className="flex-row items-center gap-1 mt-1">
                   <Icon name="people-outline" size={13} tint="muted" />
                   <Text type="body-xs" color="muted">
-                    {counts.going} going{counts.maybe ? ` · ${counts.maybe} maybe` : ""}
+                    {t("event.goingMaybe", { going: counts.going, maybe: counts.maybe })}
                   </Text>
                 </View>
               )
@@ -163,7 +168,7 @@ export function EventCard({
               style={{ backgroundColor: statusColor.soft }}
             >
               <Text type="body-xs" weight="semibold" style={{ color: statusColor.softFg }}>
-                {status.label}
+                {t(status.labelKey)}
               </Text>
             </View>
           )}

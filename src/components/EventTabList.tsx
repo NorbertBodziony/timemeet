@@ -13,6 +13,7 @@ import { Screen } from "./Screen";
 import { SkeletonList } from "./Skeleton";
 import { CATEGORIES, type CategoryKey } from "../lib/categories";
 import { impact } from "../lib/haptics";
+import { useT } from "../providers/LanguageProvider";
 import type { IconName } from "../lib/icons";
 import type { LutekMood } from "./Lutek";
 
@@ -38,6 +39,7 @@ export function EventTabList({
   right?: ReactNode;
 }) {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser } = useAuth();
   // Clear the translucent tab bar (~49pt above the safe area).
   const TAB_BAR = 49;
@@ -102,7 +104,7 @@ export function EventTabList({
                     weight="semibold"
                     className={on ? "text-accent-soft-foreground" : "text-foreground"}
                   >
-                    {cat ? cat.label : "All"}
+                    {cat ? t(cat.labelKey) : t("filter.all")}
                   </Text>
                 </View>
               </PressableScale>

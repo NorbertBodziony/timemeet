@@ -34,7 +34,10 @@ know. Polish-first. Hero features: **Plan Polls** (ankieta terminu), **Place Pol
 - Type: HeroUI default (system) typography — `Text` with `type`/`weight`/`color` props.
 
 ## Copy law (full strings in spec §5)
-- **English**, **sentence case**, **2nd person** ("Rally your crew", "Hi, Marta!").
+- **Bilingual: Polish (default) + English** — all UI strings live in
+  `src/lib/translations/{pl,en}.ts` (use `useT()` / `t()`); server notification titles in
+  `convex/i18n.ts`; server errors throw `ConvexError({ k: "errors.…" })` keys. Never
+  hardcode user-facing strings. **Sentence case**, **2nd person** ("Cześć, Marta!").
 - Use the **MeetTime glossary** words exactly: crew / squad (never "community"/"users"),
   Lutek, Time Poll, Place Poll, meetup, plan, you in?, no stress.
 - **`"Not going"` is NEVER punishing** — zero red, zero ❌, zero "declined". Phrasing: "can't

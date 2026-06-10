@@ -5,6 +5,7 @@ import type { ColorValue } from "react-native";
 import { BlurView } from "expo-blur";
 import { useThemeColor } from "heroui-native";
 import { ICONS } from "../../lib/icons";
+import { useT } from "../../providers/LanguageProvider";
 import { tap } from "../../lib/haptics";
 
 type IonName = keyof typeof Ionicons.glyphMap;
@@ -16,6 +17,7 @@ function tabIcon(outline: IonName, filled: IonName) {
 }
 
 export default function TabsLayout() {
+  const { t } = useT();
   const accent = useThemeColor("accent");
   const muted = useThemeColor("muted");
   const surface = useThemeColor("surface");
@@ -52,21 +54,21 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="to-confirm"
         options={{
-          title: "To confirm",
+          title: t("tabs.toConfirm"),
           tabBarIcon: tabIcon(ICONS.toConfirm, ICONS.toConfirmActive),
         }}
       />
       <Tabs.Screen
         name="going"
-        options={{ title: "Going", tabBarIcon: tabIcon(ICONS.going, ICONS.goingActive) }}
+        options={{ title: t("tabs.going"), tabBarIcon: tabIcon(ICONS.going, ICONS.goingActive) }}
       />
       <Tabs.Screen
         name="history"
-        options={{ title: "History", tabBarIcon: tabIcon(ICONS.history, ICONS.historyActive) }}
+        options={{ title: t("tabs.history"), tabBarIcon: tabIcon(ICONS.history, ICONS.historyActive) }}
       />
       <Tabs.Screen
         name="mine"
-        options={{ title: "My events", tabBarIcon: tabIcon(ICONS.mine, ICONS.mineActive) }}
+        options={{ title: t("tabs.mine"), tabBarIcon: tabIcon(ICONS.mine, ICONS.mineActive) }}
       />
     </Tabs>
   );

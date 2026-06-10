@@ -6,47 +6,29 @@ import { IconTile } from "../components/IconTile";
 import { Screen } from "../components/Screen";
 import { SurfaceCard } from "../components/SurfaceCard";
 import type { IconName } from "../lib/icons";
+import { useT } from "../providers/LanguageProvider";
 
 type Option = {
   icon: IconName;
-  title: string;
-  body: string;
+  titleKey: string;
+  bodyKey: string;
   href: string;
 };
 
 // The four ways to start a plan (docs §8). Event first — when you already know
 // when & where, skip the voting entirely (the Luma case).
 const OPTIONS: Option[] = [
-  {
-    icon: "calendar",
-    title: "New event",
-    body: "You know when & where — skip the voting.",
-    href: "/event/new",
-  },
-  {
-    icon: "time-outline",
-    title: "Time poll",
-    body: "Crew picks the time.",
-    href: "/poll/new?type=time",
-  },
-  {
-    icon: "location-outline",
-    title: "Place poll",
-    body: "Crew picks the spot.",
-    href: "/poll/new?type=place",
-  },
-  {
-    icon: "options-outline",
-    title: "Time & place poll",
-    body: "Vote on both at once.",
-    href: "/poll/new?type=time_place",
-  },
+  { icon: "calendar", titleKey: "create.event", bodyKey: "create.eventBody", href: "/event/new" },
+  { icon: "time-outline", titleKey: "create.timePoll", bodyKey: "create.timePollBody", href: "/poll/new?type=time" },
+  { icon: "location-outline", titleKey: "create.placePoll", bodyKey: "create.placePollBody", href: "/poll/new?type=place" },
+  { icon: "options-outline", titleKey: "create.bothPoll", bodyKey: "create.bothPollBody", href: "/poll/new?type=time_place" },
 ];
 
 export default function Create() {
   const router = useRouter();
+  const { t } = useT();
   return (
-    <Screen title="New plan" subtitle="How do you want to start?" dismiss="close">
+    <Screen title={t("create.title")} subtitle={t("create.subtitle")} dismiss="close">
       <View className="gap-2.5">
         {OPTIONS.map((o) => (
           <SurfaceCard
@@ -59,9 +41,9 @@ export default function Create() {
           >
             <IconTile name={o.icon} size="md" />
             <View className="flex-1">
-              <Text weight="semibold">{o.title}</Text>
+              <Text weight="semibold">{t(o.titleKey)}</Text>
               <Text type="body-xs" color="muted">
-                {o.body}
+                {t(o.bodyKey)}
               </Text>
             </View>
             <Icon name="chevron-forward" size={16} tint="muted" />

@@ -8,16 +8,18 @@ import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { useT } from "../../providers/LanguageProvider";
 import { warn } from "../../lib/haptics";
 import { errorMessage } from "../../lib/attempt";
 
-const STEPS: { icon: "share-outline" | "person-add-outline" | "gift-outline"; text: string }[] = [
-  { icon: "share-outline", text: "Share your code with a friend." },
-  { icon: "person-add-outline", text: "They join and RSVP to their first meetup." },
-  { icon: "gift-outline", text: "You both get a free extra event." },
+const STEPS: { icon: "share-outline" | "person-add-outline" | "gift-outline"; key: string }[] = [
+  { icon: "share-outline", key: "ref.step1" },
+  { icon: "person-add-outline", key: "ref.step2" },
+  { icon: "gift-outline", key: "ref.step3" },
 ];
 
 export default function Referrals() {
+  const { t } = useT();
   const { currentUser } = useAuth();
   const stats = useQuery(
     api.referrals.myStats,
@@ -28,7 +30,7 @@ export default function Referrals() {
 
   function share() {
     Share.share({
-      message: `Join me on MeetTime — use my code ${stats?.code ?? ""}`,
+      message: t("ref.shareMessage", { code: stats?.code ?? "" }),
     }).catch(() => {});
   }
 
@@ -37,27 +39,27 @@ export default function Referrals() {
     try {
       await setReferredBy({ userId: currentUser._id, code: code.trim() });
       setCode("");
-      Alert.alert("Thanks!", "We've noted who invited you.");
+      Alert.alert(t("ref.thanks"), t("ref.noted"));
     } catch (e) {
       warn();
-      Alert.alert("Hmm", errorMessage(e));
+      Alert.alert(t("errors.hmm"), errorMessage(e));
     }
   }
 
   return (
-    <Screen title="Refer a friend" subtitle="Bring your crew. Everyone wins." dismiss="back">
+    <Screen title={t("ref.title")} subtitle={t("ref.subtitle")} dismiss="back">
       <Card className="mb-5">
         <Card.Body className="items-center py-5">
           <Icon name="gift" size={28} tint="accent" />
           <Text type="body-xs" weight="semibold" color="muted" className="mt-2">
-            YOUR CODE
+            {t("ref.yourCode")}
           </Text>
           <Text type="h2" weight="bold" className="mt-1">
             {stats?.code ?? "—"}
           </Text>
           {!!stats && (
             <Text type="body-xs" color="muted" className="mt-1">
-              {stats.activated} joined · {stats.total} invited
+              {t("ref.stats", { activated: stats.activated, total: stats.total })}
             </Text>
           )}
         </Card.Body>
@@ -69,19 +71,19 @@ export default function Referrals() {
             <Icon name={s.icon} size={16} tint="accent" />
           </View>
           <Text type="body-sm" className="flex-1">
-            {s.text}
+            {t(s.key)}
           </Text>
         </View>
       ))}
 
       <View className="mt-3">
-        <PrimaryButton label="Share my code" onPress={share} />
+        <PrimaryButton label={t("ref.share")} onPress={share} />
       </View>
 
-      <FormLabel className="mt-7">Were you referred?</FormLabel>
+      <FormLabel className="mt-7">{t("ref.referredQ")}</FormLabel>
       <Input value={code} onChangeText={setCode} autoCapitalize="characters" placeholder="MEETTIME-NAME-XXX" />
       <View className="mt-2">
-        <PrimaryButton label="Add code" onPress={submitReferredBy} disabled={!code.trim()} />
+        <PrimaryButton label={t("ref.addCode")} onPress={submitReferredBy} disabled={!code.trim()} />
       </View>
     </Screen>
   );

@@ -4,6 +4,7 @@ import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { requireUser } from "./helpers";
+import { render } from "./i18n";
 
 type NotifType =
   | "invite"
@@ -51,7 +52,8 @@ export async function notify(
   ctx: MutationCtx,
   recipients: Id<"users">[],
   type: NotifType,
-  title: string,
+  titleKey: string,
+  params?: Record<string, string>,
   eventId?: Id<"events">
 ) {
   await Promise.all(
@@ -63,6 +65,8 @@ export async function notify(
         const key = PREF_KEY[type];
         if (key && prefs[key] === false) return; // muted this type
       }
+      // Render the title in the recipient's language (pl default).
+      const title = render(user?.language, titleKey, params);
       await ctx.db.insert("notifications", { userId, type, title, eventId, read: false });
       // Real device push (if the user registered a token). Quiet hours hold
       // non-critical pushes until 08:00 local — cancellations always go now.

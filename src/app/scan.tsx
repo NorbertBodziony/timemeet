@@ -5,6 +5,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { Button, Text } from "heroui-native";
 import { IconTile } from "../components/IconTile";
 import { Screen } from "../components/Screen";
+import { useT } from "../providers/LanguageProvider";
 import { impact, tap } from "../lib/haptics";
 
 const FRAME = 280; // QR viewfinder size
@@ -21,6 +22,7 @@ function extractCode(data: string): string | null {
 
 export default function Scan() {
   const router = useRouter();
+  const { t } = useT();
   const [permission, requestPermission] = useCameraPermissions();
   const handled = useRef(false);
   const [scanned, setScanned] = useState(false);
@@ -36,15 +38,15 @@ export default function Scan() {
   }
 
   // Permission not requested yet.
-  if (!permission) return <Screen title="Scan" dismiss="close">{null}</Screen>;
+  if (!permission) return <Screen title={t("scan.title")} dismiss="close">{null}</Screen>;
 
   if (!permission.granted) {
     return (
-      <Screen title="Scan a code" subtitle="Point your camera at a friend's QR code." dismiss="close">
+      <Screen title={t("scan.title")} subtitle={t("scan.permissionSubtitle")} dismiss="close">
         <View className="flex-1 items-center justify-center gap-4 py-20">
           <IconTile name="camera-outline" size="lg" tone="neutral" />
           <Text color="muted" align="center" className="max-w-[260px] leading-5">
-            MeetTime needs camera access to scan QR codes.
+            {t("scan.needCamera")}
           </Text>
           <Button
             variant="primary"
@@ -54,7 +56,7 @@ export default function Scan() {
               requestPermission();
             }}
           >
-            <Button.Label>Allow camera</Button.Label>
+            <Button.Label>{t("scan.allow")}</Button.Label>
           </Button>
         </View>
       </Screen>
@@ -62,7 +64,7 @@ export default function Scan() {
   }
 
   return (
-    <Screen title="Scan a code" subtitle="Point at a friend's QR code." dismiss="close" scroll={false}>
+    <Screen title={t("scan.title")} subtitle={t("scan.subtitle")} dismiss="close" scroll={false}>
       <View className="flex-1 items-center justify-center">
         <View
           className="overflow-hidden rounded-3xl border border-border"
@@ -76,7 +78,7 @@ export default function Scan() {
           />
         </View>
         <Text color="muted" align="center" className="mt-6">
-          Line up the QR code inside the frame.
+          {t("scan.lineUp")}
         </Text>
       </View>
     </Screen>

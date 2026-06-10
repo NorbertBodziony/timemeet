@@ -46,7 +46,7 @@ export const create = mutation({
   handler: async (ctx, { userId, name, memberIds }) => {
     await requireUser(ctx, userId);
     const title = name.trim();
-    if (!title) throw new ConvexError("Give your crew a name first.");
+    if (!title) throw new ConvexError({ k: "errors.nameCrew" });
     const crewId = await ctx.db.insert("crews", {
       name: title,
       createdBy: userId,
@@ -79,7 +79,7 @@ export const inviteToEvent = mutation({
       ctx,
       userId,
       eventId,
-      "Join this meetup before inviting your crew."
+      "errors.joinToInviteCrew"
     );
 
     const members = await ctx.db
@@ -88,7 +88,7 @@ export const inviteToEvent = mutation({
       .collect();
     // …and a member of the crew you're inviting.
     if (!members.some((m) => m.userId === userId)) {
-      throw new ConvexError("You're not in that crew.");
+      throw new ConvexError({ k: "errors.notInCrew" });
     }
     const rsvps = await ctx.db
       .query("rsvps")
@@ -118,7 +118,8 @@ export const inviteToEvent = mutation({
       ctx,
       fresh,
       "invite",
-      `${me.displayName} invited you to ${event.title}`,
+      "notif.invitedYou",
+      { name: me.displayName, title: event.title },
       eventId
     );
     return { invited: fresh.length };

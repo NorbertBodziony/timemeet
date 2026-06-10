@@ -15,6 +15,7 @@ import { tap, warn } from "../../lib/haptics";
 import { pickImages, uploadImage } from "../../lib/photos";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
+import { useT } from "../../providers/LanguageProvider";
 import { errorMessage } from "../../lib/attempt";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -30,6 +31,7 @@ function candidateSlots(now: number) {
 
 export default function NewEvent() {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser } = useAuth();
   const { celebrate } = useCelebrate();
   const create = useMutation(api.events.create);
@@ -62,7 +64,7 @@ export default function NewEvent() {
       setCover({ id, uri: uris[0] });
     } catch {
       warn();
-      Alert.alert("Couldn't add that photo", "Give it another try in a moment.");
+      Alert.alert(t("errors.photoTitle"), t("errors.retryMoment"));
     } finally {
       setCoverBusy(false);
     }
@@ -92,18 +94,18 @@ export default function NewEvent() {
         capacity: cap,
         minThreshold: minT,
       });
-      celebrate("Meetup created!");
+      celebrate(t("eventForm.created"));
       router.replace({ pathname: "/event/[id]", params: { id: eventId } });
     } catch (e) {
       warn();
-      Alert.alert("Couldn't create the event", errorMessage(e));
+      Alert.alert(t("errors.createEventTitle"), errorMessage(e));
       setBusy(false);
     }
   }
 
   if (preview && when !== null) {
     return (
-      <Screen title="Preview" subtitle="This is what your crew will see." dismiss="close">
+      <Screen title={t("eventForm.previewTitle")} subtitle={t("eventForm.previewSubtitle")} dismiss="close">
         <Card className="mb-6">
           {cover && (
             <Image
@@ -135,14 +137,14 @@ export default function NewEvent() {
               </Text>
             )}
             <Text type="body-xs" color="muted" className="mt-1">
-              Invite only · organized by {currentUser?.displayName ?? "you"}
+              {t("eventForm.inviteOnlyBy", { name: currentUser?.displayName ?? t("eventForm.you") })}
             </Text>
           </Card.Body>
         </Card>
-        <PrimaryButton label="Publish" onPress={submit} loading={busy} />
+        <PrimaryButton label={t("eventForm.publish")} onPress={submit} loading={busy} />
         <Pressable onPress={() => setPreview(false)} className="py-3 items-center mt-1">
           <Text weight="semibold" color="muted">
-            Back to edit
+            {t("eventForm.backToEdit")}
           </Text>
         </Pressable>
       </Screen>
@@ -150,23 +152,23 @@ export default function NewEvent() {
   }
 
   return (
-    <Screen title="New meetup" dismiss="close">
-      <FormLabel>Title</FormLabel>
-      <Input value={title} onChangeText={setTitle} placeholder="Coffee at Karma ☕" maxLength={100} />
+    <Screen title={t("eventForm.title")} dismiss="close">
+      <FormLabel>{t("eventForm.fieldTitle")}</FormLabel>
+      <Input value={title} onChangeText={setTitle} placeholder={t("eventForm.titlePlaceholder")} maxLength={100} />
 
-      <FormLabel className="mt-5">Where</FormLabel>
-      <Input value={address} onChangeText={setAddress} placeholder="Krupnicza 12, Kraków" />
+      <FormLabel className="mt-5">{t("eventForm.where")}</FormLabel>
+      <Input value={address} onChangeText={setAddress} placeholder={t("eventForm.wherePlaceholder")} />
 
-      <FormLabel className="mt-5">Anything else?</FormLabel>
+      <FormLabel className="mt-5">{t("eventForm.notes")}</FormLabel>
       <Input
         value={description}
         onChangeText={setDescription}
-        placeholder="Bring a board game, dress warm…"
+        placeholder={t("eventForm.notesPlaceholder")}
         multiline
         maxLength={1000}
       />
 
-      <FormLabel className="mt-5">Cover photo</FormLabel>
+      <FormLabel className="mt-5">{t("eventForm.cover")}</FormLabel>
       <Pressable onPress={pickCover}>
         {cover ? (
           <Image
@@ -179,13 +181,13 @@ export default function NewEvent() {
           <View className="rounded-2xl bg-surface border border-border items-center justify-center py-6">
             <Icon name={coverBusy ? "hourglass-outline" : "image-outline"} size={22} tint="muted" />
             <Text type="body-xs" color="muted" className="mt-1">
-              {coverBusy ? "Uploading…" : "Add a cover (optional)"}
+              {coverBusy ? t("eventForm.coverUploading") : t("eventForm.coverAdd")}
             </Text>
           </View>
         )}
       </Pressable>
 
-      <FormLabel className="mt-5">When</FormLabel>
+      <FormLabel className="mt-5">{t("eventForm.when")}</FormLabel>
       <ListGroup>
         {slots.map((slot, i) => {
           const on = when === slot.startsAt;
@@ -217,7 +219,7 @@ export default function NewEvent() {
         })}
       </ListGroup>
 
-      <FormLabel className="mt-5">Category</FormLabel>
+      <FormLabel className="mt-5">{t("eventForm.category")}</FormLabel>
       <View className="flex-row flex-wrap gap-2">
         {CATEGORIES.map((c) => {
           const on = category === c.key;
@@ -238,7 +240,7 @@ export default function NewEvent() {
                   weight="semibold"
                   className={on ? "text-accent-soft-foreground" : "text-foreground"}
                 >
-                  {c.label}
+                  {t(c.labelKey)}
                 </Text>
               </View>
             </PressableScale>
@@ -249,30 +251,30 @@ export default function NewEvent() {
       {/* Optional anti-flake controls */}
       <View className="flex-row gap-3 mt-5">
         <View className="flex-1">
-          <FormLabel>Capacity</FormLabel>
+          <FormLabel>{t("eventForm.capacity")}</FormLabel>
           <Input
             value={capacity}
             onChangeText={setCapacity}
-            placeholder="Any"
+            placeholder={t("eventForm.capacityAny")}
             keyboardType="number-pad"
           />
         </View>
         <View className="flex-1">
-          <FormLabel>Min to confirm</FormLabel>
+          <FormLabel>{t("eventForm.minConfirm")}</FormLabel>
           <Input
             value={minPeople}
             onChangeText={setMinPeople}
-            placeholder="None"
+            placeholder={t("eventForm.minNone")}
             keyboardType="number-pad"
           />
         </View>
       </View>
       <Text type="body-xs" color="muted" className="mt-1.5 ml-1">
-        Min auto-cancels if too few are in 2h before. Over capacity → waitlist.
+        {t("eventForm.antiFlakeHint")}
       </Text>
 
       <View className="mt-5">
-        <PrimaryButton label="Preview" onPress={() => setPreview(true)} disabled={!valid} />
+        <PrimaryButton label={t("eventForm.preview")} onPress={() => setPreview(true)} disabled={!valid} />
       </View>
     </Screen>
   );

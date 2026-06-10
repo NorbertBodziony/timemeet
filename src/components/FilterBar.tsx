@@ -13,6 +13,7 @@ import { Icon } from "./Icon";
 import { PressableScale } from "./PressableScale";
 import { GRADIENTS, RSVP, RSVP_ACTIONS, RSVP_COLORS, type RsvpStatus } from "../lib/theme";
 import type { IconName } from "../lib/icons";
+import { useT } from "../providers/LanguageProvider";
 
 export type RsvpFilter = RsvpStatus | null; // null = all
 
@@ -73,12 +74,13 @@ export function FilterBar({
   value: RsvpFilter;
   onChange: (next: RsvpFilter) => void;
 }) {
+  const { t } = useT();
   const foreground = useThemeColor("foreground");
   const options: { key: RsvpFilter; label: string; icon?: IconName }[] = [
-    { key: null, label: "All" },
+    { key: null, label: t("filter.all") },
     ...[...RSVP_ACTIONS, "no_response" as RsvpStatus].map((s) => ({
       key: s as RsvpFilter,
-      label: RSVP[s].label,
+      label: t(RSVP[s].labelKey),
       icon: RSVP[s].ion,
     })),
   ];
@@ -126,9 +128,10 @@ export function FilterBar({
 
 // ResultCount (§05) — shows how many rows match when the filter is narrowed.
 export function ResultCount({ count, filter }: { count: number; filter: RsvpFilter }) {
+  const { t } = useT();
   if (!filter) return null;
   const c = RSVP_COLORS[filter];
-  const noun = count === 1 ? "meetup" : "meetups";
+  const noun = t(count === 1 ? "filter.meetup" : "filter.meetups");
   return (
     <View className="flex-row mt-3">
       <View
@@ -137,7 +140,7 @@ export function ResultCount({ count, filter }: { count: number; filter: RsvpFilt
       >
         <Icon name={RSVP[filter].ion} size={14} color={c.softFg} />
         <Text type="body-xs" weight="semibold" style={{ color: c.softFg }}>
-          {count} {noun} · {RSVP[filter].label.toLowerCase()}
+          {count} {noun} · {t(RSVP[filter].labelKey).toLowerCase()}
         </Text>
       </View>
     </View>

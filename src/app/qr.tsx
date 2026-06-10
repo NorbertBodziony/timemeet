@@ -9,21 +9,23 @@ import { UserAvatar } from "../components/UserAvatar";
 import { cardShadowLifted } from "../lib/ui";
 import { useAuth } from "../providers/MockAuthProvider";
 import { tap } from "../lib/haptics";
+import { useT } from "../providers/LanguageProvider";
 
 export default function MyQrCode() {
   const router = useRouter();
+  const { t } = useT();
   const { currentUser } = useAuth();
   const foreground = useThemeColor("foreground");
   const accent = useThemeColor("accent");
 
-  if (!currentUser) return <Screen title="Your code" dismiss="close">{null}</Screen>;
+  if (!currentUser) return <Screen title={t("qr.title")} dismiss="close">{null}</Screen>;
 
   // Encode a runtime-correct deep link (exp:// in Expo Go, the app scheme in a
   // build). The scanner also just reads the trailing code, so either works.
   const payload = Linking.createURL(`/add/${currentUser.referralCode}`);
 
   return (
-    <Screen title="Your QR code" subtitle="Let a friend scan this to add you." dismiss="close">
+    <Screen title={t("qr.title")} subtitle={t("qr.subtitle")} dismiss="close">
       <View className="items-center mt-4">
         <View
           className="bg-surface rounded-3xl p-6 items-center"
@@ -62,7 +64,7 @@ export default function MyQrCode() {
           }}
         >
           <Icon name="scan" size={18} color="#FFFFFF" />
-          <Button.Label>Scan a friend's code</Button.Label>
+          <Button.Label>{t("qr.scan")}</Button.Label>
         </Button>
       </View>
     </Screen>

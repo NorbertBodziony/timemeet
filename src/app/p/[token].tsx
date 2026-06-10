@@ -15,12 +15,14 @@ import { SurfaceCard } from "../../components/SurfaceCard";
 import { formatDate, formatRange } from "../../lib/datetime";
 import { RSVP_COLORS } from "../../lib/theme";
 import { attempt } from "../../lib/attempt";
+import { useT } from "../../providers/LanguageProvider";
+import { t as tt } from "../../lib/i18n";
 
 type Vote = "yes" | "maybe" | "no";
-const VOTE_OPTIONS: PillOption[] = [
-  { value: "yes", label: "Yes", fill: RSVP_COLORS.going.fill, icon: "checkmark-circle" },
-  { value: "maybe", label: "Maybe", fill: RSVP_COLORS.maybe.fill, icon: "help-circle" },
-  { value: "no", label: "No", fill: RSVP_COLORS.not_going.fill, icon: "close-circle" },
+const voteOptions = (): PillOption[] => [
+  { value: "yes", label: tt("poll.yes"), fill: RSVP_COLORS.going.fill, icon: "checkmark-circle" },
+  { value: "maybe", label: tt("poll.maybe"), fill: RSVP_COLORS.maybe.fill, icon: "help-circle" },
+  { value: "no", label: tt("poll.no"), fill: RSVP_COLORS.not_going.fill, icon: "close-circle" },
 ];
 
 const KEY_STORE = "mt_guest_key";
@@ -29,6 +31,7 @@ const NAME_STORE = "mt_guest_name";
 // Public, no-account poll voting (magic link). A device-local guestKey lets the
 // same person update their votes; a name is optional.
 export default function GuestPoll() {
+  const { t } = useT();
   const { token } = useLocalSearchParams<{ token: string }>();
   const [guestKey, setGuestKey] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -67,11 +70,11 @@ export default function GuestPoll() {
     await attempt(() => voteGuest({ token, guestKey, guestName: name.trim() || undefined, value, ...target }));
   }
 
-  if (data === undefined) return <Screen title="Loading…" dismiss="close">{null}</Screen>;
+  if (data === undefined) return <Screen title={t("common.loading")} dismiss="close">{null}</Screen>;
   if (data === null)
     return (
-      <Screen title="Poll" dismiss="close">
-        <EmptyState icon="link-outline" text="This poll link is no longer valid." />
+      <Screen title={t("guest.title")} dismiss="close">
+        <EmptyState icon="link-outline" text={t("guest.linkInvalid")} />
       </Screen>
     );
 
@@ -103,12 +106,12 @@ export default function GuestPoll() {
             <Text type="body-xs" color="muted">{subtitle}</Text>
           </View>
           <Text type="body-xs" weight="semibold" color="muted">
-            {c.yes} yes{c.maybe ? ` · ${c.maybe} maybe` : ""}
+            {tt("poll.yesCount", { count: c.yes })}{c.maybe ? tt("poll.maybeCount", { count: c.maybe }) : ""}
           </Text>
         </View>
         {!closed && (
           <StatusPills
-            options={VOTE_OPTIONS}
+            options={voteOptions()}
             value={myVotes[id] ?? null}
             onChange={(v) => vote(target, v as Vote)}
             columns={3}
@@ -121,18 +124,18 @@ export default function GuestPoll() {
   return (
     <Screen
       title={poll.title}
-      subtitle={closed ? "This poll is closed." : `${creator?.displayName ?? "A friend"} wants your pick — no account needed`}
+      subtitle={closed ? t("guest.closed") : t("guest.wantsYourPick", { name: creator?.displayName ?? t("guest.friend") })}
       dismiss="close"
     >
       {!closed && (
         <View className="mb-5">
-          <Input value={name} onChangeText={onName} placeholder="Your name (so they know it's you)" />
+          <Input value={name} onChangeText={onName} placeholder={t("guest.namePlaceholder")} />
         </View>
       )}
 
       {hasSlots && (
         <>
-          {both && <SectionHeader tight>When</SectionHeader>}
+          {both && <SectionHeader tight>{t("poll.when")}</SectionHeader>}
           {slots.map((s) => (
             <OptionCard
               key={s._id}
@@ -147,7 +150,7 @@ export default function GuestPoll() {
 
       {hasPlaces && (
         <>
-          {both && <SectionHeader>Where</SectionHeader>}
+          {both && <SectionHeader>{t("poll.where")}</SectionHeader>}
           {placeOptions.map((p) => (
             <OptionCard
               key={p._id}
@@ -161,7 +164,7 @@ export default function GuestPoll() {
       )}
 
       <Text type="body-xs" color="muted" align="center" className="mt-2">
-        Your votes are saved on this device — come back anytime to change them.
+        {t("guest.savedNote")}
       </Text>
     </Screen>
   );

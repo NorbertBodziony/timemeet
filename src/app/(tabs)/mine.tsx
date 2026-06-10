@@ -3,14 +3,16 @@ import { Pressable, View } from "react-native";
 import { EventTabList } from "../../components/EventTabList";
 import { Icon } from "../../components/Icon";
 import { MyPolls } from "../../components/MyPolls";
+import { useT } from "../../providers/LanguageProvider";
 
 export default function MineScreen() {
   const router = useRouter();
+  const { t } = useT();
   return (
     <EventTabList
       tab="mine"
-      title="My events"
-      empty="Your plans show up here. Start with one."
+      title={t("mine.title")}
+      empty={t("tabs.mine.empty")}
       emptyLutek="waving"
       action={<MyPolls />}
       right={

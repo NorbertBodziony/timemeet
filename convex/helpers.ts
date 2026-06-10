@@ -10,7 +10,7 @@ export async function requireUser(
   userId: Id<"users">
 ): Promise<Doc<"users">> {
   const user = await ctx.db.get(userId);
-  if (!user) throw new ConvexError("Unknown user — sign in again.");
+  if (!user) throw new ConvexError({ k: "errors.unknownUser" });
   return user;
 }
 
@@ -23,10 +23,10 @@ export async function requireEventParticipant(
   ctx: QueryCtx | MutationCtx,
   userId: Id<"users">,
   eventId: Id<"events">,
-  blockedMsg = "Join this meetup first."
+  blockedKey = "errors.joinFirst"
 ): Promise<Doc<"events">> {
   const event = await ctx.db.get(eventId);
-  if (!event) throw new ConvexError("Event not found.");
+  if (!event) throw new ConvexError({ k: "errors.eventNotFound" });
   if (event.creatorId === userId) return event;
   const rsvp = await ctx.db
     .query("rsvps")
@@ -34,7 +34,7 @@ export async function requireEventParticipant(
       q.eq("eventId", eventId).eq("userId", userId)
     )
     .unique();
-  if (!rsvp) throw new ConvexError(blockedMsg);
+  if (!rsvp) throw new ConvexError({ k: blockedKey });
   return event;
 }
 

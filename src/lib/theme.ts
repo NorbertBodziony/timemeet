@@ -7,16 +7,16 @@ import type { Doc } from "../../convex/_generated/dataModel";
 export type RsvpStatus = Doc<"rsvps">["status"];
 
 type RsvpMeta = {
-  label: string;
+  labelKey: string; // i18n key — render with t(RSVP[s].labelKey)
   ion: keyof typeof Ionicons.glyphMap;
 };
 
 export const RSVP: Record<RsvpStatus, RsvpMeta> = {
-  going: { label: "Going", ion: "checkmark-circle" },
-  maybe: { label: "Maybe", ion: "help-circle" },
-  waitlist: { label: "Waitlist", ion: "time" },
-  not_going: { label: "Not going", ion: "close-circle" },
-  no_response: { label: "No response", ion: "ellipsis-horizontal-circle" },
+  going: { labelKey: "rsvp.going", ion: "checkmark-circle" },
+  maybe: { labelKey: "rsvp.maybe", ion: "help-circle" },
+  waitlist: { labelKey: "rsvp.waitlist", ion: "time" },
+  not_going: { labelKey: "rsvp.notGoing", ion: "close-circle" },
+  no_response: { labelKey: "rsvp.noResponse", ion: "ellipsis-horizontal-circle" },
 };
 
 // §03 — RSVP status colors. fill = the status color; soft/softFg = its tinted

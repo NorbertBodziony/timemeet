@@ -1,6 +1,7 @@
 import { Alert } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
+import { t } from "./i18n";
 
 // Shared photo plumbing: a calm source chooser (camera or library) and the
 // Convex storage upload. Used by the board, profile photo, and event covers.
@@ -25,13 +26,13 @@ async function fromLibrary(multiple: boolean): Promise<string[]> {
 // Ask where the photo comes from, then return local URIs ([] on cancel).
 export function pickImages({ multiple = false } = {}): Promise<string[]> {
   return new Promise((resolve) => {
-    Alert.alert("Add a photo", undefined, [
-      { text: "Take photo", onPress: () => fromCamera().then(resolve) },
+    Alert.alert(t("photos.title"), undefined, [
+      { text: t("photos.take"), onPress: () => fromCamera().then(resolve) },
       {
-        text: multiple ? "Choose from library" : "Choose photo",
+        text: t(multiple ? "photos.chooseMulti" : "photos.choose"),
         onPress: () => fromLibrary(multiple).then(resolve),
       },
-      { text: "Cancel", style: "cancel", onPress: () => resolve([]) },
+      { text: t("photos.cancel"), style: "cancel", onPress: () => resolve([]) },
     ]);
   });
 }

@@ -19,22 +19,24 @@ import { success } from "../../lib/haptics";
 import { type RsvpStatus } from "../../lib/theme";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
+import { useT } from "../../providers/LanguageProvider";
 
 // RSVP-first, auth-second: a signed-out tap is stashed here, auth runs, and we
 // finish the RSVP the moment they're back (F188).
 const PENDING_KEY = "mt_pending_rsvp";
 
-const DONE_HEADER: Record<RsvpStatus, string> = {
-  going: "You're in! 🎉",
-  maybe: "Maybe — no stress",
-  waitlist: "You're holding a spot",
-  not_going: "Can't make it this time",
-  no_response: "Got it",
+const DONE_KEY: Record<RsvpStatus, string> = {
+  going: "invite.doneGoing",
+  maybe: "invite.doneMaybe",
+  waitlist: "invite.doneWaitlist",
+  not_going: "invite.doneNotGoing",
+  no_response: "invite.doneDefault",
 };
 
 // ⭐ Invited flow (docs §3.8, F187–F190). Target: RSVP in < 30s.
 export default function InviteLanding() {
   const router = useRouter();
+  const { t } = useT();
   const { token } = useLocalSearchParams<{ token: string }>();
   const { currentUser } = useAuth();
   const { celebrate } = useCelebrate();
@@ -64,31 +66,31 @@ export default function InviteLanding() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, token, data?.status]);
 
-  if (data === undefined) return <Screen title="Loading…" dismiss="back">{null}</Screen>;
+  if (data === undefined) return <Screen title={t("common.loading")} dismiss="back">{null}</Screen>;
 
   if (data.status === "expired") {
     return (
-      <Screen title="This link has expired" dismiss="back">
-        <Text color="muted">Ask the person who invited you for a fresh one.</Text>
+      <Screen title={t("invite.expiredTitle")} dismiss="back">
+        <Text color="muted">{t("invite.expiredBody")}</Text>
         <View className="mt-5">
-          <PrimaryButton label="See MeetTime" onPress={() => router.replace("/")} />
+          <PrimaryButton label={t("common.seeApp")} onPress={() => router.replace("/")} />
         </View>
       </Screen>
     );
   }
   if (data.status === "not_found") {
     return (
-      <Screen title="Invite not found" dismiss="back">
-        <Text color="muted">Double-check the link and try again.</Text>
+      <Screen title={t("invite.notFoundTitle")} dismiss="back">
+        <Text color="muted">{t("invite.notFoundBody")}</Text>
         <View className="mt-5">
-          <PrimaryButton label="Go to MeetTime" onPress={() => router.replace("/")} />
+          <PrimaryButton label={t("common.goToApp")} onPress={() => router.replace("/")} />
         </View>
       </Screen>
     );
   }
 
   const { event, creator, going, goingNames, isPast } = data;
-  const inviter = creator?.displayName?.split(" ")[0] ?? "Someone";
+  const inviter = creator?.displayName?.split(" ")[0] ?? t("invite.someone");
   const namesLine =
     goingNames.length > 0
       ? `${goingNames.join(", ")}${going > goingNames.length ? ` +${going - goingNames.length}` : ""}`
@@ -108,7 +110,7 @@ export default function InviteLanding() {
     if (!ok) return;
     setDone(status);
     if (status === "going") {
-      celebrate(`Nice, we'll let ${inviter} know!`); // celebrate() buzzes on its own
+      celebrate(t("invite.willLetKnow", { name: inviter })); // celebrate() buzzes on its own
     } else {
       success();
     }
@@ -119,8 +121,8 @@ export default function InviteLanding() {
     return (
       <Screen title={event.title} dismiss="back">
         <View className="items-center py-10 gap-4">
-          <Lutek mood="thinking" line="This one already happened — ask them what's next." size={52} />
-          <PrimaryButton label="See MeetTime" onPress={() => router.replace("/")} />
+          <Lutek mood="thinking" line={t("invite.pastLine")} size={52} />
+          <PrimaryButton label={t("common.seeApp")} onPress={() => router.replace("/")} />
         </View>
       </Screen>
     );
@@ -132,7 +134,7 @@ export default function InviteLanding() {
       <View className="items-center mb-6">
         <UserAvatar name={creator?.displayName} photoUrl={creator?.photoUrl} size="lg" />
         <Text weight="semibold" color="muted" className="mt-2">
-          {inviter} invited you
+          {t("invite.invitedYou", { name: inviter })}
         </Text>
         <Text
           type="h1"
@@ -161,7 +163,7 @@ export default function InviteLanding() {
         <View className="flex-row items-center gap-2">
           <Icon name="people-outline" size={16} tint="muted" />
           <Text type="body-sm" color="muted">
-            {going} going{namesLine ? ` — ${namesLine}` : ""}
+            {namesLine ? t("invite.goingNames", { count: going, names: namesLine }) : t("invite.goingCount", { count: going })}
           </Text>
         </View>
       </SurfaceCard>
@@ -171,19 +173,19 @@ export default function InviteLanding() {
         <View className="items-center py-4 gap-3">
           <Lutek
             mood={done === "going" ? "celebrating" : "waving"}
-            line={`Super — I'll let ${inviter} know.${namesLine ? ` Also in: ${namesLine}.` : ""}`}
+            line={`${t("invite.confirmLine", { name: inviter })}${namesLine ? t("invite.alsoIn", { names: namesLine }) : ""}`}
             size={52}
           />
           <Text type="h2" weight="bold" className="mt-1">
-            {DONE_HEADER[done]}
+            {t(DONE_KEY[done])}
           </Text>
           <View className="w-full mt-2 gap-2.5">
             <PrimaryButton
-              label="Open the meetup"
+              label={t("invite.openMeetup")}
               onPress={() => router.replace({ pathname: "/event/[id]", params: { id: event._id } })}
             />
             <SecondaryButton
-              label="See how MeetTime works"
+              label={t("invite.seeHow")}
               onPress={() => router.push("/welcome" as never)}
             />
           </View>
@@ -191,12 +193,12 @@ export default function InviteLanding() {
       ) : (
         <>
           <View className="mb-4">
-            <Lutek mood="waving" line={`Hey, I'm Lutek. Tell ${inviter} if you're in.`} size={40} />
+            <Lutek mood="waving" line={t("invite.lutekLine", { name: inviter })} size={40} />
           </View>
           <RsvpPicker value={null} onChange={rsvp} />
           {!currentUser && (
             <Text type="body-xs" color="muted" align="center" className="mt-3">
-              Tap your answer first — quick sign-in comes after.
+              {t("invite.tapFirst")}
             </Text>
           )}
         </>

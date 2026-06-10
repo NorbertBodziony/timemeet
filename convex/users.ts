@@ -41,7 +41,7 @@ export const update = mutation({
   handler: async (ctx, { userId, patch }) => {
     await requireUser(ctx, userId);
     if (patch.displayName !== undefined && !patch.displayName.trim()) {
-      throw new ConvexError("Name can't be empty.");
+      throw new ConvexError({ k: "errors.nameEmpty" });
     }
     await ctx.db.patch(userId, patch);
   },
@@ -53,8 +53,17 @@ export const setPhoto = mutation({
   handler: async (ctx, { userId, storageId }) => {
     await requireUser(ctx, userId);
     const url = await ctx.storage.getUrl(storageId);
-    if (!url) throw new ConvexError("That photo didn't upload — try again.");
+    if (!url) throw new ConvexError({ k: "errors.photoUpload" });
     await ctx.db.patch(userId, { photoUrl: url });
+  },
+});
+
+// UI/notification language (Settings → Language). Polish-first product.
+export const setLanguage = mutation({
+  args: { userId: v.id("users"), language: v.union(v.literal("pl"), v.literal("en")) },
+  handler: async (ctx, { userId, language }) => {
+    await requireUser(ctx, userId);
+    await ctx.db.patch(userId, { language });
   },
 });
 

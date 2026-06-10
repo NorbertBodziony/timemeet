@@ -25,7 +25,7 @@ export const add = mutation({
     const me = await requireUser(ctx, userId);
     const text = body.trim();
     const hasImages = !!imageId || (imageIds ?? []).length > 0;
-    if (!text && !hasImages) throw new ConvexError("Write something or add a photo first.");
+    if (!text && !hasImages) throw new ConvexError({ k: "errors.writeSomething" });
     const postId = await ctx.db.insert("posts", {
       eventId,
       authorId: userId,
@@ -41,13 +41,25 @@ export const add = mutation({
         .query("rsvps")
         .withIndex("by_event", (q) => q.eq("eventId", eventId))
         .collect();
-      await notify(
-        ctx,
-        rsvps.map((r) => r.userId).filter((id) => id !== userId),
-        "post",
-        `${me.displayName}: ${text.slice(0, 60) || "shared a photo 📷"}`,
-        eventId
-      );
+      if (text) {
+        await notify(
+          ctx,
+          rsvps.map((r) => r.userId).filter((id) => id !== userId),
+          "post",
+          "notif.post",
+          { name: me.displayName, body: text.slice(0, 60) },
+          eventId
+        );
+      } else {
+        await notify(
+          ctx,
+          rsvps.map((r) => r.userId).filter((id) => id !== userId),
+          "post",
+          "notif.postPhoto",
+          { name: me.displayName },
+          eventId
+        );
+      }
     }
     return postId;
   },

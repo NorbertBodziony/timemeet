@@ -14,20 +14,20 @@ export type CategoryKey =
 
 export type Category = {
   key: CategoryKey;
-  label: string;
+  labelKey: string; // i18n key
   emoji: string;
   icon: IconName;
 };
 
 export const CATEGORIES: Category[] = [
-  { key: "coffee", label: "Coffee", emoji: "☕", icon: "cafe-outline" },
-  { key: "food", label: "Food", emoji: "🍝", icon: "restaurant-outline" },
-  { key: "drinks", label: "Drinks", emoji: "🍻", icon: "beer-outline" },
-  { key: "sport", label: "Sport", emoji: "🏃", icon: "basketball-outline" },
-  { key: "outdoors", label: "Outdoors", emoji: "🌲", icon: "leaf-outline" },
-  { key: "games", label: "Games", emoji: "🎲", icon: "game-controller-outline" },
-  { key: "culture", label: "Culture", emoji: "🎭", icon: "color-palette-outline" },
-  { key: "other", label: "Other", emoji: "✨", icon: "sparkles-outline" },
+  { key: "coffee", labelKey: "cat.coffee", emoji: "☕", icon: "cafe-outline" },
+  { key: "food", labelKey: "cat.food", emoji: "🍝", icon: "restaurant-outline" },
+  { key: "drinks", labelKey: "cat.drinks", emoji: "🍻", icon: "beer-outline" },
+  { key: "sport", labelKey: "cat.sport", emoji: "🏃", icon: "basketball-outline" },
+  { key: "outdoors", labelKey: "cat.outdoors", emoji: "🌲", icon: "leaf-outline" },
+  { key: "games", labelKey: "cat.games", emoji: "🎲", icon: "game-controller-outline" },
+  { key: "culture", labelKey: "cat.culture", emoji: "🎭", icon: "color-palette-outline" },
+  { key: "other", labelKey: "cat.other", emoji: "✨", icon: "sparkles-outline" },
 ];
 
 const BY_KEY = new Map(CATEGORIES.map((c) => [c.key, c]));

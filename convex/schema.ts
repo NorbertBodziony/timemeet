@@ -42,6 +42,7 @@ export default defineSchema({
     deletedAt: v.optional(v.number()), // soft delete; hard-delete cron is deferred
     pushToken: v.optional(v.string()), // Expo push token (real device push)
     tzOffsetMinutes: v.optional(v.number()), // device offset from UTC (quiet hours)
+    language: v.optional(v.union(v.literal("pl"), v.literal("en"))), // notification language
   })
     .index("by_authSubject", ["authSubject"])
     .index("by_referralCode", ["referralCode"]),

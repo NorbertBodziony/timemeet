@@ -8,7 +8,7 @@ export const createToken = mutation({
   handler: async (ctx, { userId, eventId }) => {
     await requireUser(ctx, userId);
     const event = await ctx.db.get(eventId);
-    if (!event) throw new ConvexError("Event not found.");
+    if (!event) throw new ConvexError({ k: "errors.eventNotFound" });
     const inviteToken = randomToken("inv");
     await ctx.db.insert("eventInvites", {
       eventId,

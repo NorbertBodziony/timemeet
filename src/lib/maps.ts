@@ -1,4 +1,5 @@
 import { Alert, Linking, Platform } from "react-native";
+import { t } from "./i18n";
 
 // Open an address in the user's maps app — no in-app map, we fit into existing
 // tools. iOS asks which app (Apple Maps or Google Maps); Android goes straight
@@ -15,9 +16,9 @@ export async function openMaps(address: string): Promise<void> {
     await open(google);
     return;
   }
-  Alert.alert("Open in", address.trim(), [
-    { text: "Apple Maps", onPress: () => open(apple) },
-    { text: "Google Maps", onPress: () => open(google) },
-    { text: "Cancel", style: "cancel" },
+  Alert.alert(t("maps.openIn"), address.trim(), [
+    { text: t("maps.apple"), onPress: () => open(apple) },
+    { text: t("maps.google"), onPress: () => open(google) },
+    { text: t("maps.cancel"), style: "cancel" },
   ]);
 }

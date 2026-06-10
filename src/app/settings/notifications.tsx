@@ -9,6 +9,7 @@ import { SectionHeader } from "../../components/SectionHeader";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { tap } from "../../lib/haptics";
 import type { IconName } from "../../lib/icons";
+import { useT } from "../../providers/LanguageProvider";
 
 type Prefs = {
   master: boolean;
@@ -20,12 +21,12 @@ type Prefs = {
   quietHours?: boolean;
 };
 
-const TRANSACTIONAL: { key: keyof Prefs; label: string; icon: IconName }[] = [
-  { key: "newInvite", label: "New invite", icon: "mail-outline" },
-  { key: "pollResolved", label: "Poll resolved", icon: "checkmark-done-outline" },
-  { key: "eventCancelled", label: "Event cancelled", icon: "close-circle-outline" },
-  { key: "reminder2h", label: "2 hours before", icon: "alarm-outline" },
-  { key: "activity", label: "RSVPs & posts", icon: "people-outline" },
+const TRANSACTIONAL: { key: keyof Prefs; labelKey: string; icon: IconName }[] = [
+  { key: "newInvite", labelKey: "notifSet.newInvite", icon: "mail-outline" },
+  { key: "pollResolved", labelKey: "notifSet.pollResolved", icon: "checkmark-done-outline" },
+  { key: "eventCancelled", labelKey: "notifSet.eventCancelled", icon: "close-circle-outline" },
+  { key: "reminder2h", labelKey: "notifSet.twoHours", icon: "alarm-outline" },
+  { key: "activity", labelKey: "notifSet.activity", icon: "people-outline" },
 ];
 
 function Row({
@@ -64,6 +65,7 @@ function Row({
 }
 
 export default function Notifications() {
+  const { t } = useT();
   const { currentUser } = useAuth();
   const remote = useQuery(
     api.users.notificationPrefs,
@@ -83,40 +85,40 @@ export default function Notifications() {
     save({ userId: currentUser._id, prefs: next });
   }
 
-  if (!prefs) return <Screen title="Notifications" dismiss="back">{null}</Screen>;
+  if (!prefs) return <Screen title={t("notifSet.title")} dismiss="back">{null}</Screen>;
   const off = !prefs.master;
 
   return (
-    <Screen title="Notifications" subtitle="Only the essentials. We never spam." dismiss="back">
+    <Screen title={t("notifSet.title")} subtitle={t("notifSet.subtitle")} dismiss="back">
       <ListGroup>
         <Row
-          label="All notifications"
+          label={t("notifSet.all")}
           icon="notifications-outline"
           value={prefs.master}
           onChange={(v) => set("master", v)}
         />
       </ListGroup>
 
-      <SectionHeader>Transactional</SectionHeader>
+      <SectionHeader>{t("notifSet.transactional")}</SectionHeader>
       <ListGroup>
-        {TRANSACTIONAL.map((t, i) => (
-          <View key={t.key}>
+        {TRANSACTIONAL.map((row, i) => (
+          <View key={row.key}>
             {i > 0 && <Separator className="ml-14" />}
             <Row
-              label={t.label}
-              icon={t.icon}
-              value={prefs[t.key] ?? true}
+              label={t(row.labelKey)}
+              icon={row.icon}
+              value={prefs[row.key] ?? true}
               disabled={off}
-              onChange={(v) => set(t.key, v)}
+              onChange={(v) => set(row.key, v)}
             />
           </View>
         ))}
       </ListGroup>
 
-      <SectionHeader>Quiet hours</SectionHeader>
+      <SectionHeader>{t("notifSet.quietSection")}</SectionHeader>
       <ListGroup>
         <Row
-          label="Quiet hours (22:00–08:00)"
+          label={t("notifSet.quiet")}
           icon="moon-outline"
           value={prefs.quietHours ?? true}
           disabled={off}
@@ -124,7 +126,7 @@ export default function Notifications() {
         />
       </ListGroup>
       <Text type="body-xs" color="muted" className="mt-2 ml-1">
-        Nothing buzzes at night — except a cancellation. Everything else arrives at 8am.
+        {t("notifSet.quietHint")}
       </Text>
     </Screen>
   );

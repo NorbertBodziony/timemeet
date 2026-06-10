@@ -23,9 +23,11 @@ import { openMaps } from "../../../lib/maps";
 import { type RsvpStatus } from "../../../lib/theme";
 import { useAuth } from "../../../providers/MockAuthProvider";
 import { usePush } from "../../../providers/MockPushProvider";
+import { useT } from "../../../providers/LanguageProvider";
 
 export default function EventDetail() {
   const router = useRouter();
+  const { t } = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const eventId = id as Id<"events">;
   const { currentUser } = useAuth();
@@ -62,9 +64,9 @@ export default function EventDetail() {
     if (rating?.mine && note === null) setNote(rating.mine.note ?? "");
   }, [rating, note]);
 
-  if (data === undefined) return <Screen title="Loading…" dismiss="back">{null}</Screen>;
+  if (data === undefined) return <Screen title={t("common.loading")} dismiss="back">{null}</Screen>;
   if (data === null)
-    return <Screen title="Event not found" dismiss="back">{null}</Screen>;
+    return <Screen title={t("common.eventNotFound")} dismiss="back">{null}</Screen>;
 
   const { event, creator, counts, viewerStatus, coverUrl } = data;
   const isOrganizer = currentUser?._id === event.creatorId;
@@ -81,7 +83,7 @@ export default function EventDetail() {
     if (!ok) return;
     if (status === "going") {
       success();
-      push.push({ title: `You're in — ${event.title}` });
+      push.push({ title: t("event.youreIn", { title: event.title }) });
     }
   }
 
@@ -124,7 +126,7 @@ export default function EventDetail() {
       });
       setDraft("");
     } catch {
-      Alert.alert("Couldn't add those photos", "Give it another try in a moment.");
+      Alert.alert(t("errors.photosTitle"), t("errors.retryMoment"));
     } finally {
       setUploading(false);
     }
@@ -147,7 +149,7 @@ export default function EventDetail() {
         description: event.description,
       });
     } catch {
-      Alert.alert("Couldn't open calendar", "Try again in a moment.");
+      Alert.alert(t("errors.calendarTitle"), t("errors.tryAgainMoment"));
     }
   }
 
@@ -158,9 +160,9 @@ export default function EventDetail() {
     // Runtime-correct deep link (exp:// in Expo Go, meettime:// in builds).
     const url = ExpoLinking.createURL(`/invite/${token}`);
     try {
-      await Share.share({ message: `Join me — ${event.title}\n${url}`, url });
+      await Share.share({ message: t("event.shareMessage", { title: event.title, url }), url });
     } catch {
-      Alert.alert("Couldn't open share", url);
+      Alert.alert(t("errors.shareTitle"), url);
     }
   }
 
@@ -172,16 +174,16 @@ export default function EventDetail() {
   }
 
   function confirmCancel() {
-    Alert.alert("Cancel this meetup?", "Everyone invited will be notified.", [
-      { text: "Keep it", style: "cancel" },
+    Alert.alert(t("event.cancelQ"), t("event.cancelBody"), [
+      { text: t("event.keepIt"), style: "cancel" },
       {
-        text: "Continue",
+        text: t("event.continue"),
         style: "destructive",
         onPress: () =>
-          Alert.alert("Are you sure?", "This can't be undone.", [
-            { text: "Keep it", style: "cancel" },
+          Alert.alert(t("event.sureQ"), t("event.sureBody"), [
+            { text: t("event.keepIt"), style: "cancel" },
             {
-              text: "Yes, cancel",
+              text: t("event.yesCancel"),
               style: "destructive",
               onPress: async () => {
                 if (!currentUser) return;
@@ -200,7 +202,7 @@ export default function EventDetail() {
         <View className="flex-row items-center gap-2 mb-3">
           <Icon name="close-circle" size={16} tint="danger" />
           <Text type="body-sm" weight="semibold" className="text-danger">
-            This meetup was cancelled.
+            {t("event.cancelledBanner")}
           </Text>
         </View>
       )}
@@ -222,7 +224,7 @@ export default function EventDetail() {
               tint={isPast ? "muted" : "accent"}
             />
             <Text weight="semibold" color={isPast ? "muted" : "default"}>
-              {isPast ? "Happened · " : ""}
+              {isPast ? t("event.happened") : ""}
               {formatDateTime(event.startsAt)}
             </Text>
           </View>
@@ -244,7 +246,7 @@ export default function EventDetail() {
           <View className="flex-row items-center gap-2">
             <UserAvatar name={creator?.displayName} photoUrl={creator?.photoUrl} size="sm" />
             <Text type="body-xs" color="muted">
-              Organized by {creator?.displayName ?? "—"}
+              {t("event.organizedBy", { name: creator?.displayName ?? "—" })}
             </Text>
           </View>
         </Card.Body>
@@ -254,7 +256,7 @@ export default function EventDetail() {
       {going.length > 0 && (
         <View className="mb-5">
           <SectionHeader tight>
-            {isPast ? "Who came" : `${counts.going} going · ${counts.maybe} maybe`}
+            {isPast ? t("event.whoCame") : t("event.goingMaybe", { going: counts.going, maybe: counts.maybe })}
           </SectionHeader>
           <View className="flex-row flex-wrap gap-3">
             {going.map((r) => (
@@ -272,14 +274,14 @@ export default function EventDetail() {
       {/* "Ekipa nie wie o planie" — organizer, upcoming, nobody invited yet (§V). */}
       {isOrganizer && !isPast && !cancelled && (rsvps ?? []).length === 0 && (
         <View className="my-3">
-          <Lutek mood="waving" line="Your crew doesn't know yet — invite them below." size={52} />
+          <Lutek mood="waving" line={t("event.crewDoesntKnow")} size={52} />
         </View>
       )}
 
       {/* Organizer-only: who hasn't replied yet (docs §H). */}
       {isOrganizer && !isPast && !cancelled && pending.length > 0 && (
         <View className="mb-5">
-          <SectionHeader tight>{`Waiting on ${pending.length}`}</SectionHeader>
+          <SectionHeader tight>{t("event.waitingOn", { count: pending.length })}</SectionHeader>
           <View className="flex-row flex-wrap gap-3">
             {pending.map((r) => (
               <View key={r._id} className="items-center gap-1 w-14" style={{ opacity: 0.6 }}>
@@ -298,10 +300,10 @@ export default function EventDetail() {
         <Card className="mb-2">
           <Card.Body className="gap-3">
             <View className="flex-row items-center justify-between">
-              <Text weight="semibold">How was it?</Text>
+              <Text weight="semibold">{t("event.howWasIt")}</Text>
               {!!rating && rating.count > 0 && (
                 <Text type="body-xs" color="muted">
-                  {rating.average} ★ from {rating.count}
+                  {t("event.ratingFrom", { avg: rating.average, count: rating.count })}
                 </Text>
               )}
             </View>
@@ -311,12 +313,12 @@ export default function EventDetail() {
                 <Input
                   value={note ?? ""}
                   onChangeText={setNote}
-                  placeholder="Add a note (optional)"
+                  placeholder={t("event.notePlaceholder")}
                   editable={myStars > 0}
                 />
               </View>
               <Button variant="outline" size="md" isDisabled={!myStars} onPress={saveNote}>
-                <Button.Label>Save</Button.Label>
+                <Button.Label>{t("event.saveNote")}</Button.Label>
               </Button>
             </View>
           </Card.Body>
@@ -326,14 +328,14 @@ export default function EventDetail() {
       {!cancelled && !isPast && (
         <>
           <Text type="body-sm" weight="semibold" color="muted" className="mb-2 ml-1">
-            Are you in?
+            {t("event.areYouIn")}
           </Text>
           <RsvpPicker value={viewerStatus} onChange={onRsvp} />
           <View className="flex-row gap-2.5 mt-3">
             <SecondaryButton
               className="flex-1"
               icon="person-add-outline"
-              label="Invite friends"
+              label={t("event.inviteFriends")}
               onPress={() =>
                 router.push({ pathname: "/event/[id]/invite", params: { id: eventId } })
               }
@@ -341,7 +343,7 @@ export default function EventDetail() {
             <SecondaryButton
               className="flex-1"
               icon="calendar-outline"
-              label="Add to calendar"
+              label={t("event.addToCalendar")}
               onPress={calendar}
             />
           </View>
@@ -351,7 +353,7 @@ export default function EventDetail() {
       {/* Bring-list / potluck — only on upcoming meetups. */}
       {!cancelled && !isPast && (
         <View>
-          <SectionHeader>What to bring</SectionHeader>
+          <SectionHeader>{t("event.whatToBring")}</SectionHeader>
           {(items ?? []).map((it) => {
             const mine = it.claimedBy === currentUser?._id;
             return (
@@ -367,7 +369,7 @@ export default function EventDetail() {
                   <View className="flex-1">
                     <Text weight="semibold">{it.title}</Text>
                     <Text type="body-xs" color="muted">
-                      {it.claimer ? `${it.claimer.displayName.split(" ")[0]} has it` : "Up for grabs"}
+                      {it.claimer ? t("event.hasIt", { name: it.claimer.displayName.split(" ")[0] }) : t("event.upForGrabs")}
                     </Text>
                   </View>
                   {it.claimedBy == null && (
@@ -376,7 +378,7 @@ export default function EventDetail() {
                       size="sm"
                       onPress={() => currentUser && attempt(() => toggleClaim({ userId: currentUser._id, itemId: it._id }))}
                     >
-                      <Button.Label>I'll bring it</Button.Label>
+                      <Button.Label>{t("event.illBringIt")}</Button.Label>
                     </Button>
                   )}
                   {it.createdBy === currentUser?._id && (
@@ -397,7 +399,7 @@ export default function EventDetail() {
               <Input
                 value={itemDraft}
                 onChangeText={setItemDraft}
-                placeholder="Add something to bring…"
+                placeholder={t("event.bringPlaceholder")}
               />
             </View>
             <Button variant="outline" size="md" isIconOnly onPress={addBringItem}>
@@ -408,10 +410,10 @@ export default function EventDetail() {
       )}
 
       {/* Board */}
-      <SectionHeader>Board</SectionHeader>
+      <SectionHeader>{t("event.board")}</SectionHeader>
       <View className="flex-row gap-2 mb-3 items-center">
         <View className="flex-1">
-          <Input value={draft} onChangeText={setDraft} placeholder="Say something to the crew…" />
+          <Input value={draft} onChangeText={setDraft} placeholder={t("event.boardPlaceholder")} />
         </View>
         <Button variant="outline" size="md" isIconOnly onPress={addPhoto} isDisabled={uploading}>
           {uploading ? <Spinner size="sm" /> : <Icon name="image-outline" size={18} tint="foreground" />}
@@ -427,7 +429,7 @@ export default function EventDetail() {
             <View className="flex-1">
               <Text type="body-xs" weight="semibold" color="muted">
                 {p.author?.displayName ?? "—"}
-                {p.isAnnouncement ? " · announcement" : ""}
+                {p.isAnnouncement ? t("event.announcement") : ""}
               </Text>
               {!!p.body && <Text type="body-sm">{p.body}</Text>}
               {p.imageUrls.length === 1 && (
@@ -461,7 +463,7 @@ export default function EventDetail() {
         <View className="mt-7">
           <Button variant="primary" size="lg" onPress={planAgain}>
             <Icon name="repeat" size={18} color="#FFFFFF" />
-            <Button.Label>Plan again</Button.Label>
+            <Button.Label>{t("event.planAgain")}</Button.Label>
           </Button>
         </View>
       )}
@@ -470,12 +472,12 @@ export default function EventDetail() {
         <View className="mt-8 gap-2.5">
           <SecondaryButton
             icon="create-outline"
-            label="Edit meetup"
+            label={t("event.editMeetup")}
             onPress={() => router.push({ pathname: "/event/[id]/edit", params: { id: eventId } })}
           />
-          <SecondaryButton icon="share-outline" label="Share invite link" onPress={share} />
+          <SecondaryButton icon="share-outline" label={t("event.shareInvite")} onPress={share} />
           <Button variant="ghost" size="md" onPress={confirmCancel}>
-            <Button.Label className="text-danger">Cancel meetup</Button.Label>
+            <Button.Label className="text-danger">{t("event.cancelMeetup")}</Button.Label>
           </Button>
         </View>
       )}

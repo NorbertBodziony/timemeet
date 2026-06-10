@@ -25,13 +25,13 @@ export const setReferredBy = mutation({
   handler: async (ctx, { userId, code }) => {
     await requireUser(ctx, userId);
     const trimmed = code.trim().toUpperCase();
-    if (!trimmed) throw new ConvexError("Enter a code first.");
+    if (!trimmed) throw new ConvexError({ k: "errors.enterCode" });
     const referrer = await ctx.db
       .query("users")
       .filter((q) => q.eq(q.field("referralCode"), trimmed))
       .first();
-    if (!referrer) throw new ConvexError("We don't recognize that code.");
-    if (referrer._id === userId) throw new ConvexError("That's your own code.");
+    if (!referrer) throw new ConvexError({ k: "errors.codeNoMatch" });
+    if (referrer._id === userId) throw new ConvexError({ k: "errors.ownReferral" });
     await ctx.db.insert("referrals", {
       referrerId: referrer._id,
       refereeId: userId,

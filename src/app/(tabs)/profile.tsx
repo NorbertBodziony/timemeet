@@ -42,7 +42,7 @@ export default function SettingsHome() {
   const plan = sub?.plan ?? "free";
 
   return (
-    <Screen title={t("settings.title")} dismiss="back">
+    <Screen title={t("settings.title")}>
       {/* Identity header */}
       <View className="flex-row items-center gap-3 mb-6">
         <UserAvatar name={currentUser?.displayName} photoUrl={currentUser?.photoUrl} size="lg" />

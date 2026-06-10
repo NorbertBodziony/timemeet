@@ -3,17 +3,17 @@ import { useEffect } from "react";
 import { View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
 import { Text } from "heroui-native";
-import { api } from "../../convex/_generated/api";
-import type { Doc } from "../../convex/_generated/dataModel";
-import { EmptyState } from "../components/EmptyState";
-import { Icon } from "../components/Icon";
-import { Screen } from "../components/Screen";
-import { SkeletonList } from "../components/Skeleton";
-import { SurfaceCard } from "../components/SurfaceCard";
-import { formatRelative } from "../lib/datetime";
-import type { IconName } from "../lib/icons";
-import { useAuth } from "../providers/MockAuthProvider";
-import { useT } from "../providers/LanguageProvider";
+import { api } from "../../../convex/_generated/api";
+import type { Doc } from "../../../convex/_generated/dataModel";
+import { EmptyState } from "../../components/EmptyState";
+import { Icon } from "../../components/Icon";
+import { Screen } from "../../components/Screen";
+import { SkeletonList } from "../../components/Skeleton";
+import { SurfaceCard } from "../../components/SurfaceCard";
+import { formatRelative } from "../../lib/datetime";
+import type { IconName } from "../../lib/icons";
+import { useAuth } from "../../providers/MockAuthProvider";
+import { useT } from "../../providers/LanguageProvider";
 
 type NType = Doc<"notifications">["type"];
 
@@ -44,7 +44,7 @@ export default function Notifications() {
   }, [currentUser, rows, markAllRead]);
 
   return (
-    <Screen title={t("notifScreen.title")} dismiss="back">
+    <Screen title={t("notifScreen.title")}>
       {rows === undefined ? (
         <SkeletonList count={5} />
       ) : rows.length === 0 ? (

@@ -1,12 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import { Platform, StyleSheet } from "react-native";
 import type { ColorValue } from "react-native";
 import { BlurView } from "expo-blur";
+import { useQuery } from "convex/react";
 import { useThemeColor } from "heroui-native";
-import { ICONS } from "../../lib/icons";
-import { useT } from "../../providers/LanguageProvider";
+import { api } from "../../../convex/_generated/api";
 import { tap } from "../../lib/haptics";
+import { useAuth } from "../../providers/MockAuthProvider";
+import { useT } from "../../providers/LanguageProvider";
 
 type IonName = keyof typeof Ionicons.glyphMap;
 
@@ -17,11 +19,18 @@ function tabIcon(outline: IonName, filled: IonName) {
 }
 
 export default function TabsLayout() {
+  const router = useRouter();
   const { t } = useT();
+  const { currentUser } = useAuth();
   const accent = useThemeColor("accent");
   const muted = useThemeColor("muted");
   const surface = useThemeColor("surface");
   const border = useThemeColor("border");
+
+  const unread = useQuery(
+    api.notifications.unreadCount,
+    currentUser ? { userId: currentUser._id } : "skip"
+  );
 
   return (
     <Tabs
@@ -52,23 +61,40 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="to-confirm"
+        name="events"
         options={{
-          title: t("tabs.toConfirm"),
-          tabBarIcon: tabIcon(ICONS.toConfirm, ICONS.toConfirmActive),
+          title: t("tabs.events"),
+          tabBarIcon: tabIcon("calendar-outline", "calendar"),
         }}
       />
       <Tabs.Screen
-        name="going"
-        options={{ title: t("tabs.going"), tabBarIcon: tabIcon(ICONS.going, ICONS.goingActive) }}
+        name="new-plan"
+        options={{
+          title: t("tabs.newPlan"),
+          tabBarIcon: tabIcon("add-circle-outline", "add-circle"),
+        }}
+        listeners={{
+          // The center tab is an action, not a destination — open the chooser.
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push("/create" as never);
+          },
+        }}
       />
       <Tabs.Screen
-        name="history"
-        options={{ title: t("tabs.history"), tabBarIcon: tabIcon(ICONS.history, ICONS.historyActive) }}
+        name="notifications"
+        options={{
+          title: t("notifScreen.title"),
+          tabBarIcon: tabIcon("notifications-outline", "notifications"),
+          tabBarBadge: unread ? unread : undefined,
+        }}
       />
       <Tabs.Screen
-        name="mine"
-        options={{ title: t("tabs.mine"), tabBarIcon: tabIcon(ICONS.mine, ICONS.mineActive) }}
+        name="profile"
+        options={{
+          title: t("settings.profile"),
+          tabBarIcon: tabIcon("person-circle-outline", "person-circle"),
+        }}
       />
     </Tabs>
   );

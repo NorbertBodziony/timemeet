@@ -66,9 +66,6 @@ export default function Subscription() {
             </Text>
           </View>
         ))}
-        <Text type="body-sm" className="mt-1" style={{ color: "#C9E8A6" }}>
-          {t("sub.price")}
-        </Text>
       </LinearGradient>
 
       {isPlus ? (

@@ -27,7 +27,7 @@ export default function Login() {
   const seed = useMutation(api.seed.run);
   const upsert = useMutation(api.users.upsertFromAuth);
 
-  const dest = (next as never) ?? ("/going" as never);
+  const dest = (next as never) ?? ("/events" as never);
 
   // Show Apple's official button only where Sign in with Apple is available
   // (real iOS builds). Elsewhere we fall back to the mock entry buttons.

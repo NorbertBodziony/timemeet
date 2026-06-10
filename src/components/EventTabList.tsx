@@ -26,6 +26,7 @@ export function EventTabList({
   empty,
   emptyIcon,
   emptyLutek,
+  topControl,
   action,
   right,
 }: {
@@ -35,6 +36,7 @@ export function EventTabList({
   empty: string;
   emptyIcon?: IconName;
   emptyLutek?: LutekMood; // show Lutek (instead of an icon) on the empty state
+  topControl?: ReactNode; // e.g. the Events segments
   action?: ReactNode;
   right?: ReactNode;
 }) {
@@ -79,6 +81,7 @@ export function EventTabList({
       refreshing={refreshing}
       onRefresh={onRefresh}
     >
+      {topControl ? <View className="mb-4">{topControl}</View> : null}
       {action ? <View className="mb-4">{action}</View> : null}
 
       {showFilter && (

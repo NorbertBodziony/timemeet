@@ -14,5 +14,5 @@ export default function Index() {
       </View>
     );
   }
-  return <Redirect href={isSignedIn ? "/going" : "/welcome"} />;
+  return <Redirect href={(isSignedIn ? "/events" : "/welcome") as never} />;
 }

@@ -24,7 +24,6 @@ export default function Profile() {
   const setPhoto = useMutation(api.users.setPhoto);
 
   const [name, setName] = useState(currentUser?.displayName ?? "");
-  const [city, setCity] = useState(currentUser?.city ?? "Kraków");
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -50,7 +49,7 @@ export default function Profile() {
     if (!currentUser || !name.trim()) return;
     setBusy(true);
     try {
-      await update({ userId: currentUser._id, patch: { displayName: name.trim(), city: city.trim() } });
+      await update({ userId: currentUser._id, patch: { displayName: name.trim() } });
       router.back();
     } catch (e) {
       warn();
@@ -86,7 +85,19 @@ export default function Profile() {
       <Input value={name} onChangeText={setName} placeholder="Karolina" />
 
       <FormLabel className="mt-5">{t("profile.city")}</FormLabel>
-      <Input value={city} onChangeText={setCity} placeholder="Kraków" />
+      {/* City is picked on its own screen (list / free entry / empty) and saved there. */}
+      <Pressable
+        onPress={() => {
+          tap();
+          router.push("/settings/city" as never);
+        }}
+        className="flex-row items-center gap-3 rounded-2xl bg-field px-4 py-3.5"
+      >
+        <Text className="flex-1" color={currentUser?.city ? "default" : "muted"}>
+          {currentUser?.city || t("city.emptyLabel")}
+        </Text>
+        <Icon name="chevron-forward" size={16} tint="muted" />
+      </Pressable>
 
       <FormLabel className="mt-5">{t("profile.referralCode")}</FormLabel>
       <Card className="mb-6">

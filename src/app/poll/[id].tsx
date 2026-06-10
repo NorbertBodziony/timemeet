@@ -15,15 +15,16 @@ import { Icon } from "../../components/Icon";
 import { formatDate, formatRange } from "../../lib/datetime";
 import { attempt, errorMessage } from "../../lib/attempt";
 import { tap, warn } from "../../lib/haptics";
+import { RSVP_COLORS } from "../../lib/theme";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
 
 type Vote = "yes" | "maybe" | "no";
 // Same status-pill control as RSVP, so voting reads identically across the app.
 const VOTE_OPTIONS: PillOption[] = [
-  { value: "yes", label: "Yes", color: "success", icon: "checkmark-circle" },
-  { value: "maybe", label: "Maybe", color: "warning", icon: "help-circle" },
-  { value: "no", label: "No", color: "default", icon: "close-circle" },
+  { value: "yes", label: "Yes", fill: RSVP_COLORS.going.fill, icon: "checkmark-circle" },
+  { value: "maybe", label: "Maybe", fill: RSVP_COLORS.maybe.fill, icon: "help-circle" },
+  { value: "no", label: "No", fill: RSVP_COLORS.not_going.fill, icon: "close-circle" },
 ];
 
 function VoteRow({

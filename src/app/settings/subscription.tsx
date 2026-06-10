@@ -1,4 +1,5 @@
 import { Alert, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useMutation, useQuery } from "convex/react";
 import { Card, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
@@ -6,6 +7,7 @@ import { Icon } from "../../components/Icon";
 import { IconTile } from "../../components/IconTile";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
+import { GRADIENTS } from "../../lib/theme";
 import { useAuth } from "../../providers/MockAuthProvider";
 
 const PLUS_BENEFITS = [
@@ -50,22 +52,28 @@ export default function Subscription() {
         </Card.Body>
       </Card>
 
-      <Card className="mb-5">
-        <Card.Body>
-          <Text type="h3" weight="bold" className="mb-3">
-            MeetTime+
-          </Text>
-          {PLUS_BENEFITS.map((b) => (
-            <View key={b} className="flex-row items-center gap-2 mb-2">
-              <Icon name="checkmark-circle" size={18} tint="success" />
-              <Text type="body-sm">{b}</Text>
-            </View>
-          ))}
-          <Text type="body-sm" color="muted" className="mt-1">
-            9.99 zł / month · 4.99 zł for 3 months if you were referred
-          </Text>
-        </Card.Body>
-      </Card>
+      {/* Premium tier — the DEEP brand gradient (§04). */}
+      <LinearGradient
+        colors={[...GRADIENTS.deep.colors]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ borderRadius: 16, padding: 18, marginBottom: 20 }}
+      >
+        <Text type="h3" weight="bold" className="mb-3" style={{ color: "#FFFFFF" }}>
+          MeetTime+
+        </Text>
+        {PLUS_BENEFITS.map((b) => (
+          <View key={b} className="flex-row items-center gap-2 mb-2">
+            <Icon name="checkmark-circle" size={18} color="#A3FF12" />
+            <Text type="body-sm" style={{ color: "#FFFFFF" }}>
+              {b}
+            </Text>
+          </View>
+        ))}
+        <Text type="body-sm" className="mt-1" style={{ color: "#C9E8A6" }}>
+          9.99 zł / month · 4.99 zł for 3 months if you were referred
+        </Text>
+      </LinearGradient>
 
       {isPlus ? (
         <PrimaryButton label="Switch to Free" variant="outline" onPress={() => choose("free")} />

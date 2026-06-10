@@ -47,7 +47,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps): JSX.Element
         onPress={retry}
         style={{
           marginTop: 8,
-          backgroundColor: "#e8623c",
+          backgroundColor: "#5DA802",
           borderRadius: 999,
           paddingHorizontal: 28,
           paddingVertical: 12,

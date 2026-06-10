@@ -1,11 +1,12 @@
 import { useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { View } from "react-native";
 import { useQuery } from "convex/react";
 import { Text } from "heroui-native";
 import { api } from "../../convex/_generated/api";
 import { EmptyState } from "../components/EmptyState";
 import { EventCard } from "../components/EventCard";
+import { FilterBar, ResultCount, type RsvpFilter } from "../components/FilterBar";
 import { Screen } from "../components/Screen";
 import { SkeletonList } from "../components/Skeleton";
 import { useAuth } from "../providers/MockAuthProvider";
@@ -34,12 +35,21 @@ export default function Calendar() {
     api.events.upcoming,
     currentUser ? { userId: currentUser._id, now } : "skip"
   );
+  // FilterBar (§05) — narrow the agenda by your RSVP status.
+  const [filter, setFilter] = useState<RsvpFilter>(null);
+  const filtered = useMemo(
+    () =>
+      (rows ?? []).filter(
+        (r) => !filter || (r.viewerStatus ?? "no_response") === filter
+      ),
+    [rows, filter]
+  );
 
   // Group the (already soonest-first) rows by day.
   const groups = useMemo(() => {
-    const out: { label: string; rows: NonNullable<typeof rows> }[] = [];
+    const out: { label: string; rows: typeof filtered }[] = [];
     let key = "";
-    for (const r of rows ?? []) {
+    for (const r of filtered) {
       const k = String(startOfDay(r.event.startsAt));
       if (k !== key) {
         key = k;
@@ -48,14 +58,27 @@ export default function Calendar() {
       out[out.length - 1].rows.push(r);
     }
     return out;
-  }, [rows, now]);
+  }, [filtered, now]);
 
   return (
     <Screen title="Calendar" subtitle="Everything you're in on, soonest first." dismiss="back">
+      {!!rows && rows.length > 0 && (
+        <View className="mb-4">
+          <FilterBar value={filter} onChange={setFilter} />
+          <ResultCount count={filtered.length} filter={filter} />
+        </View>
+      )}
       {rows === undefined ? (
         <SkeletonList />
-      ) : rows.length === 0 ? (
-        <EmptyState icon="calendar-outline" text="Nothing on the horizon yet — plan something." />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon="calendar-outline"
+          text={
+            filter
+              ? "Nothing matches this filter — tap All to see everything."
+              : "Nothing on the horizon yet — plan something."
+          }
+        />
       ) : (
         groups.map((g) => (
           <View key={g.label} className="mb-2">

@@ -1,13 +1,12 @@
 import { StatusPills, type PillOption } from "./StatusPills";
-import { RSVP, RSVP_ACTIONS, type RsvpStatus } from "../lib/theme";
+import { RSVP, RSVP_ACTIONS, RSVP_COLORS, type RsvpStatus } from "../lib/theme";
 
-// The 5-status RSVP control (docs §3.3 / §16): a 2×2 set of status pills.
-// "Not going" stays neutral (default) — never punishing.
-// RSVP_ACTIONS only ever use success / warning / accent / default (never danger).
+// The 5-status RSVP control (docs §3.3, brand sheet §03): a 2×2 set of status
+// pills in the dedicated RSVP palette. Copy stays non-punishing.
 const OPTIONS: PillOption[] = RSVP_ACTIONS.map((status) => ({
   value: status,
   label: RSVP[status].label,
-  color: RSVP[status].color as PillOption["color"],
+  fill: RSVP_COLORS[status].fill,
   icon: RSVP[status].ion,
 }));
 

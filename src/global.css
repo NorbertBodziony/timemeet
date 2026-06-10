@@ -7,17 +7,19 @@
    level up from this src/global.css file. */
 @source '../node_modules/heroui-native/lib';
 
-/* MeetTime tweak: warm up HeroUI's accent (buttons, tab tint, selected states).
+/* MeetTime brand accent (buttons, tab tint, selected states).
    `@source inline` keeps the whole accent group's utilities — and therefore the
    CSS vars HeroUI's components reference (e.g. accent-hover) — so they aren't
    tree-shaken away (which otherwise crashes the native style runtime). */
 @source inline("{bg,text,border}-accent{,-hover,-soft,-soft-hover,-foreground,-soft-foreground}");
 
+/* Brand sheet §03–04: Bright Fern green accent family; Cherry danger. */
 @theme {
-  --color-accent: #e8623c;
+  --color-accent: #5da802;
   --color-accent-foreground: #ffffff;
-  --color-accent-hover: #d6532f;
-  --color-accent-soft: #fbe7df;
-  --color-accent-soft-foreground: #9a3c20;
-  --color-accent-soft-hover: #f7d8cb;
+  --color-accent-hover: #4a8500;
+  --color-accent-soft: #eaf6dc;
+  --color-accent-soft-foreground: #3d6b02;
+  --color-accent-soft-hover: #ddf0c8;
+  --color-danger: #ff3d5a;
 }

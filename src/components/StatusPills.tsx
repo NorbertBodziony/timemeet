@@ -4,21 +4,16 @@ import { Icon } from "./Icon";
 import { PressableScale } from "./PressableScale";
 import type { IconName } from "../lib/icons";
 
-// A semantic colour key for a pill. "default" fills with a neutral dark (never
-// red) — used for non-punishing options like "Not going" / "No".
-export type PillColor = "success" | "warning" | "accent" | "default";
-
 export type PillOption = {
   value: string;
   label: string;
-  color: PillColor;
+  fill: string; // the status color (brand sheet §03) — selected bg / icon tint
   icon?: IconName;
 };
 
-// One shared status-pill control. Selected = filled with its semantic colour;
-// unselected = surface with a hairline border. Used by both the RSVP picker
-// (2 columns) and poll voting (3 across). Theme colours come via useThemeColor
-// (inline) so we don't depend on tree-shakable bg-* classes.
+// One shared status-pill control. Selected = filled with its status colour;
+// unselected = surface with a hairline border, icon tinted with the status
+// colour. Used by the RSVP picker (2 columns) and poll voting (3 across).
 export function StatusPills({
   options,
   value,
@@ -30,26 +25,14 @@ export function StatusPills({
   onChange: (value: string) => void;
   columns?: 2 | 3;
 }) {
-  const success = useThemeColor("success");
-  const warning = useThemeColor("warning");
-  const accent = useThemeColor("accent");
   const foreground = useThemeColor("foreground");
-  const muted = useThemeColor("muted");
   const surface = useThemeColor("surface");
   const border = useThemeColor("border");
-
-  const fillFor: Record<PillColor, string> = {
-    success,
-    warning,
-    accent,
-    default: foreground, // neutral dark, not red
-  };
 
   return (
     <View className={`flex-row gap-2.5 ${columns === 2 ? "flex-wrap" : ""}`}>
       {options.map((o) => {
         const active = value === o.value;
-        const fill = fillFor[o.color];
         return (
           <PressableScale
             key={o.value}
@@ -57,8 +40,8 @@ export function StatusPills({
             style={{
               width: columns === 2 ? "47.5%" : undefined,
               flex: columns === 3 ? 1 : undefined,
-              backgroundColor: active ? fill : surface,
-              borderColor: active ? fill : border,
+              backgroundColor: active ? o.fill : surface,
+              borderColor: active ? o.fill : border,
               borderWidth: 1,
               borderRadius: 14,
               paddingVertical: 12,
@@ -66,11 +49,7 @@ export function StatusPills({
           >
             <View className="flex-row items-center justify-center gap-1.5">
               {o.icon && (
-                <Icon
-                  name={o.icon}
-                  size={17}
-                  color={active ? "#FFFFFF" : o.color === "default" ? muted : fill}
-                />
+                <Icon name={o.icon} size={17} color={active ? "#FFFFFF" : o.fill} />
               )}
               <Text
                 weight="semibold"

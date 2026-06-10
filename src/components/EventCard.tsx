@@ -1,19 +1,31 @@
 import { View } from "react-native";
 import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
-import { Chip, Text } from "heroui-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Text } from "heroui-native";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { formatTime } from "../lib/datetime";
 import { Icon } from "./Icon";
 import { PressableScale } from "./PressableScale";
 import { StarRating } from "./StarRating";
 import { cardShadow } from "../lib/ui";
-import { RSVP, type RsvpStatus } from "../lib/theme";
+import { GRADIENTS, RSVP, RSVP_COLORS, type RsvpStatus } from "../lib/theme";
 
 type Counts = Record<RsvpStatus, number>;
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// Event list card. Upcoming: accent date tile + counts + status chip. Past
-// (`past`): muted, with the star rating (or a "Rate this" hint).
+function isToday(ms: number): boolean {
+  const a = new Date(ms);
+  const b = new Date();
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+// Event list card. Upcoming: accent date tile + counts + RSVP status pill in
+// the brand palette (§03); a today-stripe gradient marks events happening
+// today (§04). Past: muted, with the star rating.
 export function EventCard({
   event,
   counts,
@@ -33,6 +45,8 @@ export function EventCard({
   const d = new Date(event.startsAt);
   const place = event.customAddress ?? event.placeId ?? "";
   const status = viewerStatus ? RSVP[viewerStatus] : null;
+  const statusColor = viewerStatus ? RSVP_COLORS[viewerStatus] : null;
+  const today = !past && isToday(event.startsAt);
 
   return (
     <Animated.View
@@ -45,9 +59,18 @@ export function EventCard({
       style={{ opacity: past || declined ? 0.65 : 1 }}
     >
       <View
-        className="rounded-2xl bg-surface px-3.5 py-3.5"
+        className="rounded-2xl bg-surface px-3.5 py-3.5 overflow-hidden"
         style={cardShadow}
       >
+        {/* §04 STRIPE — it's happening today. */}
+        {today && (
+          <LinearGradient
+            colors={[...GRADIENTS.stripe.colors]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4 }}
+          />
+        )}
         <View className="flex-row items-center gap-3.5">
           {/* Date tile — neutral when past */}
           <View
@@ -60,7 +83,7 @@ export function EventCard({
             ) : (
               <>
                 <Text type="body-xs" weight="semibold" className="text-accent-soft-foreground">
-                  {DAYS[d.getDay()].toUpperCase()}
+                  {today ? "TODAY" : DAYS[d.getDay()].toUpperCase()}
                 </Text>
                 <Text type="h3" weight="bold" className="text-accent-soft-foreground leading-none">
                   {d.getDate()}
@@ -121,11 +144,16 @@ export function EventCard({
             )}
           </View>
 
-          {/* Status chip (upcoming only) */}
-          {!past && status && (
-            <Chip color={status.color} variant="soft" size="sm">
-              <Chip.Label>{status.label}</Chip.Label>
-            </Chip>
+          {/* Status pill in the RSVP palette (upcoming only) */}
+          {!past && status && statusColor && (
+            <View
+              className="rounded-full px-2.5 py-1"
+              style={{ backgroundColor: statusColor.soft }}
+            >
+              <Text type="body-xs" weight="semibold" style={{ color: statusColor.softFg }}>
+                {status.label}
+              </Text>
+            </View>
           )}
         </View>
       </View>

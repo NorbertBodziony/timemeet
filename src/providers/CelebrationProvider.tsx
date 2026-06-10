@@ -17,7 +17,7 @@ import { Text } from "heroui-native";
 // haptic at the 3–5 moments where a plan composes. Max ~1.6s, never blocking.
 
 const { width: W, height: H } = Dimensions.get("window");
-const COLORS = ["#e8623c", "#5DA802", "#F59E0B", "#8B5CF6", "#7ED600"];
+const COLORS = ["#A3FF12", "#7ED600", "#5DA802", "#F59E0B", "#8B5CF6"];
 
 function Confetti({ runId }: { runId: number }) {
   // 22 pieces, each given a fixed random profile per run.

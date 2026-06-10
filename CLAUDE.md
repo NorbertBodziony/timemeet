@@ -17,15 +17,20 @@ know. Polish-first. Hero features: **Plan Polls** (ankieta terminu), **Place Pol
   + `userInterfaceStyle: "light"`. Do not add dark-mode toggles in the MVP.
 - Package manager: **bun**.
 
-## Design law (full detail in spec §4)
-- The app UI uses **HeroUI Native's default light theme** — a clean, native-iOS / Apple-like
-  look. **No custom palette, no gradients.**
+## Design law (spec §4 + the MeetTime brand sheet)
+- The app UI uses **HeroUI Native's light theme** with the **brand palette**: accent =
+  Bright Fern `#5DA802` (set in `src/global.css`); danger = Cherry `#FF3D5A`.
+- **RSVP semantic system (§03):** each of the 5 statuses has its own functional color in
+  `src/lib/theme.ts` `RSVP_COLORS` — going fern / maybe amber / waitlist violet / not-going
+  cherry / no-response gray. **App-only — never in marketing/hero/landing assets.**
+- **Brand gradients (§04, the only gradients allowed):** `GRADIENTS` in `src/lib/theme.ts` —
+  BRIGHT (primary CTA, FilterBar active pill), DEEP (premium tier), STRIPE (today-card edge).
 - Use HeroUI color utilities via `className`: `bg-background`, `bg-surface`, `text-foreground`,
-  `text-muted`, `border-border`, `bg-accent` / `text-accent-foreground`, `bg-field`, and the
-  semantics `success` / `warning` / `danger` / `default` (neutral).
-- Build with HeroUI components: `Button`, `Input`, `Switch`, `Chip`, `Text`, `Surface`,
-  `Spinner`. RSVP → semantic mapping lives in `src/lib/theme.ts`.
-- **RSVP `"Not going"`** uses the **neutral** (`default`) semantic — never the danger color.
+  `text-muted`, `border-border`, `bg-accent` / `text-accent-foreground`, `bg-field`.
+- Build with HeroUI components: `Button`, `Input`, `Switch`, `Text`, `Surface`, `Spinner` —
+  plus the shared `StatusPills`/`SurfaceCard`/`PrimaryButton` brand components.
+- **RSVP `"Not going"`** uses Cherry per the brand sheet, but the **copy stays
+  non-punishing** ("can't make it this time") — color may be firm, words never are.
 - Type: HeroUI default (system) typography — `Text` with `type`/`weight`/`color` props.
 
 ## Copy law (full strings in spec §5)

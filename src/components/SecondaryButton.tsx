@@ -8,7 +8,7 @@ import type { IconName } from "../lib/icons";
 // accent text. Used for the non-primary action(s) on a screen so there's only
 // ever one bold filled CTA. (`accent-soft*` utilities are kept alive in
 // global.css, so these classes are safe.)
-const ACCENT_SOFT_FG = "#9a3c20"; // --color-accent-soft-foreground
+const ACCENT_SOFT_FG = "#3D6B02"; // --color-accent-soft-foreground
 
 export function SecondaryButton({
   label,

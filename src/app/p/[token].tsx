@@ -13,13 +13,14 @@ import { SectionHeader } from "../../components/SectionHeader";
 import { StatusPills, type PillOption } from "../../components/StatusPills";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { formatDate, formatRange } from "../../lib/datetime";
+import { RSVP_COLORS } from "../../lib/theme";
 import { attempt } from "../../lib/attempt";
 
 type Vote = "yes" | "maybe" | "no";
 const VOTE_OPTIONS: PillOption[] = [
-  { value: "yes", label: "Yes", color: "success", icon: "checkmark-circle" },
-  { value: "maybe", label: "Maybe", color: "warning", icon: "help-circle" },
-  { value: "no", label: "No", color: "default", icon: "close-circle" },
+  { value: "yes", label: "Yes", fill: RSVP_COLORS.going.fill, icon: "checkmark-circle" },
+  { value: "maybe", label: "Maybe", fill: RSVP_COLORS.maybe.fill, icon: "help-circle" },
+  { value: "no", label: "No", fill: RSVP_COLORS.not_going.fill, icon: "close-circle" },
 ];
 
 const KEY_STORE = "mt_guest_key";

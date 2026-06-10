@@ -167,6 +167,9 @@ export const vote = mutation({
     const poll = await ctx.db.get(args.pollId);
     if (!poll) throw new ConvexError({ k: "errors.pollNotFound" });
     if (poll.status !== "active") throw new ConvexError({ k: "errors.pollClosed" });
+    if (poll.expiresAt && poll.expiresAt < Date.now()) {
+      throw new ConvexError({ k: "errors.pollClosed" });
+    }
 
     const existing = await ctx.db
       .query("pollVotes")
@@ -211,6 +214,9 @@ export const voteAsGuest = mutation({
       .unique();
     if (!poll) throw new ConvexError({ k: "errors.pollLinkInvalid" });
     if (poll.status !== "active") throw new ConvexError({ k: "errors.pollClosed" });
+    if (poll.expiresAt && poll.expiresAt < Date.now()) {
+      throw new ConvexError({ k: "errors.pollClosed" });
+    }
 
     const existing = await ctx.db
       .query("pollVotes")

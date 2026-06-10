@@ -222,6 +222,7 @@ export const pl: Record<string, string> = {
 
   // ----- poll detail -----
   "poll.converted": "Przekształcona w spotkę",
+  "poll.expired": "Głosowanie zakończone",
   "poll.tapYourPick": "Kliknij swój wybór przy każdej opcji",
   "poll.share": "Udostępnij i zbieraj głosy",
   "poll.shareMessage": "Zagłosuj na „{title}\" — bez zakładania konta\n{url}",

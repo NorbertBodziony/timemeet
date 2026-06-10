@@ -220,6 +220,7 @@ export const en: Record<string, string> = {
 
   // ----- poll detail -----
   "poll.converted": "Converted to a meetup",
+  "poll.expired": "Voting closed",
   "poll.tapYourPick": "Tap your pick for each option",
   "poll.share": "Share to collect votes",
   "poll.shareMessage": "Vote on \"{title}\" — no account needed\n{url}",

@@ -97,6 +97,8 @@ export default function PollDetail() {
   const { poll, slots, placeOptions, myVotes } = data;
   const isOrganizer = currentUser?._id === poll.creatorId;
   const converted = poll.status === "converted";
+  const expired = poll.status === "active" && (poll.expiresAt ?? Infinity) < Date.now();
+  const locked = converted || expired;
   const isPlace = poll.type === "place"; // place-only
   const hasSlots = poll.type !== "place";
   const hasPlaces = poll.type !== "time";
@@ -167,10 +169,10 @@ export default function PollDetail() {
   return (
     <Screen
       title={poll.title}
-      subtitle={converted ? t("poll.converted") : t("poll.tapYourPick")}
+      subtitle={converted ? t("poll.converted") : expired ? t("poll.expired") : t("poll.tapYourPick")}
       dismiss="back"
     >
-      {!converted && !!poll.shareToken && (
+      {!locked && !!poll.shareToken && (
         <View className="mb-4">
           <SecondaryButton icon="share-outline" label={t("poll.share")} onPress={sharePoll} />
         </View>
@@ -186,7 +188,7 @@ export default function PollDetail() {
               counts={countsFor(slot._id)}
               mine={myVotes[slot._id]}
               highlight={leader?.id === slot._id && leader.yes > 0}
-              disabled={converted}
+              disabled={locked}
               onVote={(v) => voteSlot(slot._id, v)}
             />
           ))}
@@ -203,7 +205,7 @@ export default function PollDetail() {
               subtitle={`★ ${p.rating ?? "—"} · ${p.address}`}
               counts={countsFor(p._id)}
               mine={myVotes[p._id]}
-              disabled={converted}
+              disabled={locked}
               onVote={(v) => votePlace(p._id, v)}
             />
           ))}

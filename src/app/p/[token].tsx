@@ -83,7 +83,7 @@ export default function GuestPoll() {
   const hasPlaces = poll.type !== "time";
   const both = hasSlots && hasPlaces;
   const countsFor = (key: string) => agg?.[key] ?? { yes: 0, maybe: 0, no: 0 };
-  const closed = poll.status !== "active";
+  const closed = poll.status !== "active" || (poll.expiresAt ?? Infinity) < Date.now();
 
   // One voteable option card — shared by the time and place sections.
   function OptionCard({

@@ -10,6 +10,7 @@ import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { formatDate, formatRange } from "../../lib/datetime";
 import { MOCK_PLACES } from "../../lib/places";
+import { tap, warn } from "../../lib/haptics";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { errorMessage } from "../../lib/attempt";
 
@@ -37,7 +38,12 @@ function SelectRow({
   onPress: () => void;
 }) {
   return (
-    <ListGroup.Item onPress={onPress}>
+    <ListGroup.Item
+      onPress={() => {
+        tap();
+        onPress();
+      }}
+    >
       <ListGroup.ItemContent>
         <ListGroup.ItemTitle>{title}</ListGroup.ItemTitle>
         <ListGroup.ItemDescription>{subtitle}</ListGroup.ItemDescription>
@@ -96,6 +102,7 @@ export default function NewPoll() {
       });
       router.replace({ pathname: "/poll/[id]", params: { id: pollId } });
     } catch (e) {
+      warn();
       Alert.alert("Couldn't create the poll", errorMessage(e));
       setBusy(false);
     }

@@ -11,6 +11,7 @@ import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { CATEGORIES, type CategoryKey } from "../../lib/categories";
 import { formatDate, formatDateTime, formatRange } from "../../lib/datetime";
+import { tap, warn } from "../../lib/haptics";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
 import { errorMessage } from "../../lib/attempt";
@@ -71,6 +72,7 @@ export default function NewEvent() {
       celebrate("Meetup created!");
       router.replace({ pathname: "/event/[id]", params: { id: eventId } });
     } catch (e) {
+      warn();
       Alert.alert("Couldn't create the event", errorMessage(e));
       setBusy(false);
     }
@@ -140,7 +142,12 @@ export default function NewEvent() {
           return (
             <View key={slot.startsAt}>
               {i > 0 && <Separator className="ml-4" />}
-              <ListGroup.Item onPress={() => setWhen(slot.startsAt)}>
+              <ListGroup.Item
+                onPress={() => {
+                  tap();
+                  setWhen(slot.startsAt);
+                }}
+              >
                 <ListGroup.ItemContent>
                   <ListGroup.ItemTitle>{formatDate(slot.startsAt)}</ListGroup.ItemTitle>
                   <ListGroup.ItemDescription>

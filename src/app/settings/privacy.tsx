@@ -7,6 +7,7 @@ import { api } from "../../../convex/_generated/api";
 import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { tap } from "../../lib/haptics";
 
 export default function Privacy() {
   const router = useRouter();
@@ -62,7 +63,13 @@ export default function Privacy() {
             <ListGroup.ItemTitle>Share anonymous usage analytics</ListGroup.ItemTitle>
           </ListGroup.ItemContent>
           <ListGroup.ItemSuffix>
-            <Switch isSelected={optIn} onSelectedChange={toggleOptIn} />
+            <Switch
+              isSelected={optIn}
+              onSelectedChange={(v) => {
+                tap();
+                toggleOptIn(v);
+              }}
+            />
           </ListGroup.ItemSuffix>
         </ListGroup.Item>
       </ListGroup>

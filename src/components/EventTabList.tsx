@@ -12,6 +12,7 @@ import { PressableScale } from "./PressableScale";
 import { Screen } from "./Screen";
 import { SkeletonList } from "./Skeleton";
 import { CATEGORIES, type CategoryKey } from "../lib/categories";
+import { impact } from "../lib/haptics";
 import type { IconName } from "../lib/icons";
 import type { LutekMood } from "./Lutek";
 
@@ -51,6 +52,7 @@ export function EventTabList({
   );
 
   const onRefresh = useCallback(() => {
+    impact();
     setRefreshing(true);
     setNow(Date.now());
     setTimeout(() => setRefreshing(false), 600);

@@ -10,6 +10,7 @@ import { SkeletonList } from "../components/Skeleton";
 import { SurfaceCard } from "../components/SurfaceCard";
 import { UserAvatar } from "../components/UserAvatar";
 import { useAuth } from "../providers/MockAuthProvider";
+import { tap } from "../lib/haptics";
 
 export default function Friends() {
   const router = useRouter();
@@ -30,7 +31,15 @@ export default function Friends() {
         </Pressable>
       }
     >
-      <Button variant="primary" size="lg" className="mb-4" onPress={() => router.push("/qr")}>
+      <Button
+        variant="primary"
+        size="lg"
+        className="mb-4"
+        onPress={() => {
+          tap();
+          router.push("/qr");
+        }}
+      >
         <Icon name="qr-code" size={18} color="#FFFFFF" />
         <Button.Label>Add by QR code</Button.Label>
       </Button>

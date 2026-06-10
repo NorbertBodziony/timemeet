@@ -9,6 +9,7 @@ import { Screen } from "../../components/Screen";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { tap } from "../../lib/haptics";
 
 export default function Crews() {
   const router = useRouter();
@@ -24,7 +25,14 @@ export default function Crews() {
       subtitle="Groups you can invite in one tap."
       dismiss="back"
       right={
-        <Button variant="primary" size="sm" onPress={() => router.push("/crews/new" as never)}>
+        <Button
+          variant="primary"
+          size="sm"
+          onPress={() => {
+            tap();
+            router.push("/crews/new" as never);
+          }}
+        >
           <Icon name="add" size={16} color="#FFFFFF" />
           <Button.Label>New</Button.Label>
         </Button>

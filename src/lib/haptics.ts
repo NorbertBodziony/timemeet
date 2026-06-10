@@ -9,3 +9,6 @@ export const impact = () =>
 
 export const success = () =>
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+
+export const warn = () =>
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});

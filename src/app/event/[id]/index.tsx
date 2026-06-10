@@ -17,6 +17,7 @@ import { StarRating } from "../../../components/StarRating";
 import { UserAvatar } from "../../../components/UserAvatar";
 import { formatDateTime } from "../../../lib/datetime";
 import { attempt } from "../../../lib/attempt";
+import { success, tap } from "../../../lib/haptics";
 import { addToCalendar } from "../../../lib/ics";
 import { openMaps } from "../../../lib/maps";
 import { type RsvpStatus } from "../../../lib/theme";
@@ -78,7 +79,10 @@ export default function EventDetail() {
     if (!currentUser) return;
     const ok = await attempt(() => setRsvp({ userId: currentUser._id, eventId, status }));
     if (!ok) return;
-    if (status === "going") push.push({ title: `You're in — ${event.title}` });
+    if (status === "going") {
+      success();
+      push.push({ title: `You're in — ${event.title}` });
+    }
   }
 
   async function rate(stars: number) {
@@ -88,17 +92,20 @@ export default function EventDetail() {
 
   async function saveNote() {
     if (!currentUser || !myStars) return;
+    tap();
     await attempt(() => setRating({ userId: currentUser._id, eventId, stars: myStars, note: note ?? undefined }));
   }
 
   async function post() {
     if (!currentUser || !draft.trim()) return;
+    tap();
     const ok = await attempt(() => addPost({ userId: currentUser._id, eventId, body: draft.trim(), isAnnouncement: isOrganizer }));
     if (ok) setDraft("");
   }
 
   async function addPhoto() {
     if (!currentUser || uploading) return;
+    tap();
     const picked = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       quality: 0.6,
@@ -132,6 +139,7 @@ export default function EventDetail() {
 
   async function addBringItem() {
     if (!currentUser || !itemDraft.trim()) return;
+    tap();
     const ok = await attempt(() => addItem({ userId: currentUser._id, eventId, title: itemDraft.trim() }));
     if (ok) setItemDraft("");
   }
@@ -152,6 +160,7 @@ export default function EventDetail() {
 
   async function share() {
     if (!currentUser) return;
+    tap();
     const token = await createToken({ userId: currentUser._id, eventId });
     // Runtime-correct deep link (exp:// in Expo Go, meettime:// in builds).
     const url = ExpoLinking.createURL(`/invite/${token}`);

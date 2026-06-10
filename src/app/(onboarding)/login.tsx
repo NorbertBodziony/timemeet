@@ -9,6 +9,7 @@ import { IconTile } from "../../components/IconTile";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { appleSignIn } from "../../lib/auth";
+import { tap, warn } from "../../lib/haptics";
 import { TITLE_TRACKING } from "../../lib/ui";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { errorMessage } from "../../lib/attempt";
@@ -37,6 +38,7 @@ export default function Login() {
 
   // Mock entry — seed a user if the DB is empty, then sign in.
   async function enter() {
+    tap();
     try {
       if (users.length === 0) {
         const res = await seed({});
@@ -46,12 +48,14 @@ export default function Login() {
       }
       router.replace(dest);
     } catch (e) {
+      warn();
       Alert.alert("Couldn't sign in", errorMessage(e));
     }
   }
 
   // Real Apple Sign-In when available; otherwise fall back to the mock entry.
   async function withApple() {
+    tap();
     const id = await appleSignIn();
     if (!id) return enter();
     try {
@@ -59,6 +63,7 @@ export default function Login() {
       signIn(userId);
       router.replace(dest);
     } catch (e) {
+      warn();
       Alert.alert("Couldn't sign in", errorMessage(e));
     }
   }

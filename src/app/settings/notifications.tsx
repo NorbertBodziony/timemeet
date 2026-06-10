@@ -7,6 +7,7 @@ import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
 import { SectionHeader } from "../../components/SectionHeader";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { tap } from "../../lib/haptics";
 import type { IconName } from "../../lib/icons";
 
 type Prefs = {
@@ -46,7 +47,14 @@ function Row({
         <ListGroup.ItemTitle>{label}</ListGroup.ItemTitle>
       </ListGroup.ItemContent>
       <ListGroup.ItemSuffix>
-        <Switch isSelected={value} onSelectedChange={onChange} isDisabled={disabled} />
+        <Switch
+          isSelected={value}
+          onSelectedChange={(v) => {
+            tap();
+            onChange(v);
+          }}
+          isDisabled={disabled}
+        />
       </ListGroup.ItemSuffix>
     </ListGroup.Item>
   );

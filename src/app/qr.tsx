@@ -8,6 +8,7 @@ import { Screen } from "../components/Screen";
 import { UserAvatar } from "../components/UserAvatar";
 import { cardShadowLifted } from "../lib/ui";
 import { useAuth } from "../providers/MockAuthProvider";
+import { tap } from "../lib/haptics";
 
 export default function MyQrCode() {
   const router = useRouter();
@@ -52,7 +53,14 @@ export default function MyQrCode() {
       </View>
 
       <View className="mt-10">
-        <Button variant="primary" size="lg" onPress={() => router.push("/scan")}>
+        <Button
+          variant="primary"
+          size="lg"
+          onPress={() => {
+            tap();
+            router.push("/scan");
+          }}
+        >
           <Icon name="scan" size={18} color="#FFFFFF" />
           <Button.Label>Scan a friend's code</Button.Label>
         </Button>

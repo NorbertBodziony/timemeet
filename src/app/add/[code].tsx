@@ -9,6 +9,7 @@ import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
 import { UserAvatar } from "../../components/UserAvatar";
 import { attempt } from "../../lib/attempt";
+import { impact, success } from "../../lib/haptics";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { usePush } from "../../providers/MockPushProvider";
 
@@ -27,6 +28,7 @@ export default function AddFriend() {
 
   async function add() {
     if (!currentUser || !code || saving) return;
+    impact();
     setSaving(true);
     try {
       const ok = await attempt(async () => {
@@ -37,7 +39,10 @@ export default function AddFriend() {
             : `${res.friend.displayName.split(" ")[0]} is now a friend ✨`,
         });
       });
-      if (ok) setDone(true);
+      if (ok) {
+        success();
+        setDone(true);
+      }
     } finally {
       setSaving(false);
     }

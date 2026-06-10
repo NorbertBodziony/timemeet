@@ -12,6 +12,7 @@ import { SectionHeader } from "../../components/SectionHeader";
 import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { impact } from "../../lib/haptics";
 
 export default function NewCrew() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function NewCrew() {
 
   async function save() {
     if (!currentUser || !name.trim() || picked.size === 0 || saving) return;
+    impact();
     setSaving(true);
     try {
       await create({

@@ -5,6 +5,7 @@ import type { ColorValue } from "react-native";
 import { BlurView } from "expo-blur";
 import { useThemeColor } from "heroui-native";
 import { ICONS } from "../../lib/icons";
+import { tap } from "../../lib/haptics";
 
 type IonName = keyof typeof Ionicons.glyphMap;
 
@@ -22,6 +23,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      screenListeners={{ tabPress: () => tap() }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: accent,

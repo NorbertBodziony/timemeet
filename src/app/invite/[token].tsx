@@ -15,6 +15,7 @@ import { SurfaceCard } from "../../components/SurfaceCard";
 import { UserAvatar } from "../../components/UserAvatar";
 import { formatDateTime } from "../../lib/datetime";
 import { attempt } from "../../lib/attempt";
+import { success } from "../../lib/haptics";
 import { type RsvpStatus } from "../../lib/theme";
 import { useAuth } from "../../providers/MockAuthProvider";
 import { useCelebrate } from "../../providers/CelebrationProvider";
@@ -107,7 +108,9 @@ export default function InviteLanding() {
     if (!ok) return;
     setDone(status);
     if (status === "going") {
-      celebrate(`Nice, we'll let ${inviter} know!`);
+      celebrate(`Nice, we'll let ${inviter} know!`); // celebrate() buzzes on its own
+    } else {
+      success();
     }
   }
 

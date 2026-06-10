@@ -5,6 +5,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { Button, Text } from "heroui-native";
 import { IconTile } from "../components/IconTile";
 import { Screen } from "../components/Screen";
+import { impact, tap } from "../lib/haptics";
 
 const FRAME = 280; // QR viewfinder size
 
@@ -28,6 +29,7 @@ export default function Scan() {
     if (handled.current) return;
     const code = extractCode(data);
     if (!code) return;
+    impact(); // the "got it" moment
     handled.current = true;
     setScanned(true);
     router.replace({ pathname: "/add/[code]", params: { code } });
@@ -44,7 +46,14 @@ export default function Scan() {
           <Text color="muted" align="center" className="max-w-[260px] leading-5">
             MeetTime needs camera access to scan QR codes.
           </Text>
-          <Button variant="primary" size="lg" onPress={requestPermission}>
+          <Button
+            variant="primary"
+            size="lg"
+            onPress={() => {
+              tap();
+              requestPermission();
+            }}
+          >
             <Button.Label>Allow camera</Button.Label>
           </Button>
         </View>

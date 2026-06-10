@@ -8,6 +8,7 @@ import { Icon } from "../../components/Icon";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
 import { useAuth } from "../../providers/MockAuthProvider";
+import { warn } from "../../lib/haptics";
 import { errorMessage } from "../../lib/attempt";
 
 const STEPS: { icon: "share-outline" | "person-add-outline" | "gift-outline"; text: string }[] = [
@@ -38,6 +39,7 @@ export default function Referrals() {
       setCode("");
       Alert.alert("Thanks!", "We've noted who invited you.");
     } catch (e) {
+      warn();
       Alert.alert("Hmm", errorMessage(e));
     }
   }

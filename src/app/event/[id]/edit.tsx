@@ -11,6 +11,7 @@ import { PrimaryButton } from "../../../components/PrimaryButton";
 import { Screen } from "../../../components/Screen";
 import { SectionHeader } from "../../../components/SectionHeader";
 import { formatDateTime } from "../../../lib/datetime";
+import { tap, warn } from "../../../lib/haptics";
 import { useAuth } from "../../../providers/MockAuthProvider";
 import { usePush } from "../../../providers/MockPushProvider";
 import { errorMessage } from "../../../lib/attempt";
@@ -78,6 +79,7 @@ export default function EditEvent() {
       push.push({ title: `Updated: ${curTitle}` });
       router.back();
     } catch (e) {
+      warn();
       Alert.alert("Couldn't save", errorMessage(e));
       setBusy(false);
     }
@@ -101,7 +103,12 @@ export default function EditEvent() {
           return (
             <View key={s}>
               {i > 0 && <Separator className="ml-4" />}
-              <ListGroup.Item onPress={() => setStartsAt(s)}>
+              <ListGroup.Item
+                onPress={() => {
+                  tap();
+                  setStartsAt(s);
+                }}
+              >
                 <ListGroup.ItemContent>
                   <ListGroup.ItemTitle>{formatDateTime(s)}</ListGroup.ItemTitle>
                 </ListGroup.ItemContent>

@@ -28,6 +28,21 @@ export const get = query({
   },
 });
 
+// Human-typable referral-code suffix. CSPRNG-backed; deliberately short — the
+// code is read aloud / typed by friends, and guessing one only lets someone
+// send you a friend request, not access anything.
+function codeSuffix(length = 4): string {
+  const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O/1/I/L
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map((b) => alphabet[b % alphabet.length]).join("");
+}
+
+export function referralCodeFor(displayName: string): string {
+  const first = displayName.trim().split(" ")[0]?.toUpperCase() || "FRIEND";
+  return `MEETTIME-${first}-${codeSuffix()}`;
+}
+
 // Edit profile fields (Settings → Profile).
 export const update = mutation({
   args: {
@@ -46,10 +61,9 @@ export const update = mutation({
     // The referral code embeds the first name — regenerate it on rename so the
     // QR / shared code matches who you are now. Old shared codes stop working.
     if (patch.displayName && patch.displayName.trim() !== me.displayName) {
-      const code = patch.displayName.trim().split(" ")[0]?.toUpperCase() || "FRIEND";
       await ctx.db.patch(userId, {
         ...patch,
-        referralCode: `MEETTIME-${code}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`,
+        referralCode: referralCodeFor(patch.displayName),
       });
       return;
     }
@@ -144,14 +158,13 @@ export const upsertFromAuth = mutation({
       if (existing.deletedAt) await ctx.db.patch(existing._id, { deletedAt: undefined });
       return existing._id;
     }
-    const code = displayName.split(" ")[0]?.toUpperCase() || "FRIEND";
     return await ctx.db.insert("users", {
       displayName,
       email,
       photoUrl,
       city: "Kraków",
       authSubject,
-      referralCode: `MEETTIME-${code}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`,
+      referralCode: referralCodeFor(displayName),
     });
   },
 });

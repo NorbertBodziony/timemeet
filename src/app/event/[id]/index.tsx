@@ -15,11 +15,11 @@ import { SectionHeader } from "../../../components/SectionHeader";
 import { SurfaceCard } from "../../../components/SurfaceCard";
 import { StarRating } from "../../../components/StarRating";
 import { UserAvatar } from "../../../components/UserAvatar";
-import { CATEGORIES } from "../../../lib/categories";
 import { formatDateTime } from "../../../lib/datetime";
 import { attempt, errorMessage } from "../../../lib/attempt";
 import { success, tap, warn } from "../../../lib/haptics";
 import { addToCalendar } from "../../../lib/calendar";
+import { webLink } from "../../../lib/links";
 import { openMaps } from "../../../lib/maps";
 import { type RsvpStatus } from "../../../lib/theme";
 import { useAuth } from "../../../providers/MockAuthProvider";
@@ -126,7 +126,16 @@ export default function EventDetail() {
   async function addBringItem() {
     if (!currentUser || !itemDraft.trim()) return;
     tap();
-    const ok = await attempt(() => addItem({ userId: currentUser._id, eventId, title: itemDraft.trim() }));
+    // Organizer seeds suggestions ("Do wzięcia"); a guest adding an item is
+    // volunteering to bring it.
+    const ok = await attempt(() =>
+      addItem({
+        userId: currentUser._id,
+        eventId,
+        title: itemDraft.trim(),
+        claim: isOrganizer ? false : undefined,
+      })
+    );
     if (ok) setItemDraft("");
   }
 
@@ -155,8 +164,8 @@ export default function EventDetail() {
       Alert.alert(t("errors.shareTitle"), errorMessage(e));
       return;
     }
-    // Runtime-correct deep link (exp:// in Expo Go, meettime:// in builds).
-    const url = ExpoLinking.createURL(`/invite/${token}`);
+    // Universal link — opens the app when installed, web fallback otherwise.
+    const url = webLink(`/invite/${token}`);
     try {
       await Share.share({ message: t("event.shareMessage", { title: event.title, url }), url });
     } catch {
@@ -206,22 +215,13 @@ export default function EventDetail() {
         </View>
       )}
 
-      {coverUrl ? (
+      {!!coverUrl && (
         <Image
           source={{ uri: coverUrl }}
           className="w-full rounded-2xl mb-4"
           style={{ aspectRatio: 16 / 9 }}
           resizeMode="cover"
         />
-      ) : (
-        <View
-          className="w-full rounded-2xl mb-4 bg-accent-soft items-center justify-center"
-          style={{ aspectRatio: 16 / 9 }}
-        >
-          <Text style={{ fontSize: 44 }}>
-            {CATEGORIES.find((c) => c.key === event.category?.[0])?.emoji ?? "🗓️"}
-          </Text>
-        </View>
       )}
       <Card className="mb-5">
         <Card.Body className="gap-2">

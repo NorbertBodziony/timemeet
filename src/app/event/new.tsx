@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, Image, Pressable, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
-import { Button, Card, Input, ListGroup, Separator, Switch, Text } from "heroui-native";
+import { Button, Card, Input, ListGroup, Separator, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { FormLabel } from "../../components/FormLabel";
@@ -54,7 +54,6 @@ export default function NewEvent() {
   const [categories, setCategories] = useState<CategoryKey[]>([]);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(false);
-  const [open, setOpen] = useState(false);
   const [invitees, setInvitees] = useState<Id<"users">[]>([]);
   const [bring, setBring] = useState<string[]>([]);
   const [bringDraft, setBringDraft] = useState("");
@@ -98,7 +97,7 @@ export default function NewEvent() {
         description: description.trim() || undefined,
         coverImageId: cover ? (cover.id as never) : undefined,
         category: categories,
-        visibility: open ? "open" : "invite_only",
+        visibility: "invite_only",
         waitlistEnabled: cap !== undefined,
         capacity: cap,
         minThreshold: minT,
@@ -156,9 +155,7 @@ export default function NewEvent() {
               </Text>
             )}
             <Text type="body-xs" color="muted" className="mt-1">
-              {t(open ? "eventForm.openBy" : "eventForm.inviteOnlyBy", {
-                name: currentUser?.displayName ?? t("eventForm.you"),
-              })}
+              {t("eventForm.inviteOnlyBy", { name: currentUser?.displayName ?? t("eventForm.you") })}
             </Text>
           </Card.Body>
         </Card>
@@ -325,22 +322,6 @@ export default function NewEvent() {
       <Text type="body-xs" color="muted" className="mt-1.5 ml-1">
         {t("eventForm.antiFlakeHint")}
       </Text>
-
-      <View className="mt-5 flex-row items-center justify-between">
-        <View className="flex-1 pr-3">
-          <Text weight="semibold">{t("eventForm.open")}</Text>
-          <Text type="body-xs" color="muted">
-            {t("eventForm.openHint")}
-          </Text>
-        </View>
-        <Switch
-          isSelected={open}
-          onSelectedChange={(v) => {
-            tap();
-            setOpen(v);
-          }}
-        />
-      </View>
 
       {/* Pick friends now — invites go out the moment the meetup is published. */}
       {!!friends && friends.length > 0 && (

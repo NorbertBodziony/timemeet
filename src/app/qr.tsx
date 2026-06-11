@@ -1,6 +1,5 @@
 import { useRouter } from "expo-router";
 import { View } from "react-native";
-import * as Linking from "expo-linking";
 import QRCode from "react-native-qrcode-svg";
 import { Button, Text, useThemeColor } from "heroui-native";
 import { Icon } from "../components/Icon";
@@ -9,6 +8,7 @@ import { UserAvatar } from "../components/UserAvatar";
 import { cardShadowLifted } from "../lib/ui";
 import { useAuth } from "../providers/MockAuthProvider";
 import { tap } from "../lib/haptics";
+import { webLink } from "../lib/links";
 import { useT } from "../providers/LanguageProvider";
 
 export default function MyQrCode() {
@@ -20,9 +20,9 @@ export default function MyQrCode() {
 
   if (!currentUser) return <Screen title={t("qr.title")} dismiss="close">{null}</Screen>;
 
-  // Encode a runtime-correct deep link (exp:// in Expo Go, the app scheme in a
-  // build). The scanner also just reads the trailing code, so either works.
-  const payload = Linking.createURL(`/add/${currentUser.referralCode}`);
+  // Universal link — the in-app scanner reads the trailing code; a phone
+  // camera opens the app (or the web fallback for people without it).
+  const payload = webLink(`/add/${currentUser.referralCode}`);
 
   return (
     <Screen title={t("qr.title")} subtitle={t("qr.subtitle")} dismiss="close">

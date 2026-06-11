@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, Share, View } from "react-native";
-import * as Linking from "expo-linking";
+import { webLink } from "../../lib/links";
 import { useMutation, useQuery } from "convex/react";
 import { Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
@@ -140,7 +140,7 @@ export default function PollDetail() {
   async function sharePoll() {
     const token = poll.shareToken;
     if (!token) return;
-    const url = Linking.createURL(`/p/${token}`);
+    const url = webLink(`/p/${token}`);
     try {
       await Share.share({ message: t("poll.shareMessage", { title: poll.title, url }), url });
     } catch {

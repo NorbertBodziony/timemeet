@@ -134,9 +134,6 @@ export const en: Record<string, string> = {
   "eventForm.previewTitle": "Preview",
   "eventForm.previewSubtitle": "This is what your crew will see.",
   "eventForm.inviteOnlyBy": "Invite only · organized by {name}",
-  "eventForm.openBy": "Open · organized by {name}",
-  "eventForm.open": "Open event",
-  "eventForm.openHint": "Anyone with the link can join.",
   "eventForm.inviteNow": "Invite friends",
   "eventForm.inviteNowHint": "They'll get an invite right after you publish.",
   "eventForm.publish": "Publish",
@@ -147,8 +144,8 @@ export const en: Record<string, string> = {
   // ----- event edit -----
   "eventEdit.title": "Edit meetup",
   "eventEdit.notes": "Description",
-  "eventEdit.openYes": "Open",
-  "eventEdit.openNo": "Invite only",
+  "eventEdit.coverChanged": "new photo",
+  "eventEdit.coverTap": "Tap the photo to change it.",
   "eventEdit.notesPlaceholder": "Optional",
   "eventEdit.address": "Address",
   "eventEdit.changes": "Changes",
@@ -264,7 +261,9 @@ export const en: Record<string, string> = {
   "myPolls.timePoll": "Time Poll",
   "myPolls.placePoll": "Place Poll",
   "myPolls.closingToday": "closing today",
-  "myPolls.daysLeft": "{count}d left",
+  "myPolls.daysLeft.one": "1 day left",
+  "myPolls.daysLeft.few": "{count} days left",
+  "myPolls.daysLeft.many": "{count} days left",
 
   // ----- calendar -----
   "calendar.title": "Calendar",

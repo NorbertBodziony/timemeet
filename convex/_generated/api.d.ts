@@ -12,6 +12,7 @@ import type * as crews from "../crews.js";
 import type * as events from "../events.js";
 import type * as friends from "../friends.js";
 import type * as helpers from "../helpers.js";
+import type * as http from "../http.js";
 import type * as i18n from "../i18n.js";
 import type * as invites from "../invites.js";
 import type * as items from "../items.js";
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   events: typeof events;
   friends: typeof friends;
   helpers: typeof helpers;
+  http: typeof http;
   i18n: typeof i18n;
   invites: typeof invites;
   items: typeof items;

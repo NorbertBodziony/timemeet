@@ -28,8 +28,8 @@ export function SurfaceCard({
   );
   return (
     <Animated.View
-      entering={FadeIn.duration(220)}
-      layout={LinearTransition.springify().damping(18)}
+      entering={FadeIn.duration(180)}
+      layout={LinearTransition.duration(180)}
     >
       {onPress ? <PressableScale onPress={onPress}>{inner}</PressableScale> : inner}
     </Animated.View>

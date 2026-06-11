@@ -28,9 +28,10 @@ function EditableStar({
       hitSlop={6}
       onPress={() => {
         tap();
+        // Soft, barely-there acknowledgement — no bounce.
         scale.value = withSequence(
-          withSpring(1.25, { damping: 12, stiffness: 300 }),
-          withSpring(1, { damping: 14 })
+          withSpring(1.08, { damping: 20, stiffness: 250 }),
+          withSpring(1, { damping: 20 })
         );
         onPress();
       }}

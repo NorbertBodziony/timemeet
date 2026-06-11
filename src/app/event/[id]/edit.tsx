@@ -1,9 +1,9 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { Alert, Image, Pressable, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
-import { Card, Input, ListGroup, Separator, Switch, Text } from "heroui-native";
+import { Card, Input, ListGroup, Separator, Text } from "heroui-native";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { FormLabel } from "../../../components/FormLabel";
@@ -13,6 +13,7 @@ import { Screen } from "../../../components/Screen";
 import { SectionHeader } from "../../../components/SectionHeader";
 import { formatDateTime } from "../../../lib/datetime";
 import { tap, warn } from "../../../lib/haptics";
+import { pickImages, uploadImage } from "../../../lib/photos";
 import { useAuth } from "../../../providers/MockAuthProvider";
 import { usePush } from "../../../providers/MockPushProvider";
 import { errorMessage } from "../../../lib/attempt";
@@ -32,13 +33,33 @@ export default function EditEvent() {
 
   const data = useQuery(api.events.get, { eventId });
   const edit = useMutation(api.events.edit);
+  const uploadUrlFor = useMutation(api.posts.generateUploadUrl);
 
   const [title, setTitle] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
   const [startsAt, setStartsAt] = useState<number | null>(null);
-  const [open, setOpen] = useState<boolean | null>(null);
+  const [cover, setCover] = useState<{ id: string; uri: string } | null>(null);
+  const [coverBusy, setCoverBusy] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  async function pickCover() {
+    if (!currentUser || coverBusy) return;
+    tap();
+    const uris = await pickImages();
+    if (uris.length === 0) return;
+    setCoverBusy(true);
+    try {
+      const url = await uploadUrlFor({ userId: currentUser._id });
+      const id = await uploadImage(uris[0], url);
+      setCover({ id, uri: uris[0] });
+    } catch {
+      warn();
+      Alert.alert(t("errors.photoTitle"), t("errors.retryMoment"));
+    } finally {
+      setCoverBusy(false);
+    }
+  }
 
   if (data === undefined) return <Screen title={t("common.loading")} dismiss="close">{null}</Screen>;
   if (data === null)
@@ -49,7 +70,6 @@ export default function EditEvent() {
   const curAddress = address ?? event.customAddress ?? "";
   const curDesc = description ?? event.description ?? "";
   const curStart = startsAt ?? event.startsAt;
-  const curOpen = open ?? event.visibility === "open";
 
   const changes: { label: string; from: string; to: string }[] = [];
   if (curTitle !== event.title) changes.push({ label: t("eventForm.fieldTitle"), from: event.title, to: curTitle });
@@ -59,12 +79,8 @@ export default function EditEvent() {
     changes.push({ label: t("eventEdit.notes"), from: event.description ?? "—", to: curDesc || "—" });
   if (curStart !== event.startsAt)
     changes.push({ label: t("eventForm.when"), from: formatDateTime(event.startsAt), to: formatDateTime(curStart) });
-  if (curOpen !== (event.visibility === "open"))
-    changes.push({
-      label: t("eventForm.open"),
-      from: t(event.visibility === "open" ? "eventEdit.openYes" : "eventEdit.openNo"),
-      to: t(curOpen ? "eventEdit.openYes" : "eventEdit.openNo"),
-    });
+  if (cover)
+    changes.push({ label: t("eventForm.cover"), from: "—", to: t("eventEdit.coverChanged") });
 
   async function save() {
     if (!currentUser || changes.length === 0) return;
@@ -78,7 +94,7 @@ export default function EditEvent() {
           customAddress: curAddress || undefined,
           description: curDesc || undefined,
           startsAt: curStart,
-          visibility: curOpen ? "open" : "invite_only",
+          ...(cover ? { coverImageId: cover.id as never } : {}),
         },
       });
       push.push({ title: t("eventEdit.updated", { title: curTitle }) });
@@ -101,6 +117,28 @@ export default function EditEvent() {
       <FormLabel className="mt-5">{t("eventEdit.notes")}</FormLabel>
       <Input value={curDesc} onChangeText={setDescription} placeholder={t("eventEdit.notesPlaceholder")} multiline />
 
+      <FormLabel className="mt-5">{t("eventForm.cover")}</FormLabel>
+      <Pressable onPress={pickCover}>
+        {cover?.uri || data.coverUrl ? (
+          <Image
+            source={{ uri: cover?.uri ?? data.coverUrl ?? undefined }}
+            className="w-full rounded-2xl"
+            style={{ aspectRatio: 16 / 9, opacity: coverBusy ? 0.5 : 1 }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="rounded-2xl bg-surface border border-border flex-row items-center justify-center gap-2 py-8">
+            <Icon name="image-outline" size={18} tint="muted" />
+            <Text type="body-sm" color="muted">
+              {coverBusy ? t("eventForm.coverUploading") : t("eventForm.coverAdd")}
+            </Text>
+          </View>
+        )}
+      </Pressable>
+      <Text type="body-xs" color="muted" className="mt-1.5 ml-1">
+        {t("eventEdit.coverTap")}
+      </Text>
+
       <FormLabel className="mt-5">{t("eventForm.when")}</FormLabel>
       <View className="rounded-2xl bg-surface px-3 py-2 flex-row items-center justify-between">
         <DateTimePicker
@@ -120,22 +158,6 @@ export default function EditEvent() {
           mode="time"
           minuteInterval={5}
           onChange={(_, d) => d && setStartsAt(d.getTime())}
-        />
-      </View>
-
-      <View className="mt-5 flex-row items-center justify-between">
-        <View className="flex-1 pr-3">
-          <Text weight="semibold">{t("eventForm.open")}</Text>
-          <Text type="body-xs" color="muted">
-            {t("eventForm.openHint")}
-          </Text>
-        </View>
-        <Switch
-          isSelected={curOpen}
-          onSelectedChange={(v) => {
-            tap();
-            setOpen(v);
-          }}
         />
       </View>
 

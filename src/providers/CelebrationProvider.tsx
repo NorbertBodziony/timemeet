@@ -102,7 +102,7 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
           <Confetti runId={state.runId} />
           <View style={{ position: "absolute", left: 0, right: 0, top: H * 0.34, alignItems: "center" }}>
             <Animated.View
-              entering={ZoomIn.springify().damping(12)}
+              entering={ZoomIn.duration(200)}
               exiting={ZoomOut}
               className="items-center rounded-3xl bg-surface border border-border px-6 py-5"
               style={{

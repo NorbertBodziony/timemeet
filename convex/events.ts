@@ -56,7 +56,6 @@ export const edit = mutation({
       placeId: v.optional(v.string()),
       customAddress: v.optional(v.string()),
       category: v.optional(v.array(v.string())),
-      visibility: v.optional(v.union(v.literal("invite_only"), v.literal("open"))),
       capacity: v.optional(v.number()),
       description: v.optional(v.string()),
       coverImageId: v.optional(v.id("_storage")),

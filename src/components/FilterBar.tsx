@@ -23,7 +23,7 @@ function ActivePill({ label, icon }: { label: string; icon?: IconName }) {
   const glow = useSharedValue(0.25);
   useEffect(() => {
     glow.value = withRepeat(
-      withSequence(withTiming(0.55, { duration: 1000 }), withTiming(0.25, { duration: 1000 })),
+      withSequence(withTiming(0.4, { duration: 1200 }), withTiming(0.25, { duration: 1200 })),
       -1
     );
   }, [glow]);

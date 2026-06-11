@@ -34,8 +34,8 @@ export function MockPushProvider({ children }: { children: ReactNode }) {
       {children}
       {banner && (
         <Animated.View
-          entering={FadeInUp}
-          exiting={FadeOutUp}
+          entering={FadeInUp.duration(200)}
+          exiting={FadeOutUp.duration(180)}
           pointerEvents="none"
           style={{ position: "absolute", top: insets.top + 8, left: 16, right: 16 }}
         >

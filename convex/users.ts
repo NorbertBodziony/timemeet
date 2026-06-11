@@ -39,9 +39,19 @@ export const update = mutation({
     }),
   },
   handler: async (ctx, { userId, patch }) => {
-    await requireUser(ctx, userId);
+    const me = await requireUser(ctx, userId);
     if (patch.displayName !== undefined && !patch.displayName.trim()) {
       throw new ConvexError({ k: "errors.nameEmpty" });
+    }
+    // The referral code embeds the first name — regenerate it on rename so the
+    // QR / shared code matches who you are now. Old shared codes stop working.
+    if (patch.displayName && patch.displayName.trim() !== me.displayName) {
+      const code = patch.displayName.trim().split(" ")[0]?.toUpperCase() || "FRIEND";
+      await ctx.db.patch(userId, {
+        ...patch,
+        referralCode: `MEETTIME-${code}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`,
+      });
+      return;
     }
     await ctx.db.patch(userId, patch);
   },

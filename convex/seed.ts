@@ -25,7 +25,6 @@ export const run = mutation({
         "notifications",
         "eventInvites",
         "events",
-        "subscriptions",
         "users",
         "referrals",
         "friends",
@@ -83,13 +82,6 @@ export const run = mutation({
         role: u === karolina ? "owner" : "member",
       });
     }
-
-    await ctx.db.insert("subscriptions", {
-      userId: karolina,
-      plan: "free",
-      trialCountEvents: 0,
-      status: "active",
-    });
 
     // Sample Time Poll, mid-vote.
     const poll = await ctx.db.insert("polls", {

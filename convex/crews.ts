@@ -64,6 +64,27 @@ export const create = mutation({
   },
 });
 
+// Delete a crew (owner only). Removes the crew and its memberships; meetups
+// and friendships are untouched.
+export const remove = mutation({
+  args: { userId: v.id("users"), crewId: v.id("crews") },
+  handler: async (ctx, { userId, crewId }) => {
+    await requireUser(ctx, userId);
+    const crew = await ctx.db.get(crewId);
+    if (!crew) return;
+    const members = await ctx.db
+      .query("crewMembers")
+      .withIndex("by_crew", (q) => q.eq("crewId", crewId))
+      .collect();
+    const mine = members.find((m) => m.userId === userId);
+    if (crew.createdBy !== userId && mine?.role !== "owner") {
+      throw new ConvexError({ k: "errors.crewOwnerOnly" });
+    }
+    for (const m of members) await ctx.db.delete(m._id);
+    await ctx.db.delete(crewId);
+  },
+});
+
 // Invite every crew member who isn't already on the guest list. Returns how
 // many new people were added so the UI can confirm.
 export const inviteToEvent = mutation({

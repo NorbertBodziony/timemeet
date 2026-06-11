@@ -5,11 +5,15 @@ import * as Notifications from "expo-notifications";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../providers/MockAuthProvider";
+import { t } from "../lib/i18n";
 
-// Show notifications while the app is foregrounded too.
+// While the app is foregrounded the in-app banner (MockPushProvider via
+// NotificationListener) covers new activity — suppress the system banner so the
+// two don't stack on top of each other and block the header. Backgrounded
+// pushes still show natively.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,
+    shouldShowBanner: false,
     shouldShowList: true,
     shouldPlaySound: false,
     shouldSetBadge: false,
@@ -69,7 +73,7 @@ export function PushManager() {
           const fireAt = row.event.startsAt - 2 * 60 * 60 * 1000;
           if (fireAt > Date.now()) {
             await Notifications.scheduleNotificationAsync({
-              content: { title: "MeetTime", body: `In 2 hours — ${row.event.title} 👀` },
+              content: { title: "MeetTime", body: t("notif.twoHours", { title: row.event.title }) },
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.DATE,
                 date: new Date(fireAt),

@@ -1,9 +1,7 @@
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import Constants from "expo-constants";
-import { useQuery } from "convex/react";
-import { Chip, ListGroup, Separator, Text } from "heroui-native";
-import { api } from "../../../convex/_generated/api";
+import { ListGroup, Separator, Text } from "heroui-native";
 import { Icon } from "../../components/Icon";
 import { Screen } from "../../components/Screen";
 import { SectionHeader } from "../../components/SectionHeader";
@@ -12,19 +10,12 @@ import { useAuth } from "../../providers/MockAuthProvider";
 import type { IconName } from "../../lib/icons";
 import { useT } from "../../providers/LanguageProvider";
 
-const PLAN_LABEL: Record<string, string> = {
-  free: "Free",
-  meettime_plus: "MeetTime+",
-  founder: "Founder",
-};
-
 const ROWS: { key: string; icon: IconName; href: string }[] = [
   { key: "settings.profile", icon: "person-outline", href: "/settings/profile" },
   { key: "settings.friends", icon: "people-outline", href: "/friends" },
   { key: "settings.crews", icon: "people-circle-outline", href: "/crews" },
   { key: "settings.language", icon: "globe-outline", href: "/settings/language" },
   { key: "settings.notifications", icon: "notifications-outline", href: "/settings/notifications" },
-  { key: "settings.plus", icon: "star-outline", href: "/settings/subscription" },
   { key: "settings.refer", icon: "gift-outline", href: "/settings/referrals" },
   { key: "settings.privacy", icon: "lock-closed-outline", href: "/settings/privacy" },
   { key: "settings.help", icon: "help-circle-outline", href: "/settings/help" },
@@ -34,12 +25,7 @@ const ROWS: { key: string; icon: IconName; href: string }[] = [
 export default function SettingsHome() {
   const router = useRouter();
   const { t } = useT();
-  const { currentUser, users, switchUser, signOut } = useAuth();
-  const sub = useQuery(
-    api.subscriptions.get,
-    currentUser ? { userId: currentUser._id } : "skip"
-  );
-  const plan = sub?.plan ?? "free";
+  const { currentUser, users, switchUser } = useAuth();
 
   return (
     <Screen title={t("settings.title")} bottomInset={49}>
@@ -54,9 +40,6 @@ export default function SettingsHome() {
             {currentUser?.referralCode ?? ""}
           </Text>
         </View>
-        <Chip color={plan === "free" ? "default" : "accent"} variant="soft" size="sm">
-          <Chip.Label>{PLAN_LABEL[plan] ?? "Free"}</Chip.Label>
-        </Chip>
       </View>
 
       <ListGroup>
@@ -101,19 +84,7 @@ export default function SettingsHome() {
         </View>
       )}
 
-      <Pressable
-        onPress={() => {
-          signOut();
-          router.replace("/welcome");
-        }}
-        className="mt-8 flex-row items-center justify-center gap-2 py-3"
-      >
-        <Icon name="log-out-outline" size={18} tint="danger" />
-        <Text weight="semibold" className="text-danger">
-          {t("settings.signOut")}
-        </Text>
-      </Pressable>
-      <Text type="body-xs" color="muted" align="center" className="mt-2">
+      <Text type="body-xs" color="muted" align="center" className="mt-8">
         MeetTime v{Constants.expoConfig?.version ?? "1.0.0"}
       </Text>
     </Screen>

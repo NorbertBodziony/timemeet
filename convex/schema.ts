@@ -212,18 +212,6 @@ export default defineSchema({
     .index("by_code", ["code"])
     .index("by_referrer", ["referrerId"]),
 
-  subscriptions: defineTable({
-    userId: v.id("users"),
-    plan: v.union(
-      v.literal("free"),
-      v.literal("meettime_plus"),
-      v.literal("founder")
-    ),
-    trialCountEvents: v.number(),
-    status: v.string(),
-    currentPeriodEnd: v.optional(v.number()),
-  }).index("by_user", ["userId"]),
-
   // Friends — a simple accepted-friendship edge. Stored two-way (one row per
   // direction) so a single by_user index returns a user's whole friend list.
   friends: defineTable({

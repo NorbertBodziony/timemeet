@@ -24,7 +24,6 @@ import type * as referrals from "../referrals.js";
 import type * as reminders from "../reminders.js";
 import type * as rsvps from "../rsvps.js";
 import type * as seed from "../seed.js";
-import type * as subscriptions from "../subscriptions.js";
 import type * as users from "../users.js";
 
 import type {
@@ -50,7 +49,6 @@ declare const fullApi: ApiFromModules<{
   reminders: typeof reminders;
   rsvps: typeof rsvps;
   seed: typeof seed;
-  subscriptions: typeof subscriptions;
   users: typeof users;
 }>;
 

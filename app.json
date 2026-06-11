@@ -42,7 +42,6 @@
       "expo-web-browser",
       "expo-apple-authentication",
       "expo-notifications",
-      "expo-sharing",
       [
         "expo-camera",
         {
@@ -54,12 +53,6 @@
         {
           "photosPermission": "MeetTime uses your photos for covers, the board, and your profile.",
           "cameraPermission": "MeetTime uses the camera to snap photos for your meetups."
-        }
-      ],
-      [
-        "expo-calendar",
-        {
-          "calendarPermission": "MeetTime saves meetups you choose to your calendar."
         }
       ],
       "@react-native-community/datetimepicker"

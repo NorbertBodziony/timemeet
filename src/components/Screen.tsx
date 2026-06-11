@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
+import { Keyboard, Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "heroui-native";
@@ -99,14 +99,19 @@ export function Screen({
         paddingBottom: insets.bottom + 32 + bottomInset,
       }}
       showsVerticalScrollIndicator={false}
+      keyboardDismissMode="on-drag"
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         onRefresh ? (
           <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} />
         ) : undefined
       }
     >
-      {showHeader && header}
-      {children}
+      {/* Tapping empty space closes the keyboard — number pads have no return key. */}
+      <Pressable onPress={Keyboard.dismiss} accessible={false}>
+        {showHeader && header}
+        {children}
+      </Pressable>
     </ScrollView>
   );
 }

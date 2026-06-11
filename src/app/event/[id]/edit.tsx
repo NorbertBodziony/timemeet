@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, View } from "react-native";
 import { useMutation, useQuery } from "convex/react";
-import { Card, Input, ListGroup, Separator, Text } from "heroui-native";
+import { Card, Input, ListGroup, Separator, Switch, Text } from "heroui-native";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { FormLabel } from "../../../components/FormLabel";
@@ -37,6 +37,7 @@ export default function EditEvent() {
   const [address, setAddress] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
   const [startsAt, setStartsAt] = useState<number | null>(null);
+  const [open, setOpen] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
 
   if (data === undefined) return <Screen title={t("common.loading")} dismiss="close">{null}</Screen>;
@@ -48,6 +49,7 @@ export default function EditEvent() {
   const curAddress = address ?? event.customAddress ?? "";
   const curDesc = description ?? event.description ?? "";
   const curStart = startsAt ?? event.startsAt;
+  const curOpen = open ?? event.visibility === "open";
 
   const changes: { label: string; from: string; to: string }[] = [];
   if (curTitle !== event.title) changes.push({ label: t("eventForm.fieldTitle"), from: event.title, to: curTitle });
@@ -57,6 +59,12 @@ export default function EditEvent() {
     changes.push({ label: t("eventEdit.notes"), from: event.description ?? "—", to: curDesc || "—" });
   if (curStart !== event.startsAt)
     changes.push({ label: t("eventForm.when"), from: formatDateTime(event.startsAt), to: formatDateTime(curStart) });
+  if (curOpen !== (event.visibility === "open"))
+    changes.push({
+      label: t("eventForm.open"),
+      from: t(event.visibility === "open" ? "eventEdit.openYes" : "eventEdit.openNo"),
+      to: t(curOpen ? "eventEdit.openYes" : "eventEdit.openNo"),
+    });
 
   async function save() {
     if (!currentUser || changes.length === 0) return;
@@ -70,6 +78,7 @@ export default function EditEvent() {
           customAddress: curAddress || undefined,
           description: curDesc || undefined,
           startsAt: curStart,
+          visibility: curOpen ? "open" : "invite_only",
         },
       });
       push.push({ title: t("eventEdit.updated", { title: curTitle }) });
@@ -111,6 +120,22 @@ export default function EditEvent() {
           mode="time"
           minuteInterval={5}
           onChange={(_, d) => d && setStartsAt(d.getTime())}
+        />
+      </View>
+
+      <View className="mt-5 flex-row items-center justify-between">
+        <View className="flex-1 pr-3">
+          <Text weight="semibold">{t("eventForm.open")}</Text>
+          <Text type="body-xs" color="muted">
+            {t("eventForm.openHint")}
+          </Text>
+        </View>
+        <Switch
+          isSelected={curOpen}
+          onSelectedChange={(v) => {
+            tap();
+            setOpen(v);
+          }}
         />
       </View>
 

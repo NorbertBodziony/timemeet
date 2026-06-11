@@ -64,7 +64,7 @@ export function EventTabList({
 
   // Which categories actually appear in this tab — only offer a filter row when
   // there's a real choice to make.
-  const present = new Set((rows ?? []).map((r) => r.event.category?.[0]).filter(Boolean));
+  const present = new Set((rows ?? []).flatMap((r) => r.event.category ?? []));
   const chips = CATEGORIES.filter((c) => present.has(c.key));
   const showFilter = chips.length >= 2;
 

@@ -48,9 +48,14 @@ export default function Guests() {
                       photoUrl={r.user?.photoUrl}
                       size="md"
                     />
-                    <Text weight="semibold" className="flex-1">
-                      {r.user?.displayName ?? "—"}
-                    </Text>
+                    <View className="flex-1">
+                      <Text weight="semibold">{r.user?.displayName ?? "—"}</Text>
+                      {r.userId === data?.event.creatorId && (
+                        <Text type="body-xs" color="muted">
+                          {t("event.organizerTag")}
+                        </Text>
+                      )}
+                    </View>
                     <View
                       className="rounded-full px-2.5 py-1"
                       style={{ backgroundColor: c.soft }}

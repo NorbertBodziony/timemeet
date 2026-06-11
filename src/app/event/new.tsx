@@ -2,14 +2,16 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, Image, Pressable, View } from "react-native";
-import { useMutation } from "convex/react";
-import { Card, Input, ListGroup, Separator, Text } from "heroui-native";
+import { useMutation, useQuery } from "convex/react";
+import { Button, Card, Input, ListGroup, Separator, Switch, Text } from "heroui-native";
 import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { FormLabel } from "../../components/FormLabel";
 import { Icon } from "../../components/Icon";
 import { PressableScale } from "../../components/PressableScale";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import { Screen } from "../../components/Screen";
+import { UserAvatar } from "../../components/UserAvatar";
 import { CATEGORIES, type CategoryKey } from "../../lib/categories";
 import { formatDateTime } from "../../lib/datetime";
 import { tap, warn } from "../../lib/haptics";
@@ -29,7 +31,13 @@ export default function NewEvent() {
   const { currentUser } = useAuth();
   const { celebrate } = useCelebrate();
   const create = useMutation(api.events.create);
+  const inviteFriend = useMutation(api.friends.inviteFriend);
+  const addItem = useMutation(api.items.add);
   const uploadUrlFor = useMutation(api.posts.generateUploadUrl);
+  const friends = useQuery(
+    api.friends.list,
+    currentUser ? { userId: currentUser._id } : "skip"
+  );
   // Prefilled when re-running a past meetup ("Plan again").
   const params = useLocalSearchParams<{ title?: string; address?: string }>();
 
@@ -43,9 +51,13 @@ export default function NewEvent() {
   });
   const [capacity, setCapacity] = useState("");
   const [minPeople, setMinPeople] = useState("");
-  const [category, setCategory] = useState<CategoryKey | null>(null);
+  const [categories, setCategories] = useState<CategoryKey[]>([]);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [invitees, setInvitees] = useState<Id<"users">[]>([]);
+  const [bring, setBring] = useState<string[]>([]);
+  const [bringDraft, setBringDraft] = useState("");
   const [cover, setCover] = useState<{ id: string; uri: string } | null>(null);
   const [coverBusy, setCoverBusy] = useState(false);
 
@@ -85,12 +97,22 @@ export default function NewEvent() {
         customAddress: address.trim() || undefined,
         description: description.trim() || undefined,
         coverImageId: cover ? (cover.id as never) : undefined,
-        category: category ? [category] : [],
-        visibility: "invite_only",
+        category: categories,
+        visibility: open ? "open" : "invite_only",
         waitlistEnabled: cap !== undefined,
         capacity: cap,
         minThreshold: minT,
       });
+      // Invites + bring-list picked in the form go out right away — best-effort,
+      // a failure here never blocks the freshly created meetup.
+      await Promise.allSettled([
+        ...invitees.map((friendId) =>
+          inviteFriend({ userId: currentUser._id, eventId, friendId })
+        ),
+        ...bring.map((title) =>
+          addItem({ userId: currentUser._id, eventId, title, claim: false })
+        ),
+      ]);
       celebrate(t("eventForm.created"));
       router.replace({ pathname: "/event/[id]", params: { id: eventId } });
     } catch (e) {
@@ -108,7 +130,7 @@ export default function NewEvent() {
             <Image
               source={{ uri: cover.uri }}
               className="w-full"
-              style={{ aspectRatio: 2.2 }}
+              style={{ aspectRatio: 16 / 9 }}
               resizeMode="cover"
             />
           )}
@@ -134,7 +156,9 @@ export default function NewEvent() {
               </Text>
             )}
             <Text type="body-xs" color="muted" className="mt-1">
-              {t("eventForm.inviteOnlyBy", { name: currentUser?.displayName ?? t("eventForm.you") })}
+              {t(open ? "eventForm.openBy" : "eventForm.inviteOnlyBy", {
+                name: currentUser?.displayName ?? t("eventForm.you"),
+              })}
             </Text>
           </Card.Body>
         </Card>
@@ -165,13 +189,53 @@ export default function NewEvent() {
         maxLength={1000}
       />
 
+      {/* Bring-list seeded at creation — items land up for grabs. */}
+      <FormLabel className="mt-5">{t("event.whatToBring")}</FormLabel>
+      {bring.map((b, i) => (
+        <View key={`${b}-${i}`} className="flex-row items-center gap-2 mb-2">
+          <Icon name="ellipse-outline" size={18} tint="muted" />
+          <Text className="flex-1">{b}</Text>
+          <Pressable hitSlop={8} onPress={() => setBring(bring.filter((_, j) => j !== i))}>
+            <Icon name="close" size={16} tint="muted" />
+          </Pressable>
+        </View>
+      ))}
+      <View className="flex-row gap-2 items-center">
+        <View className="flex-1">
+          <Input
+            value={bringDraft}
+            onChangeText={setBringDraft}
+            placeholder={t("event.bringPlaceholder")}
+            onSubmitEditing={() => {
+              if (bringDraft.trim()) {
+                setBring([...bring, bringDraft.trim()]);
+                setBringDraft("");
+              }
+            }}
+          />
+        </View>
+        <Button
+          variant="outline"
+          size="md"
+          isIconOnly
+          onPress={() => {
+            if (!bringDraft.trim()) return;
+            tap();
+            setBring([...bring, bringDraft.trim()]);
+            setBringDraft("");
+          }}
+        >
+          <Icon name="add" size={18} tint="foreground" />
+        </Button>
+      </View>
+
       <FormLabel className="mt-5">{t("eventForm.cover")}</FormLabel>
       <Pressable onPress={pickCover}>
         {cover ? (
           <Image
             source={{ uri: cover.uri }}
             className="w-full rounded-2xl"
-            style={{ aspectRatio: 2.2 }}
+            style={{ aspectRatio: 16 / 9 }}
             resizeMode="cover"
           />
         ) : (
@@ -207,11 +271,15 @@ export default function NewEvent() {
       <FormLabel className="mt-5">{t("eventForm.category")}</FormLabel>
       <View className="flex-row flex-wrap gap-2">
         {CATEGORIES.map((c) => {
-          const on = category === c.key;
+          const on = categories.includes(c.key);
           return (
             <PressableScale
               key={c.key}
-              onPress={() => setCategory(on ? null : c.key)}
+              onPress={() =>
+                setCategories(
+                  on ? categories.filter((k) => k !== c.key) : [...categories, c.key]
+                )
+              }
               style={{ borderRadius: 999 }}
             >
               <View
@@ -257,6 +325,64 @@ export default function NewEvent() {
       <Text type="body-xs" color="muted" className="mt-1.5 ml-1">
         {t("eventForm.antiFlakeHint")}
       </Text>
+
+      <View className="mt-5 flex-row items-center justify-between">
+        <View className="flex-1 pr-3">
+          <Text weight="semibold">{t("eventForm.open")}</Text>
+          <Text type="body-xs" color="muted">
+            {t("eventForm.openHint")}
+          </Text>
+        </View>
+        <Switch
+          isSelected={open}
+          onSelectedChange={(v) => {
+            tap();
+            setOpen(v);
+          }}
+        />
+      </View>
+
+      {/* Pick friends now — invites go out the moment the meetup is published. */}
+      {!!friends && friends.length > 0 && (
+        <>
+          <FormLabel className="mt-5">{t("eventForm.inviteNow")}</FormLabel>
+          <View className="flex-row flex-wrap gap-3">
+            {friends.map((f) => {
+              const on = invitees.includes(f._id);
+              return (
+                <Pressable
+                  key={f._id}
+                  onPress={() => {
+                    tap();
+                    setInvitees(
+                      on ? invitees.filter((i) => i !== f._id) : [...invitees, f._id]
+                    );
+                  }}
+                  className="items-center gap-1 w-16"
+                  style={{ opacity: on ? 1 : 0.45 }}
+                >
+                  <View>
+                    <UserAvatar name={f.displayName} photoUrl={f.photoUrl} size="md" />
+                    {on && (
+                      <View className="absolute -right-1 -bottom-1 rounded-full bg-background">
+                        <Icon name="checkmark-circle" size={18} tint="success" />
+                      </View>
+                    )}
+                  </View>
+                  <Text type="body-xs" color={on ? "default" : "muted"} numberOfLines={1}>
+                    {f.displayName.split(" ")[0]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {invitees.length > 0 && (
+            <Text type="body-xs" color="muted" className="mt-1.5 ml-1">
+              {t("eventForm.inviteNowHint")}
+            </Text>
+          )}
+        </>
+      )}
 
       <View className="mt-5">
         <PrimaryButton label={t("eventForm.preview")} onPress={() => setPreview(true)} disabled={!valid} />

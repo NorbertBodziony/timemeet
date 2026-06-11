@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { View } from "react-native";
 import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated";
@@ -17,12 +17,16 @@ const Ctx = createContext<PushApi | null>(null);
 export function MockPushProvider({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
   const [banner, setBanner] = useState<PushPayload | null>(null);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const push = useCallback((payload: PushPayload) => {
     // eslint-disable-next-line no-console
     console.log("[mockPush]", payload.title);
+    // One banner at a time: a new push replaces the current one and restarts
+    // the clock, so an old timer never hides the new banner early.
+    if (hideTimer.current) clearTimeout(hideTimer.current);
     setBanner(payload);
-    setTimeout(() => setBanner(null), 3000);
+    hideTimer.current = setTimeout(() => setBanner(null), 3000);
   }, []);
 
   return (

@@ -19,14 +19,17 @@ export const listForEvent = query({
   },
 });
 
-// Add a thing to bring. The creator claims it by default (they suggested it).
+// Add a thing to bring. The creator claims it by default (they suggested it);
+// claim: false leaves it up for grabs — used when the organizer seeds the list
+// while creating the event.
 export const add = mutation({
   args: {
     userId: v.id("users"),
     eventId: v.id("events"),
     title: v.string(),
+    claim: v.optional(v.boolean()),
   },
-  handler: async (ctx, { userId, eventId, title }) => {
+  handler: async (ctx, { userId, eventId, title, claim }) => {
     await requireEventParticipant(ctx, userId, eventId, "errors.joinToList");
     const text = title.trim();
     if (!text) throw new ConvexError({ k: "errors.nameItem" });
@@ -34,7 +37,7 @@ export const add = mutation({
       eventId,
       title: text,
       createdBy: userId,
-      claimedBy: userId,
+      claimedBy: claim === false ? undefined : userId,
     });
   },
 });

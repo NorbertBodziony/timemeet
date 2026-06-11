@@ -140,12 +140,28 @@ export function EventCard({
                 )}
               </View>
             ) : (
-              counts && (
+              (counts || status) && (
                 <View className="flex-row items-center gap-1 mt-1">
-                  <Icon name="people-outline" size={13} tint="muted" />
-                  <Text type="body-xs" color="muted">
-                    {t("event.goingMaybe", { going: counts.going, maybe: counts.maybe })}
-                  </Text>
+                  {counts && (
+                    <>
+                      <Icon name="people-outline" size={13} tint="muted" />
+                      <Text type="body-xs" color="muted">
+                        {t("event.goingMaybe", { going: counts.going, maybe: counts.maybe })}
+                      </Text>
+                    </>
+                  )}
+                  {/* Status pill in the RSVP palette — lives on the meta line so
+                      the title never fights it for width. */}
+                  {status && statusColor && (
+                    <View
+                      className="rounded-full px-2.5 py-1 ml-auto"
+                      style={{ backgroundColor: statusColor.soft }}
+                    >
+                      <Text type="body-xs" weight="semibold" style={{ color: statusColor.softFg }}>
+                        {t(status.labelKey)}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )
             )}
@@ -159,18 +175,6 @@ export function EventCard({
               style={{ width: 44, height: 44 }}
               resizeMode="cover"
             />
-          )}
-
-          {/* Status pill in the RSVP palette (upcoming only) */}
-          {!past && status && statusColor && (
-            <View
-              className="rounded-full px-2.5 py-1"
-              style={{ backgroundColor: statusColor.soft }}
-            >
-              <Text type="body-xs" weight="semibold" style={{ color: statusColor.softFg }}>
-                {t(status.labelKey)}
-              </Text>
-            </View>
           )}
         </View>
       </View>

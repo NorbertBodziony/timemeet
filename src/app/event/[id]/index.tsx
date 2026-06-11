@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Image, Pressable, Share, View } from "react-native";
 import * as ExpoLinking from "expo-linking";
 import { useMutation, useQuery } from "convex/react";
@@ -15,6 +15,7 @@ import { SectionHeader } from "../../../components/SectionHeader";
 import { SurfaceCard } from "../../../components/SurfaceCard";
 import { StarRating } from "../../../components/StarRating";
 import { UserAvatar } from "../../../components/UserAvatar";
+import { CATEGORIES } from "../../../lib/categories";
 import { formatDateTime } from "../../../lib/datetime";
 import { attempt, errorMessage } from "../../../lib/attempt";
 import { success, tap, warn } from "../../../lib/haptics";
@@ -62,6 +63,18 @@ export default function EventDetail() {
     if (rating?.mine && note === null) setNote(rating.mine.note ?? "");
   }, [rating, note]);
 
+  // Debounced autosave for the recap note: typing schedules a save; leaving the
+  // screen flushes whatever is pending so the opinion never gets lost.
+  const noteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveNoteRef = useRef<() => void>(() => {});
+  useEffect(
+    () => () => {
+      if (noteTimer.current) clearTimeout(noteTimer.current);
+      saveNoteRef.current();
+    },
+    []
+  );
+
   if (data === undefined) return <Screen title={t("common.loading")} dismiss="back">{null}</Screen>;
   if (data === null)
     return <Screen title={t("common.eventNotFound")} dismiss="back">{null}</Screen>;
@@ -91,14 +104,23 @@ export default function EventDetail() {
   }
 
   async function saveNote() {
-    if (!currentUser || !myStars) return;
+    if (!currentUser || !myStars || note === null) return;
+    if (note.trim() === (rating?.mine?.note ?? "")) return; // nothing new to send
     const ok = await attempt(() =>
-      setRating({ userId: currentUser._id, eventId, stars: myStars, note: note ?? undefined })
+      setRating({ userId: currentUser._id, eventId, stars: myStars, note })
     );
     if (ok) {
       setNoteSaved(true);
       setTimeout(() => setNoteSaved(false), 2000);
     }
+  }
+  saveNoteRef.current = saveNote;
+
+  function onNoteChange(text: string) {
+    setNote(text);
+    if (noteTimer.current) clearTimeout(noteTimer.current);
+    // saveNoteRef holds the latest closure, so the timer sees this keystroke.
+    noteTimer.current = setTimeout(() => saveNoteRef.current(), 800);
   }
 
   async function addBringItem() {
@@ -184,13 +206,22 @@ export default function EventDetail() {
         </View>
       )}
 
-      {!!coverUrl && (
+      {coverUrl ? (
         <Image
           source={{ uri: coverUrl }}
           className="w-full rounded-2xl mb-4"
-          style={{ aspectRatio: 2.2 }}
+          style={{ aspectRatio: 16 / 9 }}
           resizeMode="cover"
         />
+      ) : (
+        <View
+          className="w-full rounded-2xl mb-4 bg-accent-soft items-center justify-center"
+          style={{ aspectRatio: 16 / 9 }}
+        >
+          <Text style={{ fontSize: 44 }}>
+            {CATEGORIES.find((c) => c.key === event.category?.[0])?.emoji ?? "🗓️"}
+          </Text>
+        </View>
       )}
       <Card className="mb-5">
         <Card.Body className="gap-2">
@@ -295,7 +326,7 @@ export default function EventDetail() {
             <StarRating value={myStars} onChange={rate} size={28} />
             <Input
               value={note ?? ""}
-              onChangeText={setNote}
+              onChangeText={onNoteChange}
               placeholder={t("event.notePlaceholder")}
               editable={myStars > 0}
               onEndEditing={saveNote}
@@ -309,12 +340,40 @@ export default function EventDetail() {
         </Card>
       )}
 
+      {/* What people said — recent notes from everyone's ratings. */}
+      {!cancelled && isPast && !!rating && rating.recent.length > 0 && (
+        <View>
+          <SectionHeader>{t("event.opinions")}</SectionHeader>
+          {rating.recent.map((r, i) => (
+            <Card key={i} className="mb-2">
+              <Card.Body className="gap-1.5 py-2.5">
+                <View className="flex-row items-center gap-2">
+                  <UserAvatar name={r.user?.displayName} photoUrl={r.user?.photoUrl} size="sm" />
+                  <Text type="body-sm" weight="semibold" className="flex-1" numberOfLines={1}>
+                    {r.user?.displayName?.split(" ")[0] ?? "—"}
+                  </Text>
+                  <StarRating value={r.stars} size={14} />
+                </View>
+                <Text type="body-sm" color="muted" className="leading-5">
+                  {r.note}
+                </Text>
+              </Card.Body>
+            </Card>
+          ))}
+        </View>
+      )}
+
       {!cancelled && !isPast && (
         <>
-          <Text type="body-sm" weight="semibold" color="muted" className="mb-2 ml-1">
-            {t("event.areYouIn")}
-          </Text>
-          <RsvpPicker value={viewerStatus} onChange={onRsvp} />
+          {/* The organizer is hosting, not a guest — no RSVP question for them. */}
+          {!isOrganizer && (
+            <>
+              <Text type="body-sm" weight="semibold" color="muted" className="mb-2 ml-1">
+                {t("event.areYouIn")}
+              </Text>
+              <RsvpPicker value={viewerStatus} onChange={onRsvp} />
+            </>
+          )}
           <View className="flex-row gap-2.5 mt-3">
             <SecondaryButton
               className="flex-1"
@@ -331,6 +390,17 @@ export default function EventDetail() {
               onPress={calendar}
             />
           </View>
+          {!isOrganizer && (
+            <View className="mt-2.5">
+              <SecondaryButton
+                icon="chatbubble-ellipses-outline"
+                label={t("event.contactOrganizer")}
+                onPress={() =>
+                  router.push({ pathname: "/event/[id]/board" as never, params: { id: eventId } })
+                }
+              />
+            </View>
+          )}
         </>
       )}
 
@@ -447,6 +517,25 @@ export default function EventDetail() {
             <Button.Label className="text-danger">{t("event.cancelMeetup")}</Button.Label>
           </Button>
         </View>
+      )}
+
+      {/* Quiet report path for guests (mailto, like settings/help). */}
+      {!isOrganizer && (
+        <Pressable
+          onPress={() =>
+            ExpoLinking.openURL(
+              `mailto:hej@meettime.app?subject=${encodeURIComponent(
+                `Zgłoszenie: ${event.title} (${eventId})`
+              )}`
+            )
+          }
+          className="mt-7 flex-row items-center justify-center gap-1.5 py-2"
+        >
+          <Icon name="flag-outline" size={14} tint="muted" />
+          <Text type="body-xs" color="muted">
+            {t("event.report")}
+          </Text>
+        </Pressable>
       )}
     </Screen>
   );
